@@ -106,7 +106,7 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
               {/* Subtitle with animation */}
               <p
                 key={`subtitle-${currentStep}`}
-                className="text-[#4F46E5] font-medium mb-8 animate-fade-in"
+                className="text-brand-primary font-medium mb-8 animate-fade-in"
                 style={{ animationDelay: "0.2s" }}
               >
                 {currentStepData.subtitle}
