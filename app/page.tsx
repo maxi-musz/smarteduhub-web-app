@@ -130,8 +130,8 @@ const Home = () => {
                 What school leaders are saying
               </h2>
               <p className="text-xl text-gray-600">
-                Don't just take our word for it. Here's what educators using
-                SmartEdu Hub have to say.
+                Don&apos;t just take our word for it. Here&apos;s what educators
+                using SmartEdu Hub have to say.
               </p>
             </div>
 
@@ -163,7 +163,7 @@ const Home = () => {
                             />
                           ))}
                         </div>
-                        <p className="italic">"{testimonial.text}"</p>
+                        <p className="italic">&quot;{testimonial.text}&quot;</p>
                       </CardContent>
                     </Card>
                   </CarouselItem>
