@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import Image from "next/image";
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -133,8 +134,10 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
                 key={`img-large-${currentStep}`}
                 className="col-span-2 animate-scale-in"
               >
-                <img
+                <Image
                   src={currentStepData.images[0]}
+                  width={500}
+                  height={300}
                   alt="Main illustration"
                   className="w-full h-48 object-cover rounded-lg shadow-lg"
                 />
@@ -146,8 +149,10 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
                 className="animate-scale-in"
                 style={{ animationDelay: "0.1s" }}
               >
-                <img
+                <Image
                   src={currentStepData.images[1]}
+                  width={250}
+                  height={150}
                   alt="Secondary illustration"
                   className="w-full h-32 object-cover rounded-lg shadow-lg"
                 />
@@ -158,8 +163,10 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
                 className="animate-scale-in"
                 style={{ animationDelay: "0.2s" }}
               >
-                <img
+                <Image
                   src={currentStepData.images[2]}
+                  width={250}
+                  height={150}
                   alt="Tertiary illustration"
                   className="w-full h-32 object-cover rounded-lg shadow-lg"
                 />

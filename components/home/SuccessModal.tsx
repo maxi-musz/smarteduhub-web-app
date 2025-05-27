@@ -40,8 +40,9 @@ const SuccessModal = ({ open, onClose }: SuccessModalProps) => {
           {/* Description */}
           <p className="mt-0 text-brand-secondary text-sm leading-relaxed">
             Thank you for registering your school with us. Our team is reviewing
-            your application, and we'll reach out soon with your login details
-            via email or phone. Stay tuned — you're almost set to go
+            your application, and we&apos;ll reach out soon with your login
+            details via email or phone. Stay tuned — you&apos;re almost set to
+            go
           </p>
 
           {/* Continue Button */}

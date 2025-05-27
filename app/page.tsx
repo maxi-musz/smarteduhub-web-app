@@ -16,7 +16,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Star, Award } from "lucide-react";
+import { Star } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import Navigation from "@/components/home/Header";
@@ -26,7 +26,7 @@ import BenefitsSection from "@/components/home/BenefitsSection";
 import FeaturesSection from "@/components/home/FeatureSection";
 
 const Home = () => {
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  // const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   const testimonials = [
     {
@@ -85,15 +85,15 @@ const Home = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const nextTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-  };
+  // const nextTestimonial = () => {
+  //   setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+  // };
 
-  const prevTestimonial = () => {
-    setCurrentTestimonial(
-      (prev) => (prev - 1 + testimonials.length) % testimonials.length
-    );
-  };
+  // const prevTestimonial = () => {
+  //   setCurrentTestimonial(
+  //     (prev) => (prev - 1 + testimonials.length) % testimonials.length
+  //   );
+  // };
 
   return (
     <>
@@ -313,14 +313,14 @@ const Home = () => {
                   <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="progress">
                       <AccordionTrigger className="text-left">
-                        How can I track my child's progress?
+                        How can I track my child&apos;s progress?
                       </AccordionTrigger>
                       <AccordionContent>
                         Parents have access to a dedicated portal where you can
                         view real-time grades, attendance records, assignment
-                        submissions, and teacher feedback. You'll also receive
-                        notifications about important updates and upcoming
-                        events.
+                        submissions, and teacher feedback. You&apos;ll also
+                        receive notifications about important updates and
+                        upcoming events.
                       </AccordionContent>
                     </AccordionItem>
 
@@ -332,7 +332,7 @@ const Home = () => {
                         Our platform includes secure messaging, scheduled
                         parent-teacher conferences, and announcement systems.
                         You can easily reach out to teachers, view school
-                        announcements, and stay connected with your child's
+                        announcements, and stay connected with your child&apos;s
                         education.
                       </AccordionContent>
                     </AccordionItem>
