@@ -122,7 +122,7 @@ const VerifyOtp = () => {
               : "bg-gray-300 cursor-not-allowed"
           }`}
         >
-          Verify OTP
+          Verify & Continue
         </Button>
 
         {/* Resend OTP */}
