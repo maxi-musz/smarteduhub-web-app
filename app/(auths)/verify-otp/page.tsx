@@ -6,7 +6,7 @@ import { IconHeading } from "@/components/IconHeading";
 
 const VerifyOtp = () => {
   const router = useRouter();
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", ""]); // Only 4 values now
   const [timeLeft, setTimeLeft] = useState(60);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -26,7 +26,7 @@ const VerifyOtp = () => {
     setOtp(newOtp);
 
     // Auto-focus next input
-    if (value && index < 5) {
+    if (value && index < 3) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -40,10 +40,10 @@ const VerifyOtp = () => {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").slice(0, 6);
+    const pastedData = e.clipboardData.getData("text").slice(0, 4); // Only 4 digits
     const newOtp = [...otp];
 
-    for (let i = 0; i < pastedData.length && i < 6; i++) {
+    for (let i = 0; i < pastedData.length && i < 4; i++) {
       newOtp[i] = pastedData[i];
     }
     setOtp(newOtp);
@@ -66,7 +66,7 @@ const VerifyOtp = () => {
   const handleResendOtp = () => {
     console.log("Resending OTP...");
     setTimeLeft(60);
-    setOtp(["", "", "", "", "", ""]);
+    setOtp(["", "", "", ""]);
     inputRefs.current[0]?.focus();
   };
 
@@ -76,15 +76,11 @@ const VerifyOtp = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <IconHeading />
-          {/* <h1 className="text-2xl font-semibold text-brand-primary mb-6">
-            SmartEdu-Hub
-          </h1> */}
-
           <h2 className="text-xl font-medium text-brand-heading mb-2">
             Verify your email
           </h2>
           <p className="text-brand-light-accent-1 text-sm">
-            We&apos;ve sent a 6-digit verification code to your email address.
+            We&apos;ve sent a 4-digit verification code to your email address.
             Please enter it below to verify your account.
           </p>
         </div>
