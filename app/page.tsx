@@ -15,6 +15,7 @@ import HeroSection from "@/components/home/Hero";
 import PartnersSection from "@/components/home/Partners";
 import BenefitsSection from "@/components/home/BenefitsSection";
 import FeaturesSection from "@/components/home/FeatureSection";
+import Footer from "@/components/home/Footer";
 
 const Home = () => {
   return (
@@ -213,143 +214,9 @@ const Home = () => {
             </div>
           </div>
         </section>
+
         {/* Footer - Side by Side Layout */}
-        <footer className="bg-gray-900 text-white py-12">
-          <div className="container mx-auto px-6">
-            <div className="grid md:grid-cols-2 gap-8 mb-8 items-center">
-              <div>
-                <h3 className="text-2xl font-bold mb-4">
-                  Get the latest updates about SmartEdu Hub features and
-                  releases
-                </h3>
-              </div>
-              <div className="flex gap-4">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400"
-                />
-                <Button className="bg-brand-primary hover:bg-[#4338CA] px-6 py-3 h-auto">
-                  Subscribe
-                </Button>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-800 pt-8">
-              <div className="grid md:grid-cols-4 gap-8 mb-8">
-                <div>
-                  <h4 className="font-semibold mb-4">Product</h4>
-                  <ul className="space-y-2 text-gray-400">
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Features
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Pricing
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Updates
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Support
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-4">Company</h4>
-                  <ul className="space-y-2 text-gray-400">
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        About
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Blog
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Security
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Contact
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-4">Resources</h4>
-                  <ul className="space-y-2 text-gray-400">
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Documentation
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Tutorials
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Case Studies
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        FAQs
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-4">Legal</h4>
-                  <ul className="space-y-2 text-gray-400">
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Privacy
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Terms
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Security
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="hover:text-white">
-                        Cookies
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-800 pt-8">
-                <p className="text-gray-400 text-center">
-                  © 2024 SmartEdu Hub. All rights reserved.
-                </p>
-              </div>
-            </div>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </>
   );
