@@ -13,7 +13,7 @@ export default function FeaturesSection() {
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 w-full lg:w-3/5 mx-auto">
           <h2 className="text-4xl font-bold text-brand-heading mb-4">
             Everything you need to manage education effectively
           </h2>

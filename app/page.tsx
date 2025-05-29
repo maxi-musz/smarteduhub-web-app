@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Accordion,
@@ -9,15 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { Star } from "lucide-react";
-import { useEffect } from "react";
+import Testimonials from "@/components/home/Testimonials";
 
 import Navigation from "@/components/home/Header";
 import HeroSection from "@/components/home/Hero";
@@ -26,75 +17,6 @@ import BenefitsSection from "@/components/home/BenefitsSection";
 import FeaturesSection from "@/components/home/FeatureSection";
 
 const Home = () => {
-  // const [currentTestimonial, setCurrentTestimonial] = useState(0);
-
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "Principal, Westside High School",
-      text: "EduManage has completely transformed how we run our school. We've reduced paperwork by over 90% and our staff can focus on what really matters - teaching our students.",
-      avatar: "/lovable-uploads/placeholder-avatar-1.jpg",
-      rating: 5,
-    },
-    {
-      name: "Michael Rodriguez",
-      role: "Administrator, Lincoln Elementary",
-      text: "The administrative time savings have been incredible. Tasks that used to take days now take minutes, and our parents love having digital access to their children's information.",
-      avatar: "/lovable-uploads/placeholder-avatar-2.jpg",
-      rating: 5,
-    },
-    {
-      name: "Emma Parker",
-      role: "5th Grade Teacher, Oakridge Academy",
-      text: "As a teacher, I can easily track student progress, plan lessons, and communicate with parents all in one place. EduManage has made my job so much easier and more effective.",
-      avatar: "/lovable-uploads/placeholder-avatar-3.jpg",
-      rating: 5,
-    },
-    {
-      name: "David Chen",
-      role: "IT Director, Metro Schools",
-      text: "Implementation was seamless and the support team was exceptional. Our entire district is now more efficient and data-driven than ever before.",
-      avatar: "/lovable-uploads/placeholder-avatar-4.jpg",
-      rating: 5,
-    },
-  ];
-
-  const partners = [
-    { name: "Samsung Pay", icon: "💳" },
-    { name: "Western Union", icon: "💰" },
-    { name: "Payoneer", icon: "🏦" },
-    { name: "American Express", icon: "💳" },
-    { name: "Bitcoin", icon: "₿" },
-    { name: "OpenSea", icon: "🌊" },
-    { name: "Gumroad", icon: "🛍️" },
-    { name: "Square", icon: "⬜" },
-  ];
-
-  // Infinite scroll effect for partners
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const container = document.getElementById("partners-container");
-      if (container) {
-        container.scrollLeft += 1;
-        if (container.scrollLeft >= container.scrollWidth / 2) {
-          container.scrollLeft = 0;
-        }
-      }
-    }, 30);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // const nextTestimonial = () => {
-  //   setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-  // };
-
-  // const prevTestimonial = () => {
-  //   setCurrentTestimonial(
-  //     (prev) => (prev - 1 + testimonials.length) % testimonials.length
-  //   );
-  // };
-
   return (
     <>
       {/* Navigation */}
@@ -110,7 +32,7 @@ const Home = () => {
         <HeroSection />
 
         {/* Partners Section - Infinite Loop */}
-        <PartnersSection partners={partners} />
+        <PartnersSection />
       </div>
 
       <div className="bg-white">
@@ -118,62 +40,11 @@ const Home = () => {
         {/* <FeatureCard />
          */}
         <FeaturesSection />
-
         {/* Benefits Section - Blue Icons and Dots */}
         <BenefitsSection />
 
         {/* Testimonials Section - Proper Carousel */}
-        <section className="py-20 bg-gray-50">
-          <div className="container mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-brand-heading mb-4">
-                What school leaders are saying
-              </h2>
-              <p className="text-xl text-gray-600">
-                Don&apos;t just take our word for it. Here&apos;s what educators
-                using SmartEdu Hub have to say.
-              </p>
-            </div>
-
-            <Carousel className="max-w-6xl mx-auto">
-              <CarouselContent>
-                {testimonials.map((testimonial, index) => (
-                  <CarouselItem
-                    key={index}
-                    className="md:basis-1/2 lg:basis-1/3"
-                  >
-                    <Card className="p-6 h-full transition-all duration-300 hover:bg-brand-primary hover:text-white group">
-                      <CardContent className="p-0">
-                        <div className="flex items-center mb-4">
-                          <div className="w-12 h-12 bg-gray-300 rounded-full mr-3"></div>
-                          <div>
-                            <h4 className="font-semibold">
-                              {testimonial.name}
-                            </h4>
-                            <p className="text-sm opacity-70">
-                              {testimonial.role}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex mb-4">
-                          {[...Array(testimonial.rating)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className="w-4 h-4 fill-current text-yellow-400"
-                            />
-                          ))}
-                        </div>
-                        <p className="italic">&quot;{testimonial.text}&quot;</p>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </div>
-        </section>
+        <Testimonials />
 
         {/* FAQ Section - Working Accordion */}
         <section className="py-20 bg-white">
@@ -342,7 +213,6 @@ const Home = () => {
             </div>
           </div>
         </section>
-
         {/* Footer - Side by Side Layout */}
         <footer className="bg-gray-900 text-white py-12">
           <div className="container mx-auto px-6">
