@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
-import ConeBar from "@/components/ui/conebar";
+import { IconHeading } from "@/components/IconHeading";
 
 const Login = () => {
   const router = useRouter();
@@ -39,13 +39,7 @@ const Login = () => {
         {/* Header */}
         <div className="text-center mb-8">
           {/* Logo and Title */}
-          <div className="w-full flex items-center justify-center gap-x-4 md:gap-x-20 mb-6">
-            <ConeBar className="w-8 md:w-14 h-2 text-brand-primary rotate-180" />
-            <h1 className="text-base md:text-xl font-bold text-brand-primary text-nowrap">
-              SmartEdu-Hub
-            </h1>
-            <ConeBar className="w-8 md:w-14 h-2 text-brand-primary" />
-          </div>
+          <IconHeading />
 
           <h2 className="text-xl font-medium text-brand-heading mb-2">
             Welcome back!
