@@ -1,0 +1,157 @@
+"use client";
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+
+const VerifyOtp = () => {
+  const router = useRouter();
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Timer for resend OTP
+  useEffect(() => {
+    if (timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [timeLeft]);
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length > 1) return; // Only allow single digit
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    // Handle backspace
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").slice(0, 6);
+    const newOtp = [...otp];
+
+    for (let i = 0; i < pastedData.length && i < 6; i++) {
+      newOtp[i] = pastedData[i];
+    }
+    setOtp(newOtp);
+  };
+
+  const isOtpComplete = () => {
+    return otp.every((digit) => digit !== "");
+  };
+
+  const handleVerify = () => {
+    if (isOtpComplete()) {
+      const otpCode = otp.join("");
+      console.log("OTP verification code:", otpCode);
+      // Here you would typically verify the OTP with your backend
+      // For now, just navigate to dashboard or home
+      router.push("/");
+    }
+  };
+
+  const handleResendOtp = () => {
+    console.log("Resending OTP...");
+    setTimeLeft(60);
+    setOtp(["", "", "", "", "", ""]);
+    inputRefs.current[0]?.focus();
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-sm p-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-semibold text-[#4F46E5] mb-6">
+            SmartEdu-Hub
+          </h1>
+
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Verify your email
+          </h2>
+          <p className="text-gray-500 text-sm">
+            We&apos;ve sent a 6-digit verification code to your email address.
+            Please enter it below to verify your account.
+          </p>
+        </div>
+
+        {/* OTP Input */}
+        <div className="mb-6">
+          <div className="flex justify-center space-x-3">
+            {otp.map((digit, index) => (
+              <input
+                key={index}
+                ref={(el) => {
+                  inputRefs.current[index] = el;
+                }}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleOtpChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                onPaste={handlePaste}
+                className="w-12 h-12 text-center text-lg font-medium border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4F46E5] focus:border-[#4F46E5] outline-none transition-colors"
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Verify Button */}
+        <Button
+          onClick={handleVerify}
+          disabled={!isOtpComplete()}
+          className={`w-full py-3 text-white font-medium rounded-lg transition-colors mb-6 ${
+            isOtpComplete()
+              ? "bg-[#4F46E5] hover:bg-[#4338CA]"
+              : "bg-gray-300 cursor-not-allowed"
+          }`}
+        >
+          Verify OTP
+        </Button>
+
+        {/* Resend OTP */}
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Didn&apos;t receive the code?{" "}
+            {timeLeft > 0 ? (
+              <span className="text-gray-400">Resend in {timeLeft}s</span>
+            ) : (
+              <button
+                onClick={handleResendOtp}
+                className="font-medium text-[#4F46E5] hover:text-[#4338CA]"
+              >
+                Resend OTP
+              </button>
+            )}
+          </p>
+        </div>
+
+        {/* Back to Login */}
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => router.push("/login")}
+            className="text-sm font-medium text-[#4F46E5] hover:text-[#4338CA]"
+          >
+            ← Back to login
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default VerifyOtp;
