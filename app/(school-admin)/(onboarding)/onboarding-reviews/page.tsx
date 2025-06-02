@@ -4,7 +4,23 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useOnboarding } from "@/contexts/OnboardingContext";
-// import { ChevronDown } from "lucide-react";
+import { School, User, GraduationCap, ShieldUser } from "lucide-react";
+
+// Custom ListDotIcon SVG component (replace with your Figma SVG)
+const ListDotIcon = ({ className = "" }: { className?: string }) => (
+  <svg
+    width="10"
+    height="10"
+    viewBox="0 0 16 16"
+    fill="currentColor"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <circle cx="8" cy="8" r="6" fill="#E2E8F0" />
+    <circle cx="8" cy="8" r="3" fill="#E2E8F0" />
+  </svg>
+);
 
 const OnboardReviews = () => {
   const router = useRouter();
@@ -22,11 +38,11 @@ const OnboardReviews = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-white p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-brand-primary mb-8">
+          <h1 className="text-2xl font-semibold text-brand-primary my-8">
             SmartEdu-Hub
           </h1>
         </div>
@@ -43,12 +59,12 @@ const OnboardReviews = () => {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-lg border-2 border-brand-border p-8">
+        <div className="bg-brand-bg rounded-md border-2 border-brand-border p-8">
           <div className="text-center mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2 className="text-xl font-semibold text-brand-heading mb-2">
               Review & Complete Setup
             </h2>
-            <p className="text-gray-600 text-sm">
+            <p className="text-brand-light-accent-2 text-sm">
               All setup data has been configured & ready to go. You can now
               proceed to your admin
               <br />
@@ -60,42 +76,46 @@ const OnboardReviews = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             {/* Classes */}
             <ReviewCard
-              iconLabel="C"
+              icon={<School className="w-5 h-5 text-white" />}
               iconColor="bg-brand-primary"
               title={`Classes (${data?.classes?.length || 0})`}
               items={data?.classes || []}
               renderItem={(item) => item}
+              ListDotIcon={ListDotIcon}
             />
 
             {/* Teachers */}
             <ReviewCard
-              iconLabel="T"
+              icon={<User className="w-5 h-5 text-white" />}
               iconColor="bg-red-500"
               title={`Teachers (${data?.teachers?.length || 0})`}
               items={data?.teachers || []}
               renderItem={(teacher) =>
                 `${teacher.firstName} ${teacher.lastName}`
               }
+              ListDotIcon={ListDotIcon}
             />
 
             {/* Students */}
             <ReviewCard
-              iconLabel="S"
+              icon={<GraduationCap className="w-5 h-5 text-white" />}
               iconColor="bg-green-500"
               title={`Students (${data?.students?.length || 0})`}
               items={data?.students || []}
               renderItem={(student) =>
                 `${student.firstName} ${student.lastName} (${student.defaultClass})`
               }
+              ListDotIcon={ListDotIcon}
             />
 
             {/* Admins */}
             <ReviewCard
-              iconLabel="A"
+              icon={<ShieldUser className="w-5 h-5 text-white" />}
               iconColor="bg-orange-500"
               title={`Admins (${data?.admins?.length || 0})`}
               items={data?.admins || []}
               renderItem={(admin) => `${admin.firstName} ${admin.lastName}`}
+              ListDotIcon={ListDotIcon}
             />
           </div>
 
@@ -106,7 +126,7 @@ const OnboardReviews = () => {
             </Button>
             <Button
               onClick={handleProceed}
-              className="bg-brand-primary hover:bg-brand-primary/90 text-white px-8"
+              className="bg-brand-primary hover:bg-brand-primary-hover text-white px-8"
             >
               Proceed to School Dashboard
             </Button>
@@ -118,19 +138,21 @@ const OnboardReviews = () => {
 };
 
 type ReviewCardProps<T> = {
-  iconLabel: string;
+  icon: React.ReactNode;
   iconColor: string;
   title: string;
   items: T[];
   renderItem: (item: T) => string;
+  ListDotIcon: React.FC<{ className?: string }>;
 };
 
 function ReviewCard<T>({
-  iconLabel,
+  icon,
   iconColor,
   title,
   items,
   renderItem,
+  ListDotIcon,
 }: ReviewCardProps<T>) {
   return (
     <div>
@@ -138,13 +160,16 @@ function ReviewCard<T>({
         <div
           className={`w-8 h-8 ${iconColor} rounded-full flex items-center justify-center`}
         >
-          <span className="text-white text-sm font-medium">{iconLabel}</span>
+          {icon}
         </div>
         <h3 className="font-semibold text-gray-900">{title}</h3>
       </div>
       <div className="space-y-1 text-sm text-gray-600 max-h-48 overflow-y-auto pr-1">
         {items.map((item, idx) => (
-          <div key={idx}>{renderItem(item)}</div>
+          <div key={idx} className="flex items-center gap-2">
+            <ListDotIcon className="size-2.5" />
+            <span>{renderItem(item)}</span>
+          </div>
         ))}
       </div>
     </div>
