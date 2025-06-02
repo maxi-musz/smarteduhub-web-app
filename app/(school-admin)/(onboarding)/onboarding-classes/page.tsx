@@ -56,7 +56,7 @@ const OnboardClasses = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-white p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -68,7 +68,9 @@ const OnboardClasses = () => {
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-600">Step 1 of 5</span>
+            <span className="text-sm text-brand-light-accent-2 font-medium">
+              Step 1 of 5
+            </span>
             <span className="text-sm text-brand-primary font-medium">
               20% Complete
             </span>
@@ -77,12 +79,12 @@ const OnboardClasses = () => {
         </div>
 
         {/* Main Form Card */}
-        <div className="bg-white rounded-lg border-2 border-blue-400 p-8">
+        <div className="bg-brand-bg rounded-md border-2 border-brand-border p-8">
           <div className="text-center mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2 className="text-xl font-semibold text-brand-heading mb-2">
               Step 1 of 5: Add Your Classes
             </h2>
-            <p className="text-gray-600 text-sm">
+            <p className="text-brand-light-accent-2 text-sm">
               Define your school&apos;s class structure so it can be used when
               assigning
               <br />
@@ -95,7 +97,7 @@ const OnboardClasses = () => {
           <div className="mb-8">
             <div className="flex gap-4 items-end">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-brand-heading mb-2">
                   Select Class Level
                 </label>
                 <Select value={selectedLevel} onValueChange={setSelectedLevel}>
@@ -127,7 +129,7 @@ const OnboardClasses = () => {
               <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-4">
                 <Plus className="w-6 h-6 text-gray-400" />
               </div>
-              <p className="text-gray-500 text-sm">
+              <p className="text-brand-light-accent-2 text-sm">
                 No classes added yet. Add your first class to get started
               </p>
             </div>
@@ -140,9 +142,11 @@ const OnboardClasses = () => {
                 {classes.map((className, index) => (
                   <div
                     key={index}
-                    className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-md"
+                    className="inline-flex items-center gap-2 bg-white px-3 py-1 border-brand-border rounded-full border shadow-xs"
                   >
-                    <span className="text-sm text-gray-700">{className}</span>
+                    <span className="text-sm text-brand-light-accent-2">
+                      {className}
+                    </span>
                     <button
                       onClick={() => handleRemoveClass(index)}
                       className="text-gray-500 hover:text-gray-700"
@@ -156,7 +160,7 @@ const OnboardClasses = () => {
           )}
 
           {/* Next Button */}
-          <div className="flex justify-end">
+          <div className="flex justify-end border-t border-gray-200 pt-4 mt-8">
             <Button
               onClick={handleNext}
               disabled={classes.length === 0}

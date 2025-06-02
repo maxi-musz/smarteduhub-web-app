@@ -43,7 +43,7 @@ const OnboardReviews = () => {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-lg border-2 border-blue-400 p-8">
+        <div className="bg-white rounded-lg border-2 border-brand-border p-8">
           <div className="text-center mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               Review & Complete Setup
