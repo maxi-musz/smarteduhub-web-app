@@ -139,7 +139,9 @@ const AdminDashboard = () => {
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Dashboard Overview</h2>
+        <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-brand-heading">
+          Dashboard Overview
+        </h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">
             {new Date().toLocaleDateString()}
