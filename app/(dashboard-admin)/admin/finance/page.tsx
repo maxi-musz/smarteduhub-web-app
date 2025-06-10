@@ -6,9 +6,9 @@ import {
   TrendingUp,
   TrendingDown,
   FileText,
-  Calendar,
-  BarChart2,
-  PieChart,
+  // Calendar,
+  // BarChart2,
+  // PieChart,
   Download,
   Filter,
   Plus,
@@ -41,9 +41,9 @@ import { useToast } from "@/components/ui/use-toast";
 const AdminFinances = () => {
   // State for modals
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
-  const [showExpenseModal, setShowExpenseModal] = useState(false);
-  const [showPaymentDetailModal, setShowPaymentDetailModal] = useState(false);
-  const [activePayment, setActivePayment] = useState<Payment | null>(null);
+  // const [showExpenseModal, setShowExpenseModal] = useState(false);
+  // const [showPaymentDetailModal, setShowPaymentDetailModal] = useState(false);
+  // const [activePayment, setActivePayment] = useState<Payment | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
 
   // Add payment form state
@@ -168,20 +168,20 @@ const AdminFinances = () => {
 
   const COLORS = ["#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#d946ef"];
 
-  interface Payment {
-    id: number;
-    student: string;
-    class: string;
-    amount: number;
-    date: string;
-    status: string;
-    type: string;
-  }
+  // interface Payment {
+  //   id: number;
+  //   student: string;
+  //   class: string;
+  //   amount: number;
+  //   date: string;
+  //   status: string;
+  //   type: string;
+  // }
 
-  const openPaymentDetail = (payment: Payment) => {
-    setActivePayment(payment);
-    setShowPaymentDetailModal(true);
-  };
+  // const openPaymentDetail = (payment: Payment) => {
+  //   // setActivePayment(payment);
+  //   // setShowPaymentDetailModal(true);
+  // };
 
   interface StatusClassMap {
     [key: string]: string;
@@ -422,7 +422,7 @@ const AdminFinances = () => {
                         <tr
                           key={payment.id}
                           className="hover:bg-gray-50 cursor-pointer"
-                          onClick={() => openPaymentDetail(payment)}
+                          // onClick={() => openPaymentDetail(payment)}
                         >
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {payment.student}
@@ -453,7 +453,7 @@ const AdminFinances = () => {
                               className="text-brand-primary hover:text-indigo-900"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                openPaymentDetail(payment);
+                                // openPaymentDetail(payment);
                               }}
                             >
                               View
@@ -624,7 +624,7 @@ const AdminFinances = () => {
                       Export
                     </Button>
                     <Button
-                      onClick={() => setShowExpenseModal(true)}
+                      // onClick={() => setShowExpenseModal(true)}
                       size="sm"
                       className="bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1"
                     >

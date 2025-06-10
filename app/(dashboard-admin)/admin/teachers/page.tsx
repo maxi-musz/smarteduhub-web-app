@@ -150,9 +150,8 @@ const AdminTeachers = () => {
   );
 
   const handleAddTeacher = () => {
-    const { id, ...restNewTeacher } = newTeacher as Teacher;
+    const { ...restNewTeacher } = newTeacher as Teacher;
     const teacher: Teacher = {
-      id: Date.now().toString(),
       ...restNewTeacher,
       joinDate: new Date().toISOString().split("T")[0],
       performance: {
@@ -312,7 +311,7 @@ const AdminTeachers = () => {
                 <DialogHeader>
                   <DialogTitle>Add New Teacher</DialogTitle>
                   <DialogDescription>
-                    Fill in the teacher's information below
+                    Fill in the teacher&apos;s information below
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">

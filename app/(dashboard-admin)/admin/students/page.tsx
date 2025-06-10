@@ -48,9 +48,7 @@ import {
   Clock,
   Award,
   BookMarked,
-  Filter,
   ChevronDown,
-  Check,
   X,
 } from "lucide-react";
 import {
@@ -304,9 +302,8 @@ const AdminStudents = () => {
       return;
     }
 
-    const { id, ...studentData } = newStudent as Student;
+    const { ...studentData } = newStudent as Student;
     const student: Student = {
-      id: Date.now().toString(),
       ...studentData,
     };
     setStudents([...students, student]);
@@ -627,7 +624,7 @@ const AdminStudents = () => {
                 <DialogHeader>
                   <DialogTitle>Add New Student</DialogTitle>
                   <DialogDescription>
-                    Fill in the student's information below
+                    Fill in the student&apos;s information below
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">

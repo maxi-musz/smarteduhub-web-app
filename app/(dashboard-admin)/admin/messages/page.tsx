@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageCircle, Plus, Search, Trash2, Users } from "lucide-react";
+import { MessageCircle, Plus, Search, Trash2 } from "lucide-react";
 
 interface Message {
   id: string;
@@ -102,11 +102,8 @@ const AdminMessages = () => {
       return;
     }
 
-    const { id, sender, date, ...restNewMessage } = newMessage as Message;
+    const { ...restNewMessage } = newMessage as Message;
     const message: Message = {
-      id: Date.now().toString(),
-      sender: "Admin",
-      date: new Date().toISOString().split("T")[0],
       ...restNewMessage,
     };
     setMessages([...messages, message]);

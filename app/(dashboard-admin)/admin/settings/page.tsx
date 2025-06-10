@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Bell, Moon, Palette, Shield, Sun } from "lucide-react";
+import { Moon, Palette, Sun } from "lucide-react";
 
 interface Settings {
   theme: "light" | "dark" | "system";

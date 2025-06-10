@@ -144,9 +144,8 @@ const AdminSubjects = () => {
       return;
     }
 
-    const { id, ...courseData } = newCourse as Course;
+    const { ...courseData } = newCourse as Course;
     const course: Course = {
-      id: Date.now().toString(),
       ...courseData,
     };
     setCourses([...courses, course]);
@@ -185,7 +184,7 @@ const AdminSubjects = () => {
 
   // Count courses by status
   const activeCourses = courses.filter((c) => c.status === "active").length;
-  const inactiveCourses = courses.filter((c) => c.status === "inactive").length;
+  // const inactiveCourses = courses.filter((c) => c.status === "inactive").length;
   const archivedCourses = courses.filter((c) => c.status === "archived").length;
   const totalEnrollments = courses.reduce(
     (sum, course) => sum + course.enrolled,

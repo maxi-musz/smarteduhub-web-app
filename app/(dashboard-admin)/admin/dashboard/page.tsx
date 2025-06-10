@@ -118,15 +118,15 @@ const AdminDashboard = () => {
     activeClubs: 9,
   };
 
-  const subjectDistribution = [
-    { name: "Mathematics", value: 20 },
-    { name: "Sciences", value: 25 },
-    { name: "Languages", value: 20 },
-    { name: "Humanities", value: 15 },
-    { name: "Technical", value: 20 },
-  ];
+  // const subjectDistribution = [
+  //   { name: "Mathematics", value: 20 },
+  //   { name: "Sciences", value: 25 },
+  //   { name: "Languages", value: 20 },
+  //   { name: "Humanities", value: 15 },
+  //   { name: "Technical", value: 20 },
+  // ];
 
-  const COLORS = ["#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#d946ef"];
+  // const COLORS = ["#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#d946ef"];
 
   const [classFilter, setClassFilter] = useState("all");
   const filteredOngoingClasses =
