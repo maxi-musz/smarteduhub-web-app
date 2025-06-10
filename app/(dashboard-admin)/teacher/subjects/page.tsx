@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { mockSubjects, mockStudents } from "@/data/mockData";
+import { mockSubjects } from "@/data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, BookOpen, BarChart3, Users, Clock } from "lucide-react";

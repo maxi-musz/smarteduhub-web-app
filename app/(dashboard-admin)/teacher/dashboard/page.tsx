@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { dashboardStats, mockSchedule, mockGrades } from "@/data/mockData";
+import { dashboardStats, mockSchedule } from "@/data/mockData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,9 +73,9 @@ const TeacherDashboardPage: React.FC = () => {
     .filter((item) => [dayAfterName].includes(item.day))
     .slice(0, 3);
 
-  const pendingGrades = mockGrades
-    .filter((grade) => grade.status === "pending")
-    .slice(0, 3);
+  //   const pendingGrades = mockGrades
+  //     .filter((grade) => grade.status === "pending")
+  //     .slice(0, 3);
 
   // Helper for navigation
   const handleNavigate = (href: string) => {
@@ -253,7 +253,7 @@ const TeacherDashboardPage: React.FC = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
               <Clock className="h-5 w-5 mr-2 text-edu-primary" />
-              Today's Classes
+              Today&apos;s Classes
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
@@ -295,7 +295,7 @@ const TeacherDashboardPage: React.FC = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
               <Clock className="h-5 w-5 mr-2 text-edu-secondary" />
-              Tomorrow's Classes
+              Tomorrow&apos;s Classes
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
@@ -337,7 +337,7 @@ const TeacherDashboardPage: React.FC = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
               <Clock className="h-5 w-5 mr-2 text-edu-accent" />
-              {dayAfterName}'s Classes
+              {dayAfterName}&apos;s Classes
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">

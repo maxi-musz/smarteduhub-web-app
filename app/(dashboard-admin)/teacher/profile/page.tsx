@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { teacherProfile } from "@/data/mockData";
 import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
 
 const TeacherProfilePage = () => {
   return (
@@ -31,9 +32,11 @@ const TeacherProfilePage = () => {
           <CardContent className="pt-6 flex flex-col items-center">
             <div className="h-24 w-24 rounded-full bg-gray-200 mb-4 overflow-hidden">
               {teacherProfile.avatar ? (
-                <img
+                <Image
                   src={teacherProfile.avatar}
                   alt={teacherProfile.name}
+                  width={96}
+                  height={96}
                   className="h-full w-full object-cover"
                 />
               ) : (

@@ -109,7 +109,9 @@ const TeacherSchedulesPage = () => {
             <TabsContent key={day} value={day}>
               <Card>
                 <CardHeader className="pb-0">
-                  <CardTitle className="text-lg">{day}'s Classes</CardTitle>
+                  <CardTitle className="text-lg">
+                    {day}&apos;s Classes
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {mockSchedule.filter((item) => item.day === day).length >
@@ -159,9 +161,9 @@ const TeacherSchedulesPage = () => {
         <Card>
           <CardHeader className="pb-0">
             <CardTitle className="flex items-center justify-between">
-              <span>{selectedDay}'s Schedule</span>
+              <span>{selectedDay}&apos;s Schedule</span>
               <div className="flex gap-2">
-                {weekdays.map((day, idx) => (
+                {weekdays.map((day) => (
                   <Button
                     key={day}
                     variant={day === selectedDay ? "default" : "outline"}
