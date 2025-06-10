@@ -8,7 +8,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 
 const teacherTabs = [
-  { href: "/teacher/home", label: "Home", icon: Home },
+  { href: "/teacher/dashboard", label: "Home", icon: Home },
   { href: "/teacher/students", label: "Students", icon: Users },
   { href: "/teacher/schedules", label: "Schedules", icon: Calendar },
   { href: "/teacher/subjects", label: "Subjects", icon: Book },
