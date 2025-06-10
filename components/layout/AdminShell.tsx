@@ -84,7 +84,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 sm:hidden z-10">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-brand-border sm:hidden z-10">
         <div className="grid grid-cols-5 h-16">
           {adminTabs.slice(0, 5).map(({ href, label, icon: Icon }) => (
             <button

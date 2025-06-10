@@ -15,7 +15,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 
 const studentTabs = [
-  { href: "/student/dashboard", label: "Home", icon: Home },
+  { href: "/student/home", label: "Home", icon: Home },
   { href: "/student/subjects", label: "Subjects", icon: Book },
   { href: "/student/tasks", label: "Tasks", icon: ListTodo },
   { href: "/student/performance", label: "Performance", icon: BarChart2 },
@@ -40,11 +40,11 @@ export default function StudentShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-brand-bg flex flex-col">
       {/* Desktop Sidebar */}
-      <div className="hidden sm:flex fixed left-0 top-0 h-full w-64 bg-white border-r shadow-sm z-20">
+      <div className="hidden sm:flex fixed left-0 top-0 h-full w-64 bg-white border-brand-border border-r shadow-sm z-20">
         <div className="w-full">
-          <div className="p-4 border-b">
+          <div className="p-4 border-b border-brand-border">
             <Link href="/">
               <h1 className="font-bold text-lg text-brand-primary hover:text-brand-primary/90">
                 SmartEdu Hub
@@ -58,7 +58,7 @@ export default function StudentShell({ children }: { children: ReactNode }) {
                 key={href}
                 onClick={() => handleTabClick(href, label)}
                 className={cn(
-                  "flex items-center w-full p-2 rounded-md transition-colors duration-200",
+                  "flex items-center w-full p-2 rounded-md transition-colors duration-200 cursor-pointer",
                   pathname === href
                     ? "bg-brand-primary text-white"
                     : "text-gray-700 hover:bg-gray-100"
@@ -78,9 +78,9 @@ export default function StudentShell({ children }: { children: ReactNode }) {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 sm:hidden z-10">
-        <div className="grid grid-cols-6 h-16">
-          {studentTabs.map(({ href, label, icon: Icon }) => (
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-brand-border sm:hidden z-10">
+        <div className="grid grid-cols-5 h-16">
+          {studentTabs.slice(0, 5).map(({ href, label, icon: Icon }) => (
             <button
               key={href}
               onClick={() => handleTabClick(href, label)}
