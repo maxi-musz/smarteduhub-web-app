@@ -43,6 +43,12 @@ import {
 // Import the Tooltip component from recharts directly
 import { Tooltip } from "recharts";
 
+// Upcoming Events components
+import { ClassScheduleSummary } from "@/components/student/home/ClassScheduleSummary";
+import { UpcomingAssignments } from "@/components/student/home/UpcomingAssignments";
+import { WeeklyEvents } from "@/components/student/home/WeeklyEvents";
+import { AttendanceOverview } from "@/components/student/home/AttendanceOverview";
+
 const attendance = [
   { name: "Present", value: 85 },
   { name: "Absent", value: 5 },
@@ -100,13 +106,19 @@ const StudentHomePage: React.FC = () => {
             Student Dashboard
           </h1>
           <p className="text-brand-light-accent-1 text-sm">
-            Welcome back, <span className="text-brand-primary">Oluwajuwon</span>
+            Welcome back,{" "}
+            <span className="text-brand-primary">Oluwajuwon Kayode</span>
           </p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right hidden md:block">
-            <p className="text-sm font-medium">Oluwajuwon Kayode</p>
             <p className="text-xs text-brand-light-accent-1">Class: SS3A</p>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">
+                {new Date().toLocaleDateString()}
+              </span>
+              <Clock className="h-4 w-4 text-gray-500" />
+            </div>
           </div>
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-brand-primary text-white">
@@ -149,6 +161,32 @@ const StudentHomePage: React.FC = () => {
             <p className="text-sm text-brand-light-accent-1">Pending Tasks</p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Upcoming Events */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+        {/* Class Schedule Summary - 60% width on large screens */}
+        <div className="lg:col-span-3">
+          <ClassScheduleSummary />
+        </div>
+
+        {/* Upcoming Assignments - 40% width on large screens */}
+        <div className="lg:col-span-2">
+          <UpcomingAssignments />
+        </div>
+      </div>
+
+      {/* Attendance and Performance Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Attendance Overview - 40% width on large screens */}
+        <div className="lg:col-span-2">
+          <AttendanceOverview />
+        </div>
+
+        {/* Weekly Events - 60% width on large screens */}
+        <div className="lg:col-span-3">
+          <WeeklyEvents />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -218,15 +256,76 @@ const StudentHomePage: React.FC = () => {
               </ChartContainer>
             </div>
           </CardContent>
-          <CardFooter className="mt-10">
-            <Button className="w-full bg-brand-primary hover:bg-brand-primary/90">
+          <CardFooter className="">
+            <Button
+              onClick={() => {
+                alert("View All Performance Clicked");
+              }}
+              className="w-full bg-brand-primary hover:bg-brand-primary/90"
+            >
               View All Performance
             </Button>
           </CardFooter>
         </Card>
 
+        {/* Attendance Chart */}
+        <Card className="md:col-span-1 bg-white shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <CalendarDays className="h-5 w-5 mr-2 text-brand-primary" />
+              Attendance Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="h-52 flex items-center justify-center">
+              <PieChart width={180} height={180}>
+                <Pie
+                  data={attendance}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={70}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  {attendance.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `${value}%`} />
+              </PieChart>
+            </div>
+            <div className="flex justify-center mt-2 gap-4">
+              {attendance.map((entry, index) => (
+                <div key={entry.name} className="flex items-center">
+                  <div
+                    className="w-3 h-3 rounded-full mr-1.5"
+                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                  />
+                  <span className="text-xs">
+                    {entry.name}: {entry.value}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+          <CardFooter className="mt-6">
+            <Button
+              onClick={() => {
+                alert("View All Attendance Clicked");
+              }}
+              className="w-full bg-brand-primary hover:bg-brand-primary/90"
+            >
+              View All Attendance
+            </Button>
+          </CardFooter>
+        </Card>
+
         {/* Upcoming Assignments */}
-        <Card className="bg-white shadow-md">
+        {/* <Card className="bg-white shadow-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
               <Clock className="h-5 w-5 mr-2 text-amber-400" />
@@ -284,111 +383,10 @@ const StudentHomePage: React.FC = () => {
               View All Assignments
             </Button>
           </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* Attendance Chart */}
-        <Card className="md:col-span-1 bg-white shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <CalendarDays className="h-5 w-5 mr-2 text-brand-primary" />
-              Attendance Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="h-52 flex items-center justify-center">
-              <PieChart width={180} height={180}>
-                <Pie
-                  data={attendance}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={70}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {attendance.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
-              </PieChart>
-            </div>
-            <div className="flex justify-center mt-2 gap-4">
-              {attendance.map((entry, index) => (
-                <div key={entry.name} className="flex items-center">
-                  <div
-                    className="w-3 h-3 rounded-full mr-1.5"
-                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                  />
-                  <span className="text-xs">
-                    {entry.name}: {entry.value}%
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Performance Trend Chart */}
-        {/* <Card className="md:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <BarChart2 className="h-5 w-5 mr-2 text-brand-primary" />
-              Performance Trend
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="h-64 overflow-hidden">
-              <ChartContainer
-                config={{
-                  performance: {
-                    label: "Performance",
-                    color: "#1E88E5",
-                  },
-                }}
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={progressData}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis dataKey="month" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip
-                      content={({ active, payload, label }) => {
-                        if (!active || !payload?.length) {
-                          return null;
-                        }
-                        return (
-                          <ChartTooltipContent
-                            active={active}
-                            payload={payload}
-                            label={label}
-                          />
-                        );
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="performance"
-                      stroke="#1E88E5"
-                      fill="#1E88E5"
-                      fillOpacity={0.2}
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </div>
-          </CardContent>
         </Card> */}
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"></div>
     </div>
   );
 };
