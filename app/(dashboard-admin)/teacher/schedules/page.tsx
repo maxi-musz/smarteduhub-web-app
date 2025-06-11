@@ -31,13 +31,13 @@ const TeacherSchedulesPage = () => {
   });
 
   return (
-    <div className="content-area">
+    <div className="">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Class Schedule</h1>
           <p className="text-gray-500 text-sm">Manage your teaching schedule</p>
         </div>
-        <Button className="bg-edu-primary hover:bg-edu-primary/90">
+        <Button className="bg-brand-primary hover:bg-brand-primary/90">
           <Plus className="h-4 w-4 mr-1" />
           Add Class
         </Button>
@@ -53,7 +53,7 @@ const TeacherSchedulesPage = () => {
             </Button>
 
             <div className="flex items-center">
-              <CalendarIcon className="h-5 w-5 mr-2 text-edu-primary" />
+              <CalendarIcon className="h-5 w-5 mr-2 text-brand-primary" />
               <span className="font-medium">{currentWeek}</span>
             </div>
 
@@ -72,7 +72,7 @@ const TeacherSchedulesPage = () => {
             onClick={() => setViewMode("week")}
             className={`px-3 py-1 text-sm ${
               viewMode === "week"
-                ? "bg-edu-primary text-white"
+                ? "bg-brand-primary text-white"
                 : "bg-white text-gray-700"
             }`}
           >
@@ -82,7 +82,7 @@ const TeacherSchedulesPage = () => {
             onClick={() => setViewMode("day")}
             className={`px-3 py-1 text-sm ${
               viewMode === "day"
-                ? "bg-edu-primary text-white"
+                ? "bg-brand-primary text-white"
                 : "bg-white text-gray-700"
             }`}
           >
@@ -169,7 +169,7 @@ const TeacherSchedulesPage = () => {
                     variant={day === selectedDay ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedDay(day)}
-                    className={day === selectedDay ? "bg-edu-primary" : ""}
+                    className={day === selectedDay ? "bg-brand-primary" : ""}
                   >
                     {day.charAt(0)}
                   </Button>

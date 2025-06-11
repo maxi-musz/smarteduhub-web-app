@@ -87,24 +87,24 @@ const COLORS = ["#1E88E5", "#E53935", "#FFA000"];
 
 const StudentHomePage: React.FC = () => {
   return (
-    <div className="content-area">
+    <div className="py-6 space-y-6 bg-brand-bg">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
+          <h1 className="text-2xl font-bold text-brand-heading">
             Student Dashboard
           </h1>
-          <p className="text-gray-500 text-sm">
-            Welcome back, <span className="text-green-500">Maximus</span>
+          <p className="text-brand-light-accent-1 text-sm">
+            Welcome back, <span className="text-brand-primary">Oluwajuwon</span>
           </p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right hidden md:block">
-            <p className="text-sm font-medium">Maximus Bernard</p>
-            <p className="text-xs text-gray-500">Class: SS2A</p>
+            <p className="text-sm font-medium">Oluwajuwon Kayode</p>
+            <p className="text-xs text-brand-light-accent-1">Class: SS3A</p>
           </div>
           <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-edu-primary text-white">
-              JS
+            <AvatarFallback className="bg-brand-primary text-white">
+              OK
             </AvatarFallback>
           </Avatar>
         </div>
@@ -114,33 +114,33 @@ const StudentHomePage: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card className="stats-card">
           <CardContent className="p-4 flex flex-col items-center">
-            <BookOpen className="h-8 w-8 text-edu-primary mb-2" />
+            <BookOpen className="h-8 w-8 text-brand-primary mb-2" />
             <h3 className="text-2xl font-bold">12</h3>
-            <p className="text-sm text-gray-500">Subjects</p>
+            <p className="text-sm text-brand-light-accent-1">Subjects</p>
           </CardContent>
         </Card>
 
         <Card className="stats-card">
           <CardContent className="p-4 flex flex-col items-center">
-            <CalendarDays className="h-8 w-8 text-edu-secondary mb-2" />
+            <CalendarDays className="h-8 w-8 text-sky-400 mb-2" />
             <h3 className="text-2xl font-bold">95%</h3>
-            <p className="text-sm text-gray-500">Attendance</p>
+            <p className="text-sm text-brand-light-accent-1">Attendance</p>
           </CardContent>
         </Card>
 
         <Card className="stats-card">
           <CardContent className="p-4 flex flex-col items-center">
-            <Award className="h-8 w-8 text-edu-accent mb-2" />
+            <Award className="h-8 w-8 text-amber-400 mb-2" />
             <h3 className="text-2xl font-bold">87%</h3>
-            <p className="text-sm text-gray-500">Average Grade</p>
+            <p className="text-sm text-brand-light-accent-1">Average Grade</p>
           </CardContent>
         </Card>
 
         <Card className="stats-card">
           <CardContent className="p-4 flex flex-col items-center">
-            <FileText className="h-8 w-8 text-edu-success mb-2" />
+            <FileText className="h-8 w-8  text-green-400 mb-2" />
             <h3 className="text-2xl font-bold">3</h3>
-            <p className="text-sm text-gray-500">Pending Tasks</p>
+            <p className="text-sm text-brand-light-accent-1">Pending Tasks</p>
           </CardContent>
         </Card>
       </div>
@@ -150,7 +150,7 @@ const StudentHomePage: React.FC = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
-              <BookOpen className="h-5 w-5 mr-2 text-edu-primary" />
+              <BookOpen className="h-5 w-5 mr-2 text-brand-primary" />
               Subject Performance
             </CardTitle>
           </CardHeader>
@@ -217,7 +217,7 @@ const StudentHomePage: React.FC = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-edu-accent" />
+              <Clock className="h-5 w-5 mr-2 text-amber-400" />
               Upcoming Assignments
             </CardTitle>
           </CardHeader>
@@ -236,7 +236,7 @@ const StudentHomePage: React.FC = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-medium">{assignment.title}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-brand-light-accent-1">
                           {assignment.subject}
                         </p>
                       </div>
@@ -246,7 +246,7 @@ const StudentHomePage: React.FC = () => {
                             ? "bg-red-100 text-red-800"
                             : daysLeft <= 2
                             ? "bg-yellow-100 text-yellow-800"
-                            : "bg-gray-100 text-gray-800"
+                            : "bg-gray-100 text-brand-heading"
                         }
                       >
                         {isPastDue
@@ -258,7 +258,7 @@ const StudentHomePage: React.FC = () => {
                     </div>
 
                     <div className="mt-2">
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <div className="flex justify-between text-xs text-brand-light-accent-1 mb-1">
                         <span>Progress</span>
                         <span>Not Started</span>
                       </div>
@@ -268,7 +268,7 @@ const StudentHomePage: React.FC = () => {
                 );
               })}
             </div>
-            <Button className="w-full mt-4 bg-edu-primary hover:bg-edu-primary/90">
+            <Button className="w-full mt-4 bg-brand-primary hover:bg-brand-primary/90">
               View All Assignments
             </Button>
           </CardContent>
@@ -280,7 +280,7 @@ const StudentHomePage: React.FC = () => {
         <Card className="md:col-span-1">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
-              <CalendarDays className="h-5 w-5 mr-2 text-edu-primary" />
+              <CalendarDays className="h-5 w-5 mr-2 text-brand-primary" />
               Attendance Overview
             </CardTitle>
           </CardHeader>
@@ -326,7 +326,7 @@ const StudentHomePage: React.FC = () => {
         {/* <Card className="md:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
-              <BarChart2 className="h-5 w-5 mr-2 text-edu-primary" />
+              <BarChart2 className="h-5 w-5 mr-2 text-brand-primary" />
               Performance Trend
             </CardTitle>
           </CardHeader>

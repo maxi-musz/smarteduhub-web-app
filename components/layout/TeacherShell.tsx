@@ -67,7 +67,7 @@ export default function TeacherShell({ children }: { children: ReactNode }) {
 
       {/* Page Content */}
       <main className="flex-grow overflow-y-auto pb-16 sm:pb-0 sm:mb-0 sm:ml-64 pt-2 sm:pt-0">
-        <div className="content-area px-4 sm:px-6">{children}</div>
+        <div className=" px-4 sm:px-6">{children}</div>
       </main>
 
       {/* Mobile Bottom Nav */}

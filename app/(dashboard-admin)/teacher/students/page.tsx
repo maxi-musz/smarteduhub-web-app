@@ -61,7 +61,7 @@ const TeacherStudentsPage = () => {
   };
 
   return (
-    <div className="content-area space-y-6">
+    <div className=" space-y-6">
       <div className="sticky top-0 bg-white z-10 shadow-md p-4">
         <StudentsHeader
           classFilter={classFilter}

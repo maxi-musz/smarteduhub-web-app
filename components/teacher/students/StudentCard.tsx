@@ -36,8 +36,8 @@ interface StudentCardProps {
 
 const StudentCard: React.FC<StudentCardProps> = ({ student, onView }) => {
   const getPerformanceColor = (performance: number) => {
-    if (performance >= 90) return "bg-edu-success";
-    if (performance >= 70) return "bg-edu-accent";
+    if (performance >= 90) return "bg-text-green-400";
+    if (performance >= 70) return "bg-amber-400";
     return "bg-edu-danger";
   };
 
@@ -53,7 +53,7 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onView }) => {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <AvatarFallback className="bg-edu-primary text-white text-xl">
+              <AvatarFallback className="bg-brand-primary text-white text-xl">
                 {student.name.charAt(0)}
               </AvatarFallback>
             )}
@@ -93,9 +93,9 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onView }) => {
                 value={student.attendance}
                 className={`h-1.5 ${
                   student.attendance >= 90
-                    ? "bg-edu-success"
+                    ? "bg-text-green-400"
                     : student.attendance >= 75
-                    ? "bg-edu-accent"
+                    ? "bg-amber-400"
                     : "bg-edu-danger"
                 }`}
               />

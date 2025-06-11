@@ -83,7 +83,7 @@ const TeacherDashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="content-area">
+    <div className="">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Teacher Dashboard</h1>
         <div className="flex items-center">
@@ -103,7 +103,7 @@ const TeacherDashboardPage: React.FC = () => {
             className="h-auto py-6 flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-blue-200"
             onClick={() => handleNavigate("/teacher/attendance")}
           >
-            <ClipboardCheck className="h-8 w-8 text-edu-primary mb-2" />
+            <ClipboardCheck className="h-8 w-8 text-brand-primary mb-2" />
             <span>Mark Attendance</span>
           </Button>
 
@@ -112,7 +112,7 @@ const TeacherDashboardPage: React.FC = () => {
             className="h-auto py-6 flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-green-200"
             onClick={() => handleNavigate("/teacher/assignment")}
           >
-            <FilePen className="h-8 w-8 text-edu-success mb-2" />
+            <FilePen className="h-8 w-8 text-text-green-400 mb-2" />
             <span>Create Assignment</span>
           </Button>
 
@@ -121,7 +121,7 @@ const TeacherDashboardPage: React.FC = () => {
             className="h-auto py-6 flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200 border-amber-200"
             onClick={() => handleNavigate("/teacher/message")}
           >
-            <MessageSquare className="h-8 w-8 text-edu-accent mb-2" />
+            <MessageSquare className="h-8 w-8 text-amber-400 mb-2" />
             <span>Message Class</span>
           </Button>
 
@@ -140,7 +140,7 @@ const TeacherDashboardPage: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card className="stats-card">
           <CardContent className="p-4 flex flex-col items-center">
-            <Users className="h-8 w-8 text-edu-primary mb-2" />
+            <Users className="h-8 w-8 text-brand-primary mb-2" />
             <h3 className="text-2xl font-bold">
               {dashboardStats.studentCount}
             </h3>
@@ -150,7 +150,7 @@ const TeacherDashboardPage: React.FC = () => {
 
         <Card className="stats-card">
           <CardContent className="p-4 flex flex-col items-center">
-            <Calendar className="h-8 w-8 text-edu-secondary mb-2" />
+            <Calendar className="h-8 w-8 text-sky-400 mb-2" />
             <h3 className="text-2xl font-bold">
               {dashboardStats.averageAttendance}%
             </h3>
@@ -160,7 +160,7 @@ const TeacherDashboardPage: React.FC = () => {
 
         <Card className="stats-card">
           <CardContent className="p-4 flex flex-col items-center">
-            <BarChart2 className="h-8 w-8 text-edu-accent mb-2" />
+            <BarChart2 className="h-8 w-8 text-amber-400 mb-2" />
             <h3 className="text-2xl font-bold">
               {dashboardStats.averagePerformance}%
             </h3>
@@ -170,7 +170,7 @@ const TeacherDashboardPage: React.FC = () => {
 
         <Card className="stats-card">
           <CardContent className="p-4 flex flex-col items-center">
-            <BookOpen className="h-8 w-8 text-edu-success mb-2" />
+            <BookOpen className="h-8 w-8 text-text-green-400 mb-2" />
             <h3 className="text-2xl font-bold">
               {dashboardStats.pendingGrades}
             </h3>
@@ -183,7 +183,7 @@ const TeacherDashboardPage: React.FC = () => {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
-            <LineChart className="h-5 w-5 mr-2 text-edu-primary" />
+            <LineChart className="h-5 w-5 mr-2 text-brand-primary" />
             Class Performance Overview
           </CardTitle>
         </CardHeader>
@@ -252,7 +252,7 @@ const TeacherDashboardPage: React.FC = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-edu-primary" />
+              <Clock className="h-5 w-5 mr-2 text-brand-primary" />
               Today&apos;s Classes
             </CardTitle>
           </CardHeader>
@@ -294,7 +294,7 @@ const TeacherDashboardPage: React.FC = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-edu-secondary" />
+              <Clock className="h-5 w-5 mr-2 text-sky-400" />
               Tomorrow&apos;s Classes
             </CardTitle>
           </CardHeader>
@@ -336,7 +336,7 @@ const TeacherDashboardPage: React.FC = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-edu-accent" />
+              <Clock className="h-5 w-5 mr-2 text-amber-400" />
               {dayAfterName}&apos;s Classes
             </CardTitle>
           </CardHeader>
@@ -379,7 +379,7 @@ const TeacherDashboardPage: React.FC = () => {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center">
-            <Bell className="h-5 w-5 mr-2 text-edu-primary" />
+            <Bell className="h-5 w-5 mr-2 text-brand-primary" />
             Announcements
           </CardTitle>
         </CardHeader>

@@ -17,10 +17,10 @@ import Image from "next/image";
 
 const TeacherProfilePage = () => {
   return (
-    <div className="content-area">
+    <div className="">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Profile</h1>
-        <Button className="bg-edu-primary hover:bg-edu-primary/90">
+        <Button className="bg-brand-primary hover:bg-brand-primary/90">
           <Edit className="h-4 w-4 mr-1" />
           Edit Profile
         </Button>
@@ -40,7 +40,7 @@ const TeacherProfilePage = () => {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="h-full w-full flex items-center justify-center bg-edu-primary text-white text-xl">
+                <div className="h-full w-full flex items-center justify-center bg-brand-primary text-white text-xl">
                   {teacherProfile.name.charAt(0)}
                 </div>
               )}
@@ -77,7 +77,7 @@ const TeacherProfilePage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
-                <User className="h-5 w-5 mr-2 text-edu-primary" />
+                <User className="h-5 w-5 mr-2 text-brand-primary" />
                 Biography
               </CardTitle>
             </CardHeader>
@@ -90,7 +90,7 @@ const TeacherProfilePage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
-                <BookOpen className="h-5 w-5 mr-2 text-edu-primary" />
+                <BookOpen className="h-5 w-5 mr-2 text-brand-primary" />
                 Specializations
               </CardTitle>
             </CardHeader>
@@ -109,34 +109,34 @@ const TeacherProfilePage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
-                <PenTool className="h-5 w-5 mr-2 text-edu-primary" />
+                <PenTool className="h-5 w-5 mr-2 text-brand-primary" />
                 Teaching Stats
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-gray-50 rounded-md">
-                  <p className="text-2xl font-bold text-edu-primary">4</p>
+                  <p className="text-2xl font-bold text-brand-primary">4</p>
                   <p className="text-sm text-gray-500">Active Subjects</p>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded-md">
-                  <p className="text-2xl font-bold text-edu-primary">124</p>
+                  <p className="text-2xl font-bold text-brand-primary">124</p>
                   <p className="text-sm text-gray-500">Total Students</p>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded-md">
-                  <p className="text-2xl font-bold text-edu-primary">95%</p>
+                  <p className="text-2xl font-bold text-brand-primary">95%</p>
                   <p className="text-sm text-gray-500">Attendance Rate</p>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded-md">
-                  <p className="text-2xl font-bold text-edu-primary">8</p>
+                  <p className="text-2xl font-bold text-brand-primary">8</p>
                   <p className="text-sm text-gray-500">Years Teaching</p>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded-md">
-                  <p className="text-2xl font-bold text-edu-primary">18</p>
+                  <p className="text-2xl font-bold text-brand-primary">18</p>
                   <p className="text-sm text-gray-500">Weekly Hours</p>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded-md">
-                  <p className="text-2xl font-bold text-edu-primary">4.8</p>
+                  <p className="text-2xl font-bold text-brand-primary">4.8</p>
                   <p className="text-sm text-gray-500">Rating</p>
                 </div>
               </div>

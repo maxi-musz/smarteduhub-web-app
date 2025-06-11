@@ -124,3 +124,60 @@
 .btn-shadow-brand {
   box-shadow: var(--shadow-brand);
 }
+
+@layer components {
+  .card-hover {
+    transition: all 200ms;
+
+    &:hover {
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+        0 2px 4px -2px rgb(0 0 0 / 0.1);
+      transform: translateY(-0.25rem);
+    }
+  }
+
+  .stats-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    border-width: 1px;
+    /* Apply the card-hover behavior */
+    transition: all 200ms;
+
+    &:hover {
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+        0 2px 4px -2px rgb(0 0 0 / 0.1);
+      transform: translateY(-0.25rem);
+    }
+  }
+
+  .content-area {
+    padding: 1rem;
+    animation: var(--animate-fade-in);
+
+    @media (min-width: 768px) {
+      padding: 1.5rem;
+    }
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 500;
+    color: rgb(31 41 55);
+    margin-bottom: 1rem;
+  }
+}
+
+/* Define the fade-in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

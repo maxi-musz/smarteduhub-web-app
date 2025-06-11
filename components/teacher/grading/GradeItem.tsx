@@ -54,7 +54,7 @@ const GradeItem: React.FC<GradeItemProps> = ({ grade, getStatusBadge }) => {
         <Button
           variant="default"
           size="sm"
-          className="ml-2 bg-edu-primary hover:bg-edu-primary/90"
+          className="ml-2 bg-brand-primary hover:bg-brand-primary/90"
         >
           <PenLine className="h-4 w-4 mr-1" />
           Grade
@@ -68,7 +68,7 @@ const GradeItem: React.FC<GradeItemProps> = ({ grade, getStatusBadge }) => {
         <Button
           variant="default"
           size="sm"
-          className="ml-2 bg-edu-primary hover:bg-edu-primary/90"
+          className="ml-2 bg-brand-primary hover:bg-brand-primary/90"
         >
           <PenLine className="h-4 w-4 mr-1" />
           {grade.status === "graded" ? "Edit Grade" : "Grade Assignment"}

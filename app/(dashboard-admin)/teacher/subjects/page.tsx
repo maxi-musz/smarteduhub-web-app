@@ -20,13 +20,13 @@ const TeacherSubjectsPage = () => {
   );
 
   return (
-    <div className="content-area">
+    <div className="">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Subjects</h1>
           <p className="text-gray-500 text-sm">Manage your teaching subjects</p>
         </div>
-        <Button className="bg-edu-primary hover:bg-edu-primary/90">
+        <Button className="bg-brand-primary hover:bg-brand-primary/90">
           <Plus className="h-4 w-4 mr-1" />
           Add Subject
         </Button>
@@ -113,9 +113,9 @@ const TeacherSubjectsPage = () => {
                         value={subject.averageGrade}
                         className={`h-2 ${
                           subject.averageGrade >= 80
-                            ? "bg-edu-success"
+                            ? "bg-text-green-400"
                             : subject.averageGrade >= 70
-                            ? "bg-edu-accent"
+                            ? "bg-amber-400"
                             : "bg-edu-danger"
                         }`}
                       />
@@ -130,7 +130,7 @@ const TeacherSubjectsPage = () => {
                           <div key={grade} className="text-center">
                             <div className="h-16 bg-gray-100 rounded-t-sm relative">
                               <div
-                                className="absolute bottom-0 left-0 right-0 bg-edu-primary rounded-t-sm"
+                                className="absolute bottom-0 left-0 right-0 bg-brand-primary rounded-t-sm"
                                 style={{
                                   height: `${Math.floor(Math.random() * 100)}%`,
                                   opacity:

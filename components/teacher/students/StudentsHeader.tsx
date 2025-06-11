@@ -39,7 +39,7 @@ const TeacherStudentsHeader: React.FC<TeacherStudentsHeaderProps> = ({
             ))}
           </SelectContent>
         </Select>
-        <Button className="bg-edu-primary hover:bg-edu-primary/90">
+        <Button className="bg-brand-primary hover:bg-brand-primary/90">
           <Plus className="h-4 w-4 mr-1" />
           Add Student
         </Button>

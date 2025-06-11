@@ -77,7 +77,7 @@ const TeacherGradingPage = () => {
   };
 
   return (
-    <div className="content-area">
+    <div className="">
       <GradingHeader
         classFilter={classFilter}
         setClassFilter={setClassFilter}
