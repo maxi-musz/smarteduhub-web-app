@@ -48,6 +48,7 @@ import { ClassScheduleSummary } from "@/components/student/home/ClassScheduleSum
 import { UpcomingAssignments } from "@/components/student/home/UpcomingAssignments";
 import { WeeklyEvents } from "@/components/student/home/WeeklyEvents";
 import { AttendanceOverview } from "@/components/student/home/AttendanceOverview";
+import StudentHeader from "@/components/ui/student-header";
 
 const attendance = [
   { name: "Present", value: 85 },
@@ -100,33 +101,12 @@ const COLORS = ["#1E88E5", "#E53935", "#FFA000"];
 const StudentHomePage: React.FC = () => {
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-heading">
-            Student Dashboard
-          </h1>
-          <p className="text-brand-light-accent-1 text-sm">
-            Welcome back,{" "}
-            <span className="text-brand-primary">Oluwajuwon Kayode</span>
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right hidden md:block">
-            <p className="text-xs text-brand-light-accent-1">Class: SS3A</p>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">
-                {new Date().toLocaleDateString()}
-              </span>
-              <Clock className="h-4 w-4 text-gray-500" />
-            </div>
-          </div>
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-brand-primary text-white">
-              OK
-            </AvatarFallback>
-          </Avatar>
-        </div>
-      </div>
+      {/* Header */}
+      <StudentHeader
+        studentName="Oluwajuwon Kayode"
+        studentClass="SS3A"
+        // avatarUrl="https://via.placeholder.com/150"
+      />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

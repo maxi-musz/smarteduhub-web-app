@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Book, FileText, Users } from "lucide-react";
+import StudentHeader from "@/components/ui/student-header";
 
 const subjects = [
   {
@@ -34,7 +35,14 @@ const subjects = [
 const StudentSubjectsPage = () => {
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">My Subjects</h1>
+      {/* <h1 className="text-2xl font-bold mb-6">My Subjects</h1> */}
+
+      {/* Header */}
+      <StudentHeader
+        studentName="Oluwajuwon Kayode"
+        studentClass="SS3A"
+        // avatarUrl="https://via.placeholder.com/150"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {subjects.map((subject) => (
