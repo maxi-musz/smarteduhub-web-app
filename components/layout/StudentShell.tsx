@@ -23,7 +23,6 @@ const studentTabs = [
   { href: "/student/tasks", label: "Tasks", icon: ListTodo },
   { href: "/student/performance", label: "Performance", icon: BarChart2 },
   { href: "/student/results", label: "Results", icon: Award },
-  { href: "/student/bot", label: "AI Chat", icon: MessageSquare },
 ];
 
 const bottomTabs = [

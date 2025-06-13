@@ -5,28 +5,37 @@ import {
   Users,
   Calendar,
   Book,
-  HandCoins,
-  Settings,
-  MessageCircle,
-  UserCog,
   FileText,
+  User,
+  Bell,
+  Settings,
+  Award,
+  MessageSquare,
+  BarChart2,
+  ListTodo,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
-import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 const adminTabs = [
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
-  { href: "/admin/teachers", label: "Teachers", icon: UserCog },
-  { href: "/admin/students", label: "Students", icon: Users },
-  { href: "/admin/finance", label: "Finance", icon: HandCoins },
+  { href: "/admin/teachers", label: "Teachers", icon: Users },
+  { href: "/admin/students", label: "Students", icon: User },
+  { href: "/admin/finance", label: "Finance", icon: FileText },
   { href: "/admin/subjects", label: "Subjects", icon: Book },
   { href: "/admin/schedules", label: "Schedules", icon: Calendar },
-  { href: "/admin/messages", label: "Messages", icon: MessageCircle },
+  { href: "/admin/messages", label: "Messages", icon: MessageSquare },
+  // { href: "/admin/settings", label: "Settings", icon: Settings },
+  // { href: "/admin/profile", label: "Profile", icon: User },
+];
+
+const bottomTabs = [
+  { href: "/admin/notifications", label: "Notifications", icon: Bell },
+  { href: "/admin/profile", label: "Profile", icon: User },
   { href: "/admin/settings", label: "Settings", icon: Settings },
-  { href: "/admin/profile", label: "Profile", icon: FileText },
 ];
 
 export default function AdminShell({ children }: { children: ReactNode }) {
@@ -48,8 +57,9 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col">
       {/* Desktop Sidebar */}
-      <div className="hidden sm:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-brand-border shadow-sm z-20">
-        <div className="w-full">
+      <div className="hidden sm:flex fixed left-0 top-0 h-full w-64 bg-white border-brand-border border-r shadow-sm z-20">
+        <div className="w-full flex flex-col h-full">
+          {/* Header */}
           <div className="p-4 border-b border-brand-border">
             <Link href="/">
               <h1 className="font-bold text-lg text-brand-primary hover:text-brand-primary/90">
@@ -58,7 +68,8 @@ export default function AdminShell({ children }: { children: ReactNode }) {
             </Link>
             <p className="text-sm text-gray-500">Admin Panel</p>
           </div>
-          <nav className="p-4 flex flex-col gap-1">
+          {/* Main Navigation (Scrollable) */}
+          <nav className="p-4 flex flex-col gap-1 flex-grow overflow-y-auto">
             {adminTabs.map(({ href, label, icon: Icon }) => (
               <button
                 key={href}
@@ -75,12 +86,32 @@ export default function AdminShell({ children }: { children: ReactNode }) {
               </button>
             ))}
           </nav>
+          {/* Bottom Fixed Navigation */}
+          <div className="p-4 border-t border-brand-border">
+            <div className="flex flex-col gap-1">
+              {bottomTabs.map(({ href, label, icon: Icon }) => (
+                <button
+                  key={href}
+                  onClick={() => handleTabClick(href, label)}
+                  className={cn(
+                    "flex items-center w-full p-2 rounded-md transition-colors duration-200 cursor-pointer text-left",
+                    pathname === href
+                      ? "bg-brand-primary text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  )}
+                >
+                  <Icon className="h-5 w-5 mr-2" />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Page Content */}
       <main className="flex-grow overflow-y-auto pb-16 sm:pb-0 sm:mb-0 sm:ml-64 pt-2 sm:pt-0">
-        <div className=" px-4 sm:px-6">{children}</div>
+        <div className="px-4 sm:px-6">{children}</div>
       </main>
 
       {/* Mobile Bottom Nav */}
