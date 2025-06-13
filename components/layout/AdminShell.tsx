@@ -9,10 +9,7 @@ import {
   User,
   Bell,
   Settings,
-  Award,
   MessageSquare,
-  BarChart2,
-  ListTodo,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";

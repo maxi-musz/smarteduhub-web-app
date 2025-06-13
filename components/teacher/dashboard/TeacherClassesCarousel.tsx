@@ -44,7 +44,7 @@ export function TeacherClassesCarousel() {
           </div>
 
           <CarouselContent className="-ml-4">
-            {weekDays.map((day, index) => {
+            {weekDays.map((day) => {
               const classes = getClassesForDay(day.name);
 
               return (

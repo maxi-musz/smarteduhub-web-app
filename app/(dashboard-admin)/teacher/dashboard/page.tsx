@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { dashboardStats, mockSchedule } from "@/data/mockData";
+import { dashboardStats } from "@/data/mockData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,33 +11,13 @@ import {
   Users,
   BarChart2,
   BookOpen,
-  Clock,
   Bell,
   ClipboardCheck,
   FilePen,
   MessageSquare,
-  LineChart,
 } from "lucide-react";
-import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
-import { TeacherClassesCarousel } from "@/components/teacher/dashboard/TeacherClassesCarousel";
 
-const performanceData = [
-  { month: "Jan", attendance: 86, grades: 78 },
-  { month: "Feb", attendance: 92, grades: 81 },
-  { month: "Mar", attendance: 88, grades: 80 },
-  { month: "Apr", attendance: 90, grades: 85 },
-  { month: "May", attendance: 94, grades: 88 },
-  { month: "Jun", attendance: 92, grades: 90 },
-];
+import { TeacherClassesCarousel } from "@/components/teacher/dashboard/TeacherClassesCarousel";
 
 const TeacherDashboardPage: React.FC = () => {
   const router = useRouter();
@@ -49,30 +29,30 @@ const TeacherDashboardPage: React.FC = () => {
   const dayAfter = new Date(today);
   dayAfter.setDate(dayAfter.getDate() + 2);
 
-  const dayNames = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  const todayName = dayNames[today.getDay()];
-  const tomorrowName = dayNames[tomorrow.getDay()];
-  const dayAfterName = dayNames[dayAfter.getDay()];
+  // const dayNames = [
+  //   "Sunday",
+  //   "Monday",
+  //   "Tuesday",
+  //   "Wednesday",
+  //   "Thursday",
+  //   "Friday",
+  //   "Saturday",
+  // ];
+  // const todayName = dayNames[today.getDay()];
+  // const tomorrowName = dayNames[tomorrow.getDay()];
+  // const dayAfterName = dayNames[dayAfter.getDay()];
 
-  const todaysClasses = mockSchedule
-    .filter((item) => ["Monday", "Today", todayName].includes(item.day))
-    .slice(0, 3);
+  // const todaysClasses = mockSchedule
+  //   .filter((item) => ["Monday", "Today", todayName].includes(item.day))
+  //   .slice(0, 3);
 
-  const tomorrowsClasses = mockSchedule
-    .filter((item) => ["Tuesday", "Tomorrow", tomorrowName].includes(item.day))
-    .slice(0, 3);
+  // const tomorrowsClasses = mockSchedule
+  //   .filter((item) => ["Tuesday", "Tomorrow", tomorrowName].includes(item.day))
+  //   .slice(0, 3);
 
-  const dayAfterClasses = mockSchedule
-    .filter((item) => [dayAfterName].includes(item.day))
-    .slice(0, 3);
+  // const dayAfterClasses = mockSchedule
+  //   .filter((item) => [dayAfterName].includes(item.day))
+  //   .slice(0, 3);
 
   //   const pendingGrades = mockGrades
   //     .filter((grade) => grade.status === "pending")
@@ -86,10 +66,12 @@ const TeacherDashboardPage: React.FC = () => {
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Teacher Dashboard</h1>
+        <h1 className="text-2xl font-bold text-brand-heading">
+          Teacher Dashboard
+        </h1>
         <div className="flex items-center">
-          <Bell className="w-5 h-5 text-gray-500 mr-2" />
-          <span className="text-sm text-gray-500">
+          <Bell className="w-5 h-5 text-brand-light-accent-1 mr-2" />
+          <span className="text-sm text-brand-light-accent-1">
             Today, {new Date().toLocaleDateString()}
           </span>
         </div>
@@ -115,7 +97,7 @@ const TeacherDashboardPage: React.FC = () => {
             className="py-6 flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-green-200"
             onClick={() => handleNavigate("/teacher/assignment")}
           >
-            <FilePen className="h-8 w-8 text-text-green-400" />
+            <FilePen className="h-8 w-8 text-green-400" />
             <span>Create Assignment</span>
           </Button>
 
@@ -176,7 +158,7 @@ const TeacherDashboardPage: React.FC = () => {
 
         <Card className="stats-card">
           <CardContent className="p-4 flex flex-col items-center">
-            <BookOpen className="h-8 w-8 text-text-green-400 mb-2" />
+            <BookOpen className="h-8 w-8 text-green-400 mb-2" />
             <h3 className="text-2xl font-bold">
               {dashboardStats.pendingGrades}
             </h3>
@@ -197,7 +179,7 @@ const TeacherDashboardPage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <ul className="divide-y">
+          <ul className="divide-y divide-brand-border">
             {dashboardStats.recentAnnouncements.map((announcement) => (
               <li key={announcement.id} className="py-3">
                 <div className="flex justify-between items-center">
