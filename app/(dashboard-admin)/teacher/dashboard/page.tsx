@@ -215,7 +215,7 @@ const TeacherDashboardPage: React.FC = () => {
         <h2 className="section-title">Recent Activity</h2>
         <Card>
           <CardContent className="p-4">
-            <ul className="divide-y">
+            <ul className="divide-y divide-brand-border">
               <li className="py-2">
                 <p className="text-sm">
                   <span className="font-medium">Maria Garcia</span> submitted
