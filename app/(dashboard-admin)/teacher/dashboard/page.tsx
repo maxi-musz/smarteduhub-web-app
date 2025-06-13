@@ -28,6 +28,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import { TeacherClassesCarousel } from "@/components/teacher/dashboard/TeacherClassesCarousel";
 
 const performanceData = [
   { month: "Jan", attendance: 86, grades: 78 },
@@ -83,7 +84,7 @@ const TeacherDashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="">
+    <div className="py-6 space-y-6 bg-brand-bg">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Teacher Dashboard</h1>
         <div className="flex items-center">
@@ -96,7 +97,9 @@ const TeacherDashboardPage: React.FC = () => {
 
       {/* Quick Action Links */}
       <div className="mb-8">
-        <h2 className="text-lg font-medium mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-medium mb-4 text-brand-heading">
+          Quick Action Buttons
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Button
             variant="outline"
@@ -137,6 +140,9 @@ const TeacherDashboardPage: React.FC = () => {
       </div>
 
       {/* Stats Overview */}
+      <h2 className="text-lg font-medium mb-4 text-brand-heading">
+        Quick Stats
+      </h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card className="stats-card">
           <CardContent className="p-4 flex flex-col items-center">
@@ -179,201 +185,8 @@ const TeacherDashboardPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* Performance Chart */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center">
-            <LineChart className="h-5 w-5 mr-2 text-brand-primary" />
-            Class Performance Overview
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="overflow-hidden">
-          <div className="h-80 relative">
-            <ChartContainer
-              config={{
-                attendance: {
-                  label: "Attendance",
-                  color: "#1E88E5",
-                },
-                grades: {
-                  label: "Grades",
-                  color: "#FFA000",
-                },
-              }}
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={performanceData}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip
-                    content={({ active, payload, label }) => {
-                      if (!active || !payload?.length) {
-                        return null;
-                      }
-                      return (
-                        <ChartTooltipContent
-                          active={active}
-                          payload={payload}
-                          label={label}
-                        />
-                      );
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="attendance"
-                    stroke="#1E88E5"
-                    fill="#1E88E5"
-                    fillOpacity={0.2}
-                    strokeWidth={2}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="grades"
-                    stroke="#FFA000"
-                    fill="#FFA000"
-                    fillOpacity={0.2}
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Three-day schedule view */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Today's Schedule */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-brand-primary" />
-              Today&apos;s Classes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {todaysClasses.length > 0 ? (
-              <ul className="divide-y">
-                {todaysClasses.map((item) => (
-                  <li
-                    key={item.id}
-                    className="py-3 flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {item.subject}
-                        <span className="ml-2 text-xs text-gray-500">
-                          {item.subjectCode}
-                        </span>
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {item.startTime} - {item.endTime} • {item.room}
-                      </p>
-                    </div>
-                    <div
-                      className="w-3 h-12 rounded-md"
-                      style={{ backgroundColor: item.color }}
-                    />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 py-4 text-center">
-                No classes scheduled for today
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Tomorrow's Schedule */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-sky-400" />
-              Tomorrow&apos;s Classes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {tomorrowsClasses.length > 0 ? (
-              <ul className="divide-y">
-                {tomorrowsClasses.map((item) => (
-                  <li
-                    key={item.id}
-                    className="py-3 flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {item.subject}
-                        <span className="ml-2 text-xs text-gray-500">
-                          {item.subjectCode}
-                        </span>
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {item.startTime} - {item.endTime} • {item.room}
-                      </p>
-                    </div>
-                    <div
-                      className="w-3 h-12 rounded-md"
-                      style={{ backgroundColor: item.color }}
-                    />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 py-4 text-center">
-                No classes scheduled for tomorrow
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Day After Tomorrow's Schedule */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-amber-400" />
-              {dayAfterName}&apos;s Classes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {dayAfterClasses.length > 0 ? (
-              <ul className="divide-y">
-                {dayAfterClasses.map((item) => (
-                  <li
-                    key={item.id}
-                    className="py-3 flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {item.subject}
-                        <span className="ml-2 text-xs text-gray-500">
-                          {item.subjectCode}
-                        </span>
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {item.startTime} - {item.endTime} • {item.room}
-                      </p>
-                    </div>
-                    <div
-                      className="w-3 h-12 rounded-md"
-                      style={{ backgroundColor: item.color }}
-                    />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 py-4 text-center">
-                No classes scheduled for {dayAfterName}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Teacher Classes Carousel */}
+      <TeacherClassesCarousel />
 
       {/* Announcements */}
       <Card>
