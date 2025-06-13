@@ -14,9 +14,9 @@ import {
   // ChartLegend,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+// import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+// import { Progress } from "@/components/ui/progress";
+// import { Badge } from "@/components/ui/badge";
 import {
   PieChart,
   Pie,
@@ -34,7 +34,7 @@ import {
 import {
   CalendarDays,
   BookOpen,
-  Clock,
+  // Clock,
   // BarChart2,
   Award,
   FileText,
@@ -64,29 +64,29 @@ const gradeData = [
   { subject: "Art", score: 95, average: 80 },
 ];
 
-const upcomingAssignments = [
-  {
-    id: 1,
-    title: "Math Problem Set",
-    subject: "Mathematics",
-    dueDate: "2025-05-02",
-    status: "pending",
-  },
-  {
-    id: 2,
-    title: "Science Lab Report",
-    subject: "Biology",
-    dueDate: "2025-05-05",
-    status: "pending",
-  },
-  {
-    id: 3,
-    title: "Last days at Forcaddos High School",
-    subject: "English Literature",
-    dueDate: "2025-05-10",
-    status: "pending",
-  },
-];
+// const upcomingAssignments = [
+//   {
+//     id: 1,
+//     title: "Math Problem Set",
+//     subject: "Mathematics",
+//     dueDate: "2025-05-02",
+//     status: "pending",
+//   },
+//   {
+//     id: 2,
+//     title: "Science Lab Report",
+//     subject: "Biology",
+//     dueDate: "2025-05-05",
+//     status: "pending",
+//   },
+//   {
+//     id: 3,
+//     title: "Last days at Forcaddos High School",
+//     subject: "English Literature",
+//     dueDate: "2025-05-10",
+//     status: "pending",
+//   },
+// ];
 
 // const progressData = [
 //   { month: "Jan", performance: 65 },

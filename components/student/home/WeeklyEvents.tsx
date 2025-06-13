@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, ArrowRight, MapPin } from "lucide-react";
-import Link from "next/link";
 
 interface WeeklyEvent {
   id: string;
@@ -102,7 +101,7 @@ export function WeeklyEvents() {
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <Calendar className="h-4 w-4 text-brand-primary" />
-          This Week's Events
+          This Week&apos;s Events
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 flex-1 flex flex-col">

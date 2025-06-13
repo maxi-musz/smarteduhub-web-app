@@ -15,7 +15,7 @@ interface StudentHeaderProps {
 const StudentHeader: React.FC<StudentHeaderProps> = ({
   studentName = "Student Dashboard",
   studentClass,
-  avatarUrl,
+  // avatarUrl,
 }) => {
   const pathname = usePathname();
   const currentPageRaw = pathname.split("/").pop();

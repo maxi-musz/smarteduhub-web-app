@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Book, FileText, Users, BrainCog } from "lucide-react";
+import { Book, FileText, Users } from "lucide-react";
 import StudentHeader from "@/components/ui/student-header";
 import { AIAgentLogo } from "@/components/AIAgentLogo";
 import { AIAgentModal } from "@/components/AIAgentModal";
@@ -76,17 +76,10 @@ const subjects = [
 ];
 
 const StudentSubjectsPage = () => {
-  // const [isAIModalOpen, setIsAIModalOpen] = useState(false);
-
-  // const handleAIClick = () => {
-  //   setIsAIModalOpen(true);
-  // };
-
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState("");
 
   const handleAIClick = (subjectName: string) => {
-    // alert(`AI Assistant for ${subjectName} is being developed!`);
     setSelectedSubject(subjectName);
     setAiModalOpen(true);
   };

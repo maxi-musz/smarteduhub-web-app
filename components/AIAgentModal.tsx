@@ -123,8 +123,8 @@ export function AIAgentModal({ isOpen, onClose, subject }: AIAgentModalProps) {
         </DialogHeader>
         <div className="space-y-4">
           <div className="text-sm text-brand-heading">
-            Hi! I'm your AI learning assistant for <strong>{subject}</strong>.
-            How can I help you today?
+            Hi! I&apos;m your AI learning assistant for{" "}
+            <strong>{subject}</strong>. How can I help you today?
           </div>
           <div className="text-xs text-brand-light-accent-1">
             Type your question or wait for a suggestion below.

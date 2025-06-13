@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar, ArrowRight, User } from "lucide-react";
-import Link from "next/link";
 
 interface ClassScheduleItem {
   id: string;
@@ -53,7 +52,7 @@ export function ClassScheduleSummary() {
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <Calendar className="size-4 text-green-400" />
-          Today's Classes
+          Today&apos;s Classes
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 flex-1 flex flex-col">

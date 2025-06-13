@@ -2,7 +2,8 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ListTodo, Calendar, Clock, FileText } from "lucide-react";
+import { Calendar, Clock, FileText } from "lucide-react";
+import StudentHeader from "@/components/ui/student-header";
 
 const tasks = [
   {
@@ -53,13 +54,19 @@ const getStatusColor = (status: string) => {
 const StudentTasksPage = () => {
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+      {/* <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">My Tasks</h1>
         <Button>
           <ListTodo className="h-4 w-4 mr-2" />
           New Task
         </Button>
-      </div>
+      </div> */}
+      {/* Header */}
+      <StudentHeader
+        studentName="Oluwajuwon Kayode"
+        studentClass="SS3A"
+        // avatarUrl="https://via.placeholder.com/150"
+      />
 
       <div className="space-y-4">
         {tasks.map((task) => (
