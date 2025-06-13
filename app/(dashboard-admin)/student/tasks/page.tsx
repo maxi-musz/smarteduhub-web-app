@@ -6,7 +6,7 @@ import EventsTable from "@/components/student/tasks/EventsTable";
 
 const StudentTasksPage = () => {
   return (
-    <div className="p-6">
+    <div className="py-6 space-y-6 bg-brand-bg">
       {/* Header */}
       <StudentHeader
         studentName="Oluwajuwon Kayode"

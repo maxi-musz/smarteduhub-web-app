@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Award, Download, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import StudentHeader from "@/components/ui/student-header";
+import { AcademicResultsTable } from "@/components/student/results/AcademicResultsTable";
 
 const results = [
   {
@@ -133,19 +135,13 @@ const StudentResultsPage = () => {
   );
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Academic Results</h1>
-          <p className="text-muted-foreground">
-            View your academic performance and download certificates
-          </p>
-        </div>
-        <Button>
-          <Download className="h-4 w-4 mr-2" />
-          Download All Results
-        </Button>
-      </div>
+    <div className="py-6 space-y-6 bg-brand-bg">
+      {/* Header */}
+      <StudentHeader
+        studentName="Oluwajuwon Kayode"
+        studentClass="SS3A"
+        // avatarUrl="https://via.placeholder.com/150"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <Card>
@@ -188,65 +184,8 @@ const StudentResultsPage = () => {
         </Card>
       </div>
 
-      {/* Filter system */}
-      <div className="flex items-center space-x-4 mb-6">
-        {["All", "Exam", "Test", "Quiz"].map((filter) => (
-          <Button
-            key={filter}
-            variant={filter === selectedFilter ? "default" : "outline"}
-            className="capitalize"
-            onClick={() => setSelectedFilter(filter)}
-          >
-            {filter} (
-            {
-              results.filter(
-                (result) => filter === "All" || result.type === filter
-              ).length
-            }
-            )
-          </Button>
-        ))}
-      </div>
-
-      {/* Results List */}
-      <div className="space-y-4">
-        {filteredResults.map((result) => (
-          <Card key={result.id} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">{result.subject}</h3>
-                    <Badge className={getGradeColor(result.grade)}>
-                      {result.grade}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{result.type}</p>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline">Score: {result.score}%</Badge>
-                    <Badge variant="outline">Date: {result.date}</Badge>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {result.feedback}
-                  </p>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" className="w-full">
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
-                    </Button>
-                    <Button className="w-full">
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Academic Results Tables */}
+      <AcademicResultsTable />
     </div>
   );
 };
