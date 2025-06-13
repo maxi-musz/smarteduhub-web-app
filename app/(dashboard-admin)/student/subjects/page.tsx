@@ -1,9 +1,13 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Book, FileText, Users, BrainCog } from "lucide-react";
 import StudentHeader from "@/components/ui/student-header";
+import { AIAgentLogo } from "@/components/AIAgentLogo";
+import { AIAgentModal } from "@/components/AIAgentModal";
 
 const subjects = [
   {
@@ -72,69 +76,97 @@ const subjects = [
 ];
 
 const StudentSubjectsPage = () => {
+  // const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+
+  // const handleAIClick = () => {
+  //   setIsAIModalOpen(true);
+  // };
+
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState("");
+
+  const handleAIClick = (subjectName: string) => {
+    // alert(`AI Assistant for ${subjectName} is being developed!`);
+    setSelectedSubject(subjectName);
+    setAiModalOpen(true);
+  };
+
   return (
-    <div className="p-6">
-      {/* Header */}
-      <StudentHeader
-        studentName="Oluwajuwon Kayode"
-        studentClass="SS3A"
-        // avatarUrl="https://via.placeholder.com/150"
-      />
+    <>
+      <div className="p-6">
+        {/* Header */}
+        <StudentHeader
+          studentName="Oluwajuwon Kayode"
+          studentClass="SS3A"
+          // avatarUrl="https://via.placeholder.com/150"
+        />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {subjects.map((subject) => (
-          <Card key={subject.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{subject.name}</span>
-                <BrainCog className="h-5 w-5" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Users className="h-4 w-4 mr-2" />
-                  <span>{subject.teacher}</span>
-                </div>
-
-                <div>
-                  <div className="flex justify-between mb-1 text-sm">
-                    <span>Course Progress</span>
-                    <span>{subject.progress}%</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {subjects.map((subject) => (
+            <Card
+              key={subject.id}
+              className="hover:shadow-lg transition-shadow"
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>{subject.name}</span>
+                  <button
+                    onClick={() => {
+                      // Handle AI Assistant click
+                      handleAIClick(subject.name);
+                    }}
+                    className="p-1 rounded-full hover:bg-accent transition-colors"
+                    aria-label="AI Assistant"
+                  >
+                    <AIAgentLogo size="sm" />
+                  </button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center text-sm text-brand-light-accent-1">
+                    <Users className="h-4 w-4 mr-2" />
+                    <span>{subject.teacher}</span>
                   </div>
-                  <Progress value={subject.progress} className="h-2" />
-                </div>
 
-                <div className="text-sm">
-                  <p className="font-medium">Next Class:</p>
-                  <p className="text-muted-foreground">{subject.nextClass}</p>
-                </div>
+                  <div>
+                    <div className="flex justify-between mb-1 text-sm">
+                      <span>Course Progress</span>
+                      <span>{subject.progress}%</span>
+                    </div>
+                    <Progress value={subject.progress} className="h-2" />
+                  </div>
 
-                {/* <div className="text-sm">
-                  <p className="font-medium mb-2">Current Topics:</p>
-                  <ul className="list-disc list-inside text-muted-foreground">
-                    {subject.topics.map((topic, index) => (
-                      <li key={index}>{topic}</li>
-                    ))}
-                  </ul>
-                </div> */}
+                  <div className="text-sm">
+                    <p className="font-medium">Next Class:</p>
+                    <p className="text-brand-light-accent-1">
+                      {subject.nextClass}
+                    </p>
+                  </div>
 
-                <div className="flex space-x-2 pt-2">
-                  <Button variant="outline" className="w-full">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Materials
-                  </Button>
-                  <Button className="w-full">
-                    <Book className="h-4 w-4 mr-2" />
-                    View Course
-                  </Button>
+                  <div className="flex flex-col lg:flex-row space-y-2 space-x-2 pt-2">
+                    <Button variant="outline" className="w-full">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Materials
+                    </Button>
+                    <Button className="w-full">
+                      <Book className="h-4 w-4 mr-2" />
+                      View Course
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
+
+      <AIAgentModal
+        isOpen={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
+        subject={selectedSubject}
+      />
+    </>
   );
 };
 
