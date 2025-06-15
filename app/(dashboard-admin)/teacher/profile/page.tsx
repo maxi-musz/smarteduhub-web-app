@@ -11,15 +11,21 @@ import {
   PenTool,
   Edit,
 } from "lucide-react";
-import { teacherProfile } from "@/data/mockData";
-import { Separator } from "@/components/ui/separator";
+import {
+  teacherProfile,
+  teacherClasses,
+  teacherSubjects,
+} from "@/data/mockData";
 import Image from "next/image";
+
+// Mock data for demonstration (replace with real data as needed)
+const isActive = true; // You can set this based on real status
 
 const TeacherProfilePage = () => {
   return (
-    <div className="">
+    <div className="min-h-screen py-6 space-y-6 bg-brand-bg">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Profile</h1>
+        <h1 className="text-2xl font-bold text-brand-heading">Profile</h1>
         <Button className="bg-brand-primary hover:bg-brand-primary/90">
           <Edit className="h-4 w-4 mr-1" />
           Edit Profile
@@ -47,25 +53,59 @@ const TeacherProfilePage = () => {
             </div>
             <h2 className="text-xl font-bold mb-1">{teacherProfile.name}</h2>
             <p className="text-gray-500 mb-2">{teacherProfile.title}</p>
-            <Badge className="mb-4">{teacherProfile.department}</Badge>
+            {/* Active/Inactive Badge */}
+            <div className="flex justify-center mb-4">
+              <Badge
+                className={`px-4 py-1 text-sm font-semibold ${
+                  isActive
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {isActive ? "Active" : "Inactive"}
+              </Badge>
+            </div>
 
-            <Separator className="my-4 w-full" />
-
+            {/* Contact Details */}
             <div className="w-full space-y-3">
               <div className="flex items-center">
-                <Mail className="h-4 w-4 text-gray-500 mr-3" />
+                <Mail className="h-4 w-4 text-brand-light-accent-1 mr-3" />
                 <span className="text-sm">{teacherProfile.email}</span>
               </div>
               <div className="flex items-center">
-                <Phone className="h-4 w-4 text-gray-500 mr-3" />
+                <Phone className="h-4 w-4 text-brand-light-accent-1 mr-3" />
                 <span className="text-sm">{teacherProfile.phone}</span>
               </div>
               <div className="flex items-center">
-                <Calendar className="h-4 w-4 text-gray-500 mr-3" />
+                <Calendar className="h-4 w-4 text-brand-light-accent-1 mr-3" />
                 <span className="text-sm">
                   Joined{" "}
                   {new Date(teacherProfile.joinDate).toLocaleDateString()}
                 </span>
+              </div>
+            </div>
+
+            {/* Classes & Subjects */}
+            <div className="w-full mt-8">
+              <div className="mb-2 font-semibold text-brand-heading text-base">
+                Classes Taking
+              </div>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {teacherClasses.map((cls) => (
+                  <Badge key={cls} variant="outline" className="px-3 py-1">
+                    {cls}
+                  </Badge>
+                ))}
+              </div>
+              <div className="mb-2 font-semibold text-brand-heading text-base">
+                Subjects Taking
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {teacherSubjects.map((subj) => (
+                  <Badge key={subj} variant="outline" className="px-3 py-1">
+                    {subj}
+                  </Badge>
+                ))}
               </div>
             </div>
           </CardContent>
@@ -73,34 +113,29 @@ const TeacherProfilePage = () => {
 
         {/* Details Section */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Bio */}
+          {/* Bio & Specializations */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <User className="h-5 w-5 mr-2 text-brand-primary" />
-                Biography
+                Bio
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700">{teacherProfile.bio}</p>
-            </CardContent>
-          </Card>
-
-          {/* Specializations */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <BookOpen className="h-5 w-5 mr-2 text-brand-primary" />
-                Specializations
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {teacherProfile.specialization.map((spec, index) => (
-                  <Badge key={index} variant="outline" className="px-3 py-1">
-                    {spec}
-                  </Badge>
-                ))}
+              <p className="text-brand-light-accent-1">{teacherProfile.bio}</p>
+              {/* Specializations content */}
+              <div className="mt-6">
+                <div className="flex items-center mb-2">
+                  <BookOpen className="h-5 w-5 mr-2 text-brand-primary" />
+                  <span className="text-lg font-semibold">Specializations</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {teacherProfile.specialization.map((spec, index) => (
+                    <Badge key={index} variant="outline" className="px-3 py-1">
+                      {spec}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>

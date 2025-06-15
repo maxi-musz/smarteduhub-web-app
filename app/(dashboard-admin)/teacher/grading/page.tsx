@@ -231,13 +231,13 @@ export default function TeacherGradingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen py-6 space-y-6 bg-brand-bg">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Grading</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl font-bold text-brand-heading">Grading</h1>
+            <p className="text-brand-light-accent-1 mt-1">
               Manage assignments and grades
             </p>
           </div>

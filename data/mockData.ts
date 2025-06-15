@@ -281,16 +281,19 @@ export const mockGrades: GradeItem[] = [
 // Teacher Profile
 export const teacherProfile: TeacherProfile = {
   id: "teacher001",
-  name: "Dr. Emily Wilson",
-  avatar: "/placeholder.svg",
+  name: "Mr. Adekola O.A.",
+  avatar: "/teachers/mr.adekola.o.a.jpg",
   title: "Senior Teacher",
   department: "Mathematics",
-  email: "emily.wilson@educate.com",
-  phone: "(555) 123-4567",
-  bio: "Dr. Wilson has been teaching for over 10 years with a specialization in advanced mathematics. She has published several papers on effective teaching methods in mathematics.",
+  email: "adekola@educate.com",
+  phone: "(234) 123-4567",
+  bio: "Mr. Adekola has been teaching for over 10 years with a specialization in advanced mathematics. He has published several papers on effective teaching methods in mathematics.",
   specialization: ["Calculus", "Algebra", "Statistics"],
-  joinDate: "2015-08-15",
+  joinDate: "2017-08-15",
 };
+
+export const teacherClasses = ["SS1A", "SS2B", "JSS3C"];
+export const teacherSubjects = mockSubjects.map((subject) => subject.name);
 
 // Dashboard Stats
 export const dashboardStats = {
