@@ -12,7 +12,7 @@ export default function VoiceflowAgent() {
       // @ts-expect-error: Assuming voiceflow is globally available
       // Initialize the Voiceflow chat widget with the provided configuration
       window.voiceflow?.chat?.load?.({
-        verify: { projectID: "683827f299738c78f112d840" },
+        verify: { projectID: "6853b95094f6d5480faec67d" },
         url: "https://general-runtime.voiceflow.com",
         versionID: "production",
         voice: {
