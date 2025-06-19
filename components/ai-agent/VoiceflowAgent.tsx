@@ -9,7 +9,8 @@ export default function VoiceflowAgent() {
     script.src = "https://cdn.voiceflow.com/widget-next/bundle.mjs";
 
     script.onload = () => {
-      // @ts-ignore
+      // @ts-expect-error: Assuming voiceflow is globally available
+      // Initialize the Voiceflow chat widget with the provided configuration
       window.voiceflow?.chat?.load?.({
         verify: { projectID: "683827f299738c78f112d840" },
         url: "https://general-runtime.voiceflow.com",
