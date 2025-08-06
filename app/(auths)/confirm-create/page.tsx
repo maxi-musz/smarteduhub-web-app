@@ -171,7 +171,11 @@ const ConfirmCreate = () => {
               Choose a file or drag & drop it here
             </p>
             <p className="text-xs text-gray-500">
-              JPEG, PNG or PDF format, up to 10MB
+              {type === "cac"
+                ? "PDF, DOC, DOCX format, up to 10MB"
+                : type === "utility"
+                ? "PDF, PNG, JPG format, up to 10MB"
+                : "PDF, DOC, DOCX format, up to 10MB"}
             </p>
             <Button
               type="button"
@@ -225,7 +229,13 @@ const ConfirmCreate = () => {
           ref={inputRef}
           type="file"
           className="hidden"
-          accept=".pdf,.jpg,.jpeg,.png"
+          accept={
+            type === "cac"
+              ? ".pdf,.doc,.docx"
+              : type === "utility"
+              ? ".pdf,.png,.jpg,.jpeg"
+              : ".pdf,.doc,.docx"
+          }
           onChange={(e) => {
             const selectedFile = e.target.files?.[0];
             if (selectedFile) {
@@ -271,7 +281,7 @@ const ConfirmCreate = () => {
         <div className="space-y-6">
           <FileUploadArea
             type="cac"
-            label="CAC or Government letter of approval"
+            label="CAC or Government approval letter"
             inputRef={cacInputRef}
           />
 
@@ -283,7 +293,7 @@ const ConfirmCreate = () => {
 
           <FileUploadArea
             type="taxId"
-            label="Tax ID certificate or evidence of tax compliance"
+            label="Tax certificate"
             inputRef={taxIdInputRef}
             isOptional
           />

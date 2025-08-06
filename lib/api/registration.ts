@@ -1,6 +1,7 @@
 interface SchoolFormData {
   schoolName: string;
   schoolEmail: string;
+  schoolPhone: string;
   schoolAddress: string;
   schoolType: string;
   schoolOwnership: string;
@@ -30,6 +31,7 @@ export async function registerSchool(
     // Append school data
     formData.append("schoolName", schoolData.schoolName);
     formData.append("schoolEmail", schoolData.schoolEmail);
+    formData.append("schoolPhone", schoolData.schoolPhone);
     formData.append("schoolAddress", schoolData.schoolAddress);
     formData.append("schoolType", schoolData.schoolType);
     formData.append("schoolOwnership", schoolData.schoolOwnership);
@@ -45,12 +47,35 @@ export async function registerSchool(
       formData.append("taxId", documentData.taxId);
     }
 
+    // Log what we're sending for debugging
+    console.log("Sending registration data:", {
+      schoolData,
+      files: {
+        cac: documentData.cac
+          ? `${documentData.cac.name} (${documentData.cac.size} bytes, type: ${documentData.cac.type})`
+          : null,
+        utility: documentData.utility
+          ? `${documentData.utility.name} (${documentData.utility.size} bytes, type: ${documentData.utility.type})`
+          : null,
+        taxId: documentData.taxId
+          ? `${documentData.taxId.name} (${documentData.taxId.size} bytes, type: ${documentData.taxId.type})`
+          : null,
+      },
+    });
+
     const response = await fetch("/api/auth/register", {
       method: "POST",
       body: formData,
     });
 
     const data = await response.json();
+
+    console.log("Registration response:", {
+      status: response.status,
+      statusCode: data.statusCode,
+      success: data.success,
+      message: data.message,
+    });
 
     return {
       success: data.success,

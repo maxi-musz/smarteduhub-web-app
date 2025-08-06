@@ -17,6 +17,7 @@ const CreateAccount = () => {
   const [formData, setFormData] = useState({
     schoolName: "",
     schoolEmail: "",
+    schoolPhone: "",
     schoolAddress: "",
     schoolType: "",
     schoolOwnership: "",
@@ -106,6 +107,30 @@ const CreateAccount = () => {
 
           <div>
             <Label
+              htmlFor="schoolPhone"
+              className="text-sm font-medium text-gray-700"
+            >
+              School Phone Number
+            </Label>
+            <Input
+              id="schoolPhone"
+              type="tel"
+              placeholder="08100000000"
+              value={formData.schoolPhone}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, ""); // Only allow digits
+                if (value.length <= 11) {
+                  // Max 11 digits
+                  handleInputChange("schoolPhone", value);
+                }
+              }}
+              maxLength={11}
+              className="mt-1 w-full"
+            />
+          </div>
+
+          <div>
+            <Label
               htmlFor="schoolAddress"
               className="text-sm font-medium text-gray-700"
             >
@@ -139,11 +164,9 @@ const CreateAccount = () => {
               <SelectContent>
                 <SelectItem value="primary">Primary</SelectItem>
                 <SelectItem value="secondary">Secondary</SelectItem>
-                <SelectItem value="polytechnic">Polytechnic</SelectItem>
-                <SelectItem value="college of education">
-                  College of Education
+                <SelectItem value="primary_and_secondary">
+                  Primary and Secondary
                 </SelectItem>
-                <SelectItem value="university">University</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -164,12 +187,9 @@ const CreateAccount = () => {
                 <SelectValue placeholder="Select school ownership" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="individual">Individual Owned</SelectItem>
+                <SelectItem value="private">Private</SelectItem>
                 <SelectItem value="government">Government</SelectItem>
-                <SelectItem value="private">Private Institution</SelectItem>
-                <SelectItem value="religious">
-                  Religious Organization
-                </SelectItem>
+                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
