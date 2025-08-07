@@ -7,7 +7,7 @@ import { IconHeading } from "@/components/IconHeading";
 
 const VerifyOtp = () => {
   const router = useRouter();
-  const [otp, setOtp] = useState(["", "", "", ""]); // Only 4 values now
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]); // Changed to 6 values
   const [timeLeft, setTimeLeft] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -44,7 +44,7 @@ const VerifyOtp = () => {
     if (error) setError("");
 
     // Auto-focus next input
-    if (value && index < 3) {
+    if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -58,10 +58,10 @@ const VerifyOtp = () => {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").slice(0, 4); // Only 4 digits
+    const pastedData = e.clipboardData.getData("text").slice(0, 6); // Changed to 6 digits
     const newOtp = [...otp];
 
-    for (let i = 0; i < pastedData.length && i < 4; i++) {
+    for (let i = 0; i < pastedData.length && i < 6; i++) {
       newOtp[i] = pastedData[i];
     }
     setOtp(newOtp);
@@ -83,7 +83,7 @@ const VerifyOtp = () => {
       const result = await signIn("credentials", {
         email,
         otp: otpCode,
-        mode: "otp",
+        isOtpVerification: "true",
         redirect: false,
       });
 
@@ -95,7 +95,7 @@ const VerifyOtp = () => {
       if (result?.ok) {
         // Clear pending auth and redirect to admin dashboard
         sessionStorage.removeItem("pendingAuthEmail");
-        router.push("/admin");
+        window.location.href = "/admin/dashboard"; // Force page reload to avoid cache issues
       }
     } catch (err) {
       console.error("OTP verification error:", err);
@@ -111,15 +111,15 @@ const VerifyOtp = () => {
     try {
       setError("");
       // Trigger OTP resend by attempting login again
-      await signIn("credentials", {
+      const result = await signIn("credentials", {
         email,
-        password: "", // Won't be used for OTP resend
-        mode: "resend",
+        password: "dummy", // Backend needs password for initial login call
         redirect: false,
       });
 
+      // Ignore the result - we just want to trigger OTP sending
       setTimeLeft(60);
-      setOtp(["", "", "", ""]);
+      setOtp(["", "", "", "", "", ""]); // Changed to 6 empty values
       inputRefs.current[0]?.focus();
     } catch (err) {
       console.error("Resend OTP error:", err);
@@ -137,8 +137,8 @@ const VerifyOtp = () => {
             Verify your email
           </h2>
           <p className="text-brand-light-accent-1 text-sm">
-            We&apos;ve sent a 4-digit verification code to your email address.
-            Please enter it below to verify your account.
+            We&apos;ve sent a 6-character verification code to your email
+            address. Please enter it below to verify your account.
           </p>
         </div>
 
@@ -159,8 +159,7 @@ const VerifyOtp = () => {
                   inputRefs.current[index] = el;
                 }}
                 type="text"
-                inputMode="numeric"
-                pattern="[0-9]"
+                inputMode="text"
                 maxLength={1}
                 value={digit}
                 onChange={(e) => handleOtpChange(index, e.target.value)}

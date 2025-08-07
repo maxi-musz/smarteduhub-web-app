@@ -12,13 +12,14 @@ export const authOptions: NextAuthOptions = {
         isOtpVerification: { label: "Is OTP Verification", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.email) {
           return null;
         }
 
         try {
           // Handle OTP verification for admins
           if (credentials.isOtpVerification === "true" && credentials.otp) {
+            // For OTP verification, we don't need password validation
             const response = await fetch(
               "https://smart-edu-hub.onrender.com/api/v1/auth/director-verify-login-otp",
               {
@@ -48,10 +49,15 @@ export const authOptions: NextAuthOptions = {
                 isEmailVerified: data.data.is_email_verified,
               };
             }
+
+            throw new Error(data.message || "Invalid OTP");
+          }
+
+          // Handle initial login - password is required for this flow
+          if (!credentials?.password) {
             return null;
           }
 
-          // Handle initial login
           const response = await fetch(
             "https://smart-edu-hub.onrender.com/api/v1/auth/sign-in",
             {
@@ -69,6 +75,12 @@ export const authOptions: NextAuthOptions = {
           const data = await response.json();
 
           if (response.ok && data.success) {
+            // For school directors, don't return user data - throw error to trigger OTP flow
+            if (data.data.role === "school_director") {
+              throw new Error("OTP_REQUIRED");
+            }
+
+            // For teachers and students, return user data for immediate login
             return {
               id: data.data.id,
               email: data.data.email,
@@ -79,14 +91,16 @@ export const authOptions: NextAuthOptions = {
               lastName: data.data.last_name,
               phoneNumber: data.data.phone_number,
               isEmailVerified: data.data.is_email_verified,
-              requiresOtp: data.data.role === "school_director",
             };
           }
 
-          return null;
-        } catch (error) {
-          console.error("Auth error:", error);
-          return null;
+          throw new Error(data.message || "Invalid credentials");
+        } catch (error: any) {
+          // Don't log OTP_REQUIRED as an error - it's expected behavior
+          if (error.message !== "OTP_REQUIRED") {
+            console.error("Auth error:", error);
+          }
+          throw new Error(error.message || "Authentication failed");
         }
       },
     }),

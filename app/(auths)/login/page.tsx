@@ -41,41 +41,23 @@ const Login = () => {
       const result = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
-        mode: "login",
         redirect: false,
       });
 
       if (result?.error) {
+        // Handle OTP required error
+        if (result.error === "OTP_REQUIRED") {
+          sessionStorage.setItem("pendingAuthEmail", formData.email);
+          router.push("/verify-otp");
+          return;
+        }
         setError(result.error);
         return;
       }
 
       if (result?.ok) {
-        // Check if user needs OTP (school director)
-        const response = await fetch("/api/auth/signin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user?.requiresOtp) {
-            // Navigate to OTP verification for school directors
-            sessionStorage.setItem("pendingAuthEmail", formData.email);
-            router.push("/verify-otp");
-          } else {
-            // Direct redirect for teachers and students
-            const role = data.user?.role;
-            if (role === "teacher") {
-              router.push("/teacher");
-            } else if (role === "student") {
-              router.push("/student");
-            } else {
-              router.push("/admin");
-            }
-          }
-        }
+        // Success - redirect will be handled by middleware based on role
+        window.location.href = "/admin/dashboard"; // Will redirect to appropriate dashboard
       }
     } catch (err) {
       console.error("Login error:", err);
