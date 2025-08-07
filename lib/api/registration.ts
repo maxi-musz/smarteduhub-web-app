@@ -17,8 +17,8 @@ interface RegistrationResponse {
   success: boolean;
   statusCode: number;
   message: string;
-  data?: any;
-  error?: any;
+  data?: unknown;
+  error?: unknown;
 }
 
 export async function registerSchool(
