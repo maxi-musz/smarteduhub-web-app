@@ -15,8 +15,8 @@ interface Student {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
-  defaultClass: string;
+  phoneNumber: string;
+  studentClass: string;
 }
 
 interface Admin {

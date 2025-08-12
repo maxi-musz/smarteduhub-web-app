@@ -103,7 +103,7 @@ const OnboardReviews = () => {
               title={`Students (${data?.students?.length || 0})`}
               items={data?.students || []}
               renderItem={(student) =>
-                `${student.firstName} ${student.lastName} (${student.defaultClass})`
+                `${student.firstName} ${student.lastName} (${student.studentClass})`
               }
               ListDotIcon={ListDotIcon}
             />
