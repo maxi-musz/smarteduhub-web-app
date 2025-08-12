@@ -11,8 +11,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Plus, X } from "lucide-react";
+import { Plus, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const classLevels = [
   "JSS1",
@@ -29,11 +35,38 @@ const classLevels = [
   "Primary 6",
 ];
 
+const bulkOptions = [
+  {
+    label: "Primary 1 - Primary 6",
+    classes: [
+      "Primary 1",
+      "Primary 2",
+      "Primary 3",
+      "Primary 4",
+      "Primary 5",
+      "Primary 6",
+    ],
+  },
+  {
+    label: "JSS1 - JSS3",
+    classes: ["JSS1", "JSS2", "JSS3"],
+  },
+  {
+    label: "SS1 - SS2",
+    classes: ["SS1", "SS2"],
+  },
+];
+
 const OnboardClasses = () => {
   const router = useRouter();
   const { data, updateClasses } = useOnboarding();
   const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedBulkOption, setSelectedBulkOption] = useState("");
   const [classes, setClasses] = useState<string[]>(data.classes);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleAddClass = () => {
     if (selectedLevel && !classes.includes(selectedLevel)) {
@@ -42,18 +75,94 @@ const OnboardClasses = () => {
     }
   };
 
+  const handleAddBulkClasses = () => {
+    if (selectedBulkOption) {
+      const bulkOption = bulkOptions.find(
+        (option) => option.label === selectedBulkOption
+      );
+      if (bulkOption) {
+        const newClasses = bulkOption.classes.filter(
+          (cls) => !classes.includes(cls)
+        );
+        console.log("Adding bulk classes:", newClasses);
+        if (newClasses.length > 0) {
+          setClasses((prev) => [...prev, ...newClasses]);
+        }
+      }
+      setSelectedBulkOption("");
+    }
+  };
+
   const handleRemoveClass = (index: number) => {
     setClasses((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleNext = () => {
-    updateClasses(classes);
+  const handleNext = async () => {
+    if (classes.length === 0) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/onboard-classes`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            class_names: classes,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            `Error ${response.status}: ${
+              data.error || "Failed to onboard classes"
+            }`
+        );
+      }
+
+      if (data.success) {
+        updateClasses(classes);
+        setShowSuccessModal(true);
+      } else {
+        throw new Error(data.message || "Failed to onboard classes");
+      }
+    } catch (error: any) {
+      setErrorMessage(
+        error.message || "An unexpected error occurred. Please try again."
+      );
+      setShowErrorModal(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
     router.push("/onboarding-teachers");
+  };
+
+  const handleErrorModalClose = () => {
+    setShowErrorModal(false);
   };
 
   const availableLevels = classLevels.filter(
     (level) => !classes.includes(level)
   );
+
+  const getAvailableBulkOptions = () => {
+    return bulkOptions.filter((option) => {
+      // Check if any class in this bulk option is not already added
+      return option.classes.some((cls) => !classes.includes(cls));
+    });
+  };
 
   return (
     <div className="min-h-screen bg-white p-4">
@@ -93,12 +202,45 @@ const OnboardClasses = () => {
             </p>
           </div>
 
+          {/* Bulk Selection */}
+          <div className="mb-6">
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-brand-heading mb-2">
+                  Bulk Add Classes
+                </label>
+                <Select
+                  value={selectedBulkOption}
+                  onValueChange={setSelectedBulkOption}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a bulk option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getAvailableBulkOptions().map((option) => (
+                      <SelectItem key={option.label} value={option.label}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={handleAddBulkClasses}
+                disabled={!selectedBulkOption}
+                className="bg-brand-primary text-white hover:bg-brand-primary/90 px-6"
+              >
+                Add classes
+              </Button>
+            </div>
+          </div>
+
           {/* Select & Add Class */}
           <div className="mb-8">
             <div className="flex gap-4 items-end">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-brand-heading mb-2">
-                  Select Class Level
+                  Select Single Class Level
                 </label>
                 <Select value={selectedLevel} onValueChange={setSelectedLevel}>
                   <SelectTrigger className="w-full">
@@ -163,17 +305,78 @@ const OnboardClasses = () => {
           <div className="flex justify-end border-t border-gray-200 pt-4 mt-8">
             <Button
               onClick={handleNext}
-              disabled={classes.length === 0}
+              disabled={classes.length === 0 || isLoading}
               className={`px-8 ${
                 classes.length > 0
                   ? "bg-brand-primary hover:bg-brand-primary/90 text-white"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
             >
-              Next
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Next"
+              )}
             </Button>
           </div>
         </div>
+
+        {/* Success Modal */}
+        <Dialog open={showSuccessModal} onOpenChange={() => {}}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                Classes Added Successfully
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-muted-foreground mb-4">
+                Your classes have been successfully onboarded. Let's move to the
+                next step and add teachers.
+              </p>
+              <Button
+                onClick={handleSuccessModalClose}
+                className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white"
+              >
+                Continue to Teachers
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Error Modal */}
+        <Dialog open={showErrorModal} onOpenChange={() => {}}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-red-600" />
+                Error
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-muted-foreground mb-4">{errorMessage}</p>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleErrorModalClose}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Try Again
+                </Button>
+                <Button
+                  onClick={handleErrorModalClose}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
