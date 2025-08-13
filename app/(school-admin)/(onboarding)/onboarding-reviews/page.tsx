@@ -26,17 +26,6 @@ const OnboardReviews = () => {
   const router = useRouter();
   const { data } = useOnboarding();
 
-  const handleProceed = () => {
-    console.log("Final onboarding data:", data);
-    alert("Proceeding to School Dashboard! (Implementation pending)");
-    // You might redirect here in the future:
-    // router.push("/dashboard");
-  };
-
-  const handleBack = () => {
-    router.push("/onboarding-more-admins");
-  };
-
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-4xl mx-auto">
@@ -65,10 +54,11 @@ const OnboardReviews = () => {
               Review & Complete Setup
             </h2>
             <p className="text-brand-light-accent-2 text-sm">
-              All setup data has been configured & ready to go. You can now
-              proceed to your admin
+              All setup data has been configured & ready to go. You can now proceed to your admin
               <br />
-              dashboard.
+              dashboard. You can always onboard new classes, teachers, students, and more admins
+              <br />
+              in the onboarding tab in the sidebar.
             </p>
           </div>
 
@@ -120,12 +110,9 @@ const OnboardReviews = () => {
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-between">
-            <Button onClick={handleBack} variant="outline" className="px-8">
-              Back
-            </Button>
+          <div className="flex justify-end">
             <Button
-              onClick={handleProceed}
+              onClick={() => router.push("/admin/dashboard")}
               className="bg-brand-primary hover:bg-brand-primary-hover text-white px-8"
             >
               Proceed to School Dashboard
