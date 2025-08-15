@@ -5,16 +5,6 @@ import { Edit, Clock } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-const timeSlots = [
-  "08:00-09:00",
-  "09:00-10:00",
-  "10:00-11:00",
-  "11:00-12:00",
-  "12:00-13:00",
-  "13:00-14:00",
-  "14:00-15:00",
-  "15:00-16:00",
-];
 
 // Define types for your data
 interface Period {
@@ -43,6 +33,7 @@ interface TimetableGridProps {
   subjects: Subject[];
   teachers: Teacher[];
   onEdit: (period: Period) => void;
+  timeSlots?: string[]; // Optional prop for dynamic time slots
 }
 
 const TimetableGrid: React.FC<TimetableGridProps> = ({
@@ -50,8 +41,24 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
   subjects,
   teachers,
   onEdit,
+  timeSlots: propTimeSlots,
 }) => {
   const isMobile = useIsMobile();
+
+  // Use dynamic timeSlots from props, fallback to hardcoded ones
+  const timeSlots =
+    propTimeSlots && propTimeSlots.length > 0
+      ? propTimeSlots
+      : [
+          "08:00-09:00",
+          "09:00-10:00",
+          "10:00-11:00",
+          "11:00-12:00",
+          "12:00-13:00",
+          "13:00-14:00",
+          "14:00-15:00",
+          "15:00-16:00",
+        ];
 
   const getPeriodForSlot = (day: string, timeSlot: string) => {
     return periods.find(
@@ -147,7 +154,12 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
     <div className="overflow-x-auto">
       <div className="min-w-[800px] lg:min-w-full">
         {/* Header with time slots */}
-        <div className="grid grid-cols-9 gap-1 mb-2">
+        <div
+          className={`grid gap-1 mb-2`}
+          style={{
+            gridTemplateColumns: `1fr repeat(${timeSlots.length}, 1fr)`,
+          }}
+        >
           <div className="p-2 lg:p-3 font-semibold text-center bg-brand-border rounded-lg">
             <Clock className="w-4 h-4 mx-auto mb-1" />
             <span className="text-xs lg:text-sm">Time</span>
@@ -166,7 +178,13 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
 
         {/* Days and periods */}
         {days.map((day) => (
-          <div key={day} className="grid grid-cols-9 gap-1 mb-2">
+          <div
+            key={day}
+            className={`grid gap-1 mb-2`}
+            style={{
+              gridTemplateColumns: `1fr repeat(${timeSlots.length}, 1fr)`,
+            }}
+          >
             <div className="p-3 lg:p-4 font-semibold text-center bg-brand-primary text-white rounded-lg flex items-center justify-center">
               <span className="text-sm lg:text-base">{day}</span>
             </div>
