@@ -1,11 +1,26 @@
 import "@/app/globals.css";
 import { ReactNode } from "react";
+import { Averia_Serif_Libre, Delius } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import VoiceflowAgent from "@/components/ai-agent/VoiceflowAgent";
+
+const averia = Averia_Serif_Libre({
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
+  variable: "--font-heading",
+  display: "swap",
+});
+
+const delius = Delius({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-body",
+  display: "swap",
+});
 
 export const metadata = {
   title: "SmartEdu Hub - Your School Management Solution",
@@ -65,7 +80,10 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${averia.variable} ${delius.variable} antialiased`}
+    >
       <body>
         <AuthProvider>
           <QueryProvider>
