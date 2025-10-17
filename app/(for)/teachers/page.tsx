@@ -130,7 +130,6 @@ export default function TeachersHomepage() {
         ctaSecondaryText="Watch Demo"
         imageSrc="/imgs/placeholder-teacher-dashboard.jpg"
         imageAlt="Teacher dashboard preview"
-        targetAudience="teachers"
       />
 
       <FeatureGrid

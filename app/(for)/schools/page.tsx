@@ -130,7 +130,6 @@ export default function SchoolsHomepage() {
         ctaSecondaryText="View Pricing"
         imageSrc="/imgs/placeholder-admin-dashboard.jpg"
         imageAlt="School admin dashboard preview"
-        targetAudience="schools"
       />
 
       <FeatureGrid

@@ -9,14 +9,12 @@ export interface Feature {
 
 interface FeatureGridProps {
   features: Feature[];
-  accentColor?: "blue" | "purple" | "green" | "indigo";
   title?: string;
   subtitle?: string;
 }
 
 export default function FeatureGrid({
   features,
-  accentColor = "blue",
   title = "Powerful Features",
   subtitle = "Everything you need to succeed",
 }: FeatureGridProps) {

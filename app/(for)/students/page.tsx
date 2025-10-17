@@ -130,7 +130,6 @@ export default function StudentsHomepage() {
         ctaSecondaryText="Explore Features"
         imageSrc="/imgs/placeholder-student-hero.jpg"
         imageAlt="Student learning platform"
-        targetAudience="students"
       />
 
       <FeatureGrid

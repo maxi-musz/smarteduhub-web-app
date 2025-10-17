@@ -10,7 +10,6 @@ interface HeroWithLaptopProps {
   ctaSecondaryText?: string;
   imageSrc: string;
   imageAlt: string;
-  targetAudience: "schools" | "teachers";
 }
 
 export default function HeroWithLaptop({
@@ -20,7 +19,6 @@ export default function HeroWithLaptop({
   ctaSecondaryText = "Request Demo",
   imageSrc,
   imageAlt,
-  targetAudience,
 }: HeroWithLaptopProps) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#F0F3FF] to-white py-20 lg:py-32">

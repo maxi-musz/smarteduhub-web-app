@@ -130,7 +130,6 @@ export default function ParentsHomepage() {
         ctaSecondaryText="See How It Works"
         imageSrc="/imgs/placeholder-parent-hero.jpg"
         imageAlt="Parent portal dashboard"
-        targetAudience="parents"
       />
 
       <FeatureGrid

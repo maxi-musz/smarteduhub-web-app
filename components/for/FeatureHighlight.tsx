@@ -12,13 +12,9 @@ export interface HighlightFeature {
 
 interface FeatureHighlightProps {
   features: HighlightFeature[];
-  accentColor?: "blue" | "purple" | "green" | "indigo";
 }
 
-export default function FeatureHighlight({
-  features,
-  accentColor = "blue",
-}: FeatureHighlightProps) {
+export default function FeatureHighlight({ features }: FeatureHighlightProps) {
   return (
     <section className="py-20 lg:py-28 bg-gray-50">
       <div className="container mx-auto px-4">

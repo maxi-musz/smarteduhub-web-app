@@ -7,7 +7,6 @@ interface CTASectionProps {
   subtitle: string;
   primaryButtonText?: string;
   secondaryButtonText?: string;
-  accentColor?: "blue" | "purple" | "green" | "indigo";
 }
 
 export default function CTASection({
@@ -15,7 +14,6 @@ export default function CTASection({
   subtitle,
   primaryButtonText = "Get Started Now",
   secondaryButtonText = "Contact Sales",
-  accentColor = "blue",
 }: CTASectionProps) {
   return (
     <section className="py-20 lg:py-28 bg-white">

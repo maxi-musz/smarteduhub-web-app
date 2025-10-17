@@ -10,7 +10,6 @@ interface HeroCenteredProps {
   ctaSecondaryText?: string;
   imageSrc: string;
   imageAlt: string;
-  targetAudience: "parents" | "students";
 }
 
 export default function HeroCentered({
@@ -20,7 +19,6 @@ export default function HeroCentered({
   ctaSecondaryText = "Learn More",
   imageSrc,
   imageAlt,
-  targetAudience,
 }: HeroCenteredProps) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#F0F3FF] via-white to-gray-50 py-20 lg:py-32">
