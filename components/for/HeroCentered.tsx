@@ -30,10 +30,10 @@ export default function HeroCentered({
         {/* Centered Text Content */}
         <div className="max-w-4xl mx-auto text-center space-y-8 mb-16">
           <div className="space-y-4">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-3xl md:text-3xl lg:text-4xl 2xl:text-5xl font-bold text-brand-heading leading-tight">
               {title}
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-base md:text-lg 2xl:text-xl text-brand-secondary max-w-3xl mx-auto leading-relaxed">
               {subtitle}
             </p>
           </div>
@@ -75,7 +75,7 @@ export default function HeroCentered({
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm text-gray-600">Free to use</span>
+              <span className="text-sm text-brand-secondary">Free to use</span>
             </div>
             <div className="flex items-center gap-2">
               <svg
@@ -91,7 +91,7 @@ export default function HeroCentered({
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm text-gray-600">Easy setup</span>
+              <span className="text-sm text-brand-secondary">Easy setup</span>
             </div>
             <div className="flex items-center gap-2">
               <svg
@@ -107,7 +107,7 @@ export default function HeroCentered({
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm text-gray-600">24/7 Support</span>
+              <span className="text-sm text-brand-secondary">24/7 Support</span>
             </div>
           </div>
         </div>

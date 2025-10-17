@@ -54,10 +54,10 @@ export default function CTASection({
 
           <div className="relative max-w-4xl mx-auto text-center space-y-8">
             <div className="space-y-4">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
+              <h2 className="text-3xl md:text-3xl lg:text-4xl 2xl:text-5xl font-bold">
                 {title}
               </h2>
-              <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto">
+              <p className="text-base md:text-lg 2xl:text-xl text-white/90 max-w-3xl mx-auto">
                 {subtitle}
               </p>
             </div>

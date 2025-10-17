@@ -74,10 +74,10 @@ export default function FeatureHighlight({
                   }`}
                 >
                   <div className="space-y-4">
-                    <h3 className="text-3xl md:text-4xl font-bold text-gray-900">
+                    <h3 className="text-3xl md:text-4xl font-bold text-brand-heading">
                       {feature.title}
                     </h3>
-                    <p className="text-lg text-gray-600 leading-relaxed">
+                    <p className="text-base md:text-lg text-brand-secondary leading-relaxed">
                       {feature.description}
                     </p>
                   </div>
@@ -88,7 +88,9 @@ export default function FeatureHighlight({
                         <CheckCircle
                           className={`w-6 h-6 ${textColor} flex-shrink-0 mt-0.5`}
                         />
-                        <span className="text-gray-700">{benefit}</span>
+                        <span className="text-[16px] text-brand-secondary">
+                          {benefit}
+                        </span>
                       </li>
                     ))}
                   </ul>

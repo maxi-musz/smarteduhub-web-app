@@ -31,10 +31,10 @@ export default function HeroWithLaptop({
           {/* Left Content */}
           <div className="space-y-8 text-center lg:text-left">
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+              <h1 className="text-3xl md:text-3xl lg:text-4xl 2xl:text-5xl font-bold text-brand-heading leading-tight">
                 {title}
               </h1>
-              <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto lg:mx-0">
+              <p className="text-base md:text-lg 2xl:text-xl text-brand-secondary max-w-2xl mx-auto lg:mx-0 leading-relaxed">
                 {subtitle}
               </p>
             </div>
@@ -71,7 +71,7 @@ export default function HeroWithLaptop({
                     />
                   ))}
                 </div>
-                <span className="text-sm text-gray-600 ml-2">
+                <span className="text-sm text-brand-secondary ml-2">
                   Trusted by 500+ institutions
                 </span>
               </div>

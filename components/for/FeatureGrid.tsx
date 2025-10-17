@@ -50,10 +50,10 @@ export default function FeatureGrid({
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-brand-heading mb-4">
             {title}
           </h2>
-          <p className="text-lg md:text-xl text-gray-600">{subtitle}</p>
+          <p className="text-xl text-brand-secondary">{subtitle}</p>
         </div>
 
         {/* Features Grid */}
@@ -63,17 +63,17 @@ export default function FeatureGrid({
             return (
               <div
                 key={index}
-                className="group p-8 rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 bg-white"
+                className="group p-6 rounded-md border-2 border-brand-border hover:shadow-lg transition-all duration-500 bg-white shadow-brand"
               >
                 <div
-                  className={`w-14 h-14 ${colors.bg} ${colors.text} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}
+                  className={`w-14 h-14 ${colors.bg} ${colors.text} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
                 >
-                  <Icon className="w-7 h-7" />
+                  <Icon className="w-[34px] h-[34px]" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                <h3 className="text-[18px] font-semibold text-brand-heading mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-[16px] font-normal text-brand-secondary leading-relaxed">
                   {feature.description}
                 </p>
               </div>
