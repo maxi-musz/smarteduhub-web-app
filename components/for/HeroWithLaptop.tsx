@@ -21,12 +21,12 @@ export default function HeroWithLaptop({
   imageAlt,
 }: HeroWithLaptopProps) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-gray-900 via-blue-900 to-gray-900 text-white py-20 lg:py-32">
+    <section className="relative overflow-hidden bg-white py-20 lg:py-32">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-4xl mx-auto relative">
-          {/* SVG Background - positioned behind content */}
+          {/* Wire-mesh SVG Background - lowest layer */}
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[600px] z-0"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[600px] z-0 opacity-30"
             style={{
               backgroundImage: "url('/svgs/wire-mesh.svg')",
               backgroundRepeat: "no-repeat",
@@ -35,9 +35,23 @@ export default function HeroWithLaptop({
             }}
           />
 
+          {/* Blue glow gradient - heart-shaped radial gradients */}
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1000px] z-[1] pointer-events-none"
+            style={{
+              background: `
+                radial-gradient(ellipse 500px 350px at 30% 50%, rgba(0, 135, 218, 0.4) 0%, transparent 60%),
+                radial-gradient(ellipse 500px 350px at 70% 50%, rgba(0, 135, 218, 0.4) 0%, transparent 60%),
+                radial-gradient(ellipse 450px 400px at 50% 20%, rgba(0, 135, 218, 0.35) 0%, transparent 60%),
+                radial-gradient(ellipse 600px 400px at 50% 80%, rgba(0, 135, 218, 0.3) 0%, transparent 60%)
+              `,
+              filter: "blur(60px)",
+            }}
+          />
+
           {/* Main Headline */}
           <div className="space-y-6 mb-12 relative z-10">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
               <span className="block">
                 {title.split(" ").slice(0, -2).join(" ")}
               </span>
@@ -45,7 +59,7 @@ export default function HeroWithLaptop({
                 {title.split(" ").slice(-2).join(" ")}
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
               {subtitle}
             </p>
           </div>
@@ -77,7 +91,7 @@ export default function HeroWithLaptop({
 
           {/* Product Mockup */}
           <div className="relative max-w-6xl mx-auto z-10">
-            <div className="relative bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-3xl p-4 lg:p-[17px] backdrop-blur-sm border border-white/10">
+            <div className="relative bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-3xl p-4 lg:p-[17px] backdrop-blur-sm border border-gray-200">
               <div className="relative w-full h-[400px] lg:h-[600px] rounded-2xl overflow-hidden bg-white">
                 <Image
                   src={imageSrc}
