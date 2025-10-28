@@ -21,31 +21,17 @@ export default function HeroWithLaptop({
   imageAlt,
 }: HeroWithLaptopProps) {
   return (
-    <section className="relative overflow-hidden bg-white py-20 lg:py-32">
+    <section className="relative overflow-hidden bg-white py-16">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-4xl mx-auto relative">
           {/* Wire-mesh SVG Background - lowest layer */}
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[600px] z-0 opacity-30"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-y-180 w-full max-w-3xl h-[600px] z-0 opacity-80"
             style={{
               backgroundImage: "url('/svgs/wire-mesh.svg')",
               backgroundRepeat: "no-repeat",
               backgroundPosition: "center",
               backgroundSize: "cover",
-            }}
-          />
-
-          {/* Blue glow gradient - heart-shaped radial gradients */}
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1000px] z-[1] pointer-events-none"
-            style={{
-              background: `
-                radial-gradient(ellipse 500px 350px at 30% 50%, rgba(0, 135, 218, 0.4) 0%, transparent 60%),
-                radial-gradient(ellipse 500px 350px at 70% 50%, rgba(0, 135, 218, 0.4) 0%, transparent 60%),
-                radial-gradient(ellipse 450px 400px at 50% 20%, rgba(0, 135, 218, 0.35) 0%, transparent 60%),
-                radial-gradient(ellipse 600px 400px at 50% 80%, rgba(0, 135, 218, 0.3) 0%, transparent 60%)
-              `,
-              filter: "blur(60px)",
             }}
           />
 
@@ -90,8 +76,87 @@ export default function HeroWithLaptop({
           {/* <p className="text-gray-400 text-sm mb-16">Cancel Anytime</p> */}
 
           {/* Product Mockup */}
-          <div className="relative max-w-6xl mx-auto z-10">
-            <div className="relative bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-3xl p-4 lg:p-[17px] backdrop-blur-sm border border-gray-200">
+          <div className="relative max-w-6xl mx-auto">
+            {/* Top corner gradients extending into text area - behind content */}
+            {/* Top-Left Corner - Extended upward and towards center */}
+            <div
+              className="absolute left-0 -top-32 w-96 h-96 pointer-events-none z-0"
+              style={{
+                background:
+                  "radial-gradient(50.05% 117.09% at 0% 0%, rgba(0, 135, 218, 0.8) 0%, rgba(0, 135, 218, 0) 100%)",
+                filter: "blur(150px)",
+              }}
+            />
+            {/* Top-Right Corner - Extended upward and towards center */}
+            <div
+              className="absolute right-0 -top-32 w-96 h-96 pointer-events-none z-0"
+              style={{
+                background:
+                  "radial-gradient(50.05% 117.09% at 100% 0%, rgba(0, 135, 218, 0.8) 0%, rgba(0, 135, 218, 0) 100%)",
+                filter: "blur(150px)",
+              }}
+            />
+
+            <div className="relative bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-3xl p-4 lg:p-[17px] backdrop-blur-sm border border-gray-200 z-10">
+              {/* Remaining side gradients around mockup */}
+              {/* Left Side Gradients */}
+              {/* Top-Left Side */}
+              <div
+                className="absolute -left-8 top-1/4 w-64 h-64 pointer-events-none z-0"
+                style={{
+                  background:
+                    "radial-gradient(50.05% 117.09% at 0% 0%, rgba(0, 135, 218, 0.8) 0%, rgba(0, 135, 218, 0) 100%)",
+                  filter: "blur(150px)",
+                }}
+              />
+              {/* Bottom-Left Side */}
+              <div
+                className="absolute -left-8 bottom-1/4 w-64 h-64 pointer-events-none z-0"
+                style={{
+                  background:
+                    "radial-gradient(48.89% 114.49% at 0% 100%, rgba(0, 135, 218, 0.8) 0%, rgba(0, 135, 218, 0) 100%)",
+                  filter: "blur(150px)",
+                }}
+              />
+              {/* Bottom-Left Corner */}
+              <div
+                className="absolute -left-8 bottom-0 w-64 h-64 pointer-events-none z-0"
+                style={{
+                  background:
+                    "radial-gradient(48.89% 114.49% at 0% 100%, rgba(0, 135, 218, 0.8) 0%, rgba(0, 135, 218, 0) 100%)",
+                  filter: "blur(150px)",
+                }}
+              />
+
+              {/* Right Side Gradients */}
+              {/* Top-Right Side */}
+              <div
+                className="absolute -right-8 top-1/4 w-64 h-64 pointer-events-none z-0"
+                style={{
+                  background:
+                    "radial-gradient(50.05% 117.09% at 100% 0%, rgba(0, 135, 218, 0.8) 0%, rgba(0, 135, 218, 0) 100%)",
+                  filter: "blur(150px)",
+                }}
+              />
+              {/* Bottom-Right Side */}
+              <div
+                className="absolute -right-8 bottom-1/4 w-64 h-64 pointer-events-none z-0"
+                style={{
+                  background:
+                    "radial-gradient(48.89% 114.49% at 100% 100%, rgba(0, 135, 218, 0.8) 0%, rgba(0, 135, 218, 0) 100%)",
+                  filter: "blur(150px)",
+                }}
+              />
+              {/* Bottom-Right Corner */}
+              <div
+                className="absolute -right-8 bottom-0 w-64 h-64 pointer-events-none z-0"
+                style={{
+                  background:
+                    "radial-gradient(48.89% 114.49% at 100% 100%, rgba(0, 135, 218, 0.8) 0%, rgba(0, 135, 218, 0) 100%)",
+                  filter: "blur(150px)",
+                }}
+              />
+
               <div className="relative w-full h-[400px] lg:h-[600px] rounded-2xl overflow-hidden bg-white">
                 <Image
                   src={imageSrc}
