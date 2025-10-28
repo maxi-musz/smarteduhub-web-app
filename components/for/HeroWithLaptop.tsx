@@ -157,7 +157,7 @@ export default function HeroWithLaptop({
                 }}
               />
 
-              <div className="relative w-full h-[400px] lg:h-[600px] rounded-2xl overflow-hidden bg-white">
+              <div className="relative w-full h-[400px] lg:h-[600px] rounded-2xl overflow-hidden bg-white border-2 border-brand-primary/40 shadow-2xl shadow-brand-primary/30 ring-1 ring-brand-primary/20">
                 <Image
                   src={imageSrc}
                   alt={imageAlt}
