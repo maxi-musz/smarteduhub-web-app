@@ -9,10 +9,10 @@ const Navigation = () => {
   const pathname = usePathname();
 
   const minorNavLinks = [
-    { label: "For Schools", href: "/schools" },
-    { label: "For Teachers", href: "/teachers" },
-    { label: "For Parents", href: "/parents" },
-    { label: "For Students", href: "/students" },
+    { label: "Schools Hub", href: "/schools" },
+    { label: "Teachers Hub", href: "/teachers" },
+    { label: "Parents Hub", href: "/parents" },
+    { label: "Students Hub", href: "/students" },
   ];
 
   // Find active link
