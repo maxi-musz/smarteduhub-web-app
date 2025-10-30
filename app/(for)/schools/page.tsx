@@ -2,11 +2,11 @@ import React from "react";
 import Navigation from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
 import HeroWithLaptop from "@/components/for/HeroWithLaptop";
-import FeatureGrid, { Feature } from "@/components/for/FeatureGrid";
-import FeatureHighlight, {
-  HighlightFeature,
-} from "@/components/for/FeatureHighlight";
-import CTASection from "@/components/for/CTASection";
+// import FeatureGrid, { Feature } from "@/components/for/FeatureGrid";
+// import FeatureHighlight, {
+//   HighlightFeature,
+// } from "@/components/for/FeatureHighlight";
+// import CTASection from "@/components/for/CTASection";
 import TabbedFeatureSection from "@/components/for/TabbedFeatureSection";
 import MobileAppSection from "@/components/for/MobileAppSection";
 import FAQSection from "@/components/for/FAQSection";
@@ -153,12 +153,12 @@ export default function SchoolsHomepage() {
 
       <FAQSection />
 
-      <CTASection
+      {/* <CTASection
         title="Ready to Transform Your School?"
         subtitle="Join hundreds of institutions already using SmartEduHub to streamline operations and improve student outcomes."
         primaryButtonText="Schedule a Demo"
         secondaryButtonText="Talk to Sales"
-      />
+      /> */}
 
       <Footer />
     </div>
