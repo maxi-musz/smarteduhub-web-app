@@ -7,6 +7,7 @@ import FeatureHighlight, {
   HighlightFeature,
 } from "@/components/for/FeatureHighlight";
 import CTASection from "@/components/for/CTASection";
+import TabbedFeatureSection from "@/components/for/TabbedFeatureSection";
 import {
   Users,
   GraduationCap,
@@ -138,7 +139,9 @@ export default function SchoolsHomepage() {
         subtitle="Comprehensive tools to manage every aspect of your educational institution"
       />
 
-      <FeatureHighlight features={highlightFeatures} />
+      {/* <FeatureHighlight features={highlightFeatures} /> */}
+
+      <TabbedFeatureSection />
 
       <CTASection
         title="Ready to Transform Your School?"
