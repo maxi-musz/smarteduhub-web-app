@@ -2,7 +2,7 @@ import React from "react";
 import Navigation from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
 import HeroWithLaptop from "@/components/for/HeroWithLaptop";
-// import FeatureGrid, { Feature } from "@/components/for/FeatureGrid";
+import FeatureGrid, { Feature } from "@/components/for/FeatureGrid";
 // import FeatureHighlight, {
 //   HighlightFeature,
 // } from "@/components/for/FeatureHighlight";
@@ -11,20 +11,47 @@ import TabbedFeatureSection from "@/components/for/TabbedFeatureSection";
 import MobileAppSection from "@/components/for/MobileAppSection";
 import FAQSection from "@/components/for/FAQSection";
 
-// --- IGNORE if card is commented out ---
-// import {
-//   Users,
-//   GraduationCap,
-//   BarChart3,
-//   Calendar,
-//   MessageSquare,
-//   DollarSign,
-//   Settings,
-//   Shield,
-//   TrendingUp,
-// } from "lucide-react";
-
 export default function SchoolsHomepage() {
+  // Onboarding Steps Data
+  const onboardingSteps: Feature[] = [
+    {
+      step: 1,
+      title: "Register Your School",
+      description:
+        "Complete your school registration by providing basic information and submitting necessary documents for verification.",
+    },
+    {
+      step: 2,
+      title: "Verify Your Account",
+      description:
+        "Confirm your email address and complete identity verification to ensure the security of your school's data.",
+    },
+    {
+      step: 3,
+      title: "Set Up Classes",
+      description:
+        "Create your academic structure by adding classes, grades, and subjects to organize your school's curriculum.",
+    },
+    {
+      step: 4,
+      title: "Onboard Teachers",
+      description:
+        "Invite and register teaching staff, assign them to classes, and set up their profiles and permissions.",
+    },
+    {
+      step: 5,
+      title: "Enroll Students",
+      description:
+        "Add students to your system, assign them to classes, and import their academic records and personal information.",
+    },
+    {
+      step: 6,
+      title: "Start Managing",
+      description:
+        "Access your dashboard on web or mobile devices and begin managing your school operations efficiently.",
+    },
+  ];
+
   // Card Features Data commented out
   // const features: Feature[] = [
   //   {
@@ -139,11 +166,11 @@ export default function SchoolsHomepage() {
         imageAlt="Headmaster addressing pupils"
       />
 
-      {/* <FeatureGrid
-        features={features}
-        title="Everything Your School Needs"
-        subtitle="Comprehensive tools to manage every aspect of your educational institution"
-      /> */}
+      <FeatureGrid
+        features={onboardingSteps}
+        title="Get Started in 6 Simple Steps"
+        subtitle="Set up your school and start managing operations in minutes"
+      />
 
       {/* <FeatureHighlight features={highlightFeatures} /> */}
 

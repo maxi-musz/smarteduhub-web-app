@@ -2,7 +2,8 @@ import React from "react";
 import { LucideIcon } from "lucide-react";
 
 interface DetachedCardProps {
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  step?: number;
   title: string;
   description: string;
   borderColor?: string;
@@ -11,6 +12,7 @@ interface DetachedCardProps {
 
 export default function DetachedCard({
   icon: Icon,
+  step,
   title,
   description,
   borderColor = "#0087DA",
@@ -69,7 +71,11 @@ export default function DetachedCard({
       <div
         className={`absolute top-2 right-2 w-16 h-16 ${iconBgColor} flex items-center justify-center text-white shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}
       >
-        <Icon className="w-8 h-8" strokeWidth={2.5} />
+        {step ? (
+          <span className="text-3xl font-bold">{step}</span>
+        ) : Icon ? (
+          <Icon className="w-8 h-8" strokeWidth={2.5} />
+        ) : null}
       </div>
     </div>
   );

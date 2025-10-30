@@ -3,7 +3,8 @@ import { LucideIcon } from "lucide-react";
 import DetachedCard from "@/components/ui/DetachedCard";
 
 export interface Feature {
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  step?: number;
   title: string;
   description: string;
 }
@@ -62,6 +63,7 @@ export default function FeatureGrid({
             <DetachedCard
               key={index}
               icon={feature.icon}
+              step={feature.step}
               title={feature.title}
               description={feature.description}
               borderColor={borderColors[index % borderColors.length]}
