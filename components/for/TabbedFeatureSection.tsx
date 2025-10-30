@@ -1,15 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Zap,
   BarChart3,
   Users,
   DollarSign,
   MessageSquare,
-  Award,
-  Shield,
+  Calendar,
+  ArrowRight,
+  Play,
 } from "lucide-react";
 
 interface TabContent {
@@ -25,15 +28,15 @@ interface TabContent {
 
 const tabs: TabContent[] = [
   {
-    id: "smart-automation",
-    title: "Smart Automation",
-    badge: "Smart Automation",
-    contentTitle: "Automate Routine Tasks, Focus on What Matters",
+    id: "ai-powered",
+    title: "AI Powered",
+    badge: "AI Powered",
+    contentTitle: "Interactive AI empowering Education",
     description:
-      "Our AI-powered automation handles repetitive administrative tasks so your staff can focus on education. From automated attendance tracking to intelligent scheduling, SmartEduHub streamlines operations and reduces manual workload by up to 70%. Set up automated workflows for admissions, fee reminders, report card generation, and more.",
-    mediaSrc: "/imgs/automation-demo.jpg",
+      "Intelligent AI systems that enhance learning experiences and administrative efficiency. From personalized learning paths to real-time feedback, our AI tools adapt to the needs of students and educators alike, fostering a more engaging and effective educational environment.",
+    mediaSrc: "/imgs/admin-ai.png",
     mediaType: "image",
-    mediaAlt: "Smart automation dashboard showing automated workflows",
+    mediaAlt: "AI powered education interface showing interactive tools",
   },
   {
     id: "performance-analytics",
@@ -42,7 +45,7 @@ const tabs: TabContent[] = [
     contentTitle: "Data-Driven Insights for Better Decisions",
     description:
       "Transform raw data into actionable insights with our advanced analytics engine. Monitor student performance trends, track institutional KPIs, and identify areas for improvement with real-time dashboards. Our predictive analytics help you spot at-risk students early and measure the effectiveness of interventions, enabling proactive decision-making.",
-    mediaSrc: "/imgs/analytics-demo.jpg",
+    mediaSrc: "/svgs/admin-performance.svg",
     mediaType: "image",
     mediaAlt: "Performance analytics dashboard with charts and graphs",
   },
@@ -53,7 +56,7 @@ const tabs: TabContent[] = [
     contentTitle: "Empower Your Team with Modern Tools",
     description:
       "Manage your entire staff lifecycle from recruitment to retirement. Track certifications, schedule professional development, monitor performance, and manage workload distribution. Our integrated HR module includes leave management, payroll integration, and performance review workflows, ensuring your team operates at peak efficiency.",
-    mediaSrc: "/imgs/staff-management-demo.jpg",
+    mediaSrc: "/svgs/admin-teachers.svg",
     mediaType: "image",
     mediaAlt: "Staff management interface showing employee profiles",
   },
@@ -64,7 +67,7 @@ const tabs: TabContent[] = [
     contentTitle: "Complete Financial Visibility and Control",
     description:
       "Gain complete control over your school's finances with our comprehensive financial management system. Track income and expenses, manage budgets, process payroll, and generate detailed financial reports. Automated fee collection, payment reminders, and multi-payment gateway support ensure smooth cash flow while maintaining full compliance with accounting standards.",
-    mediaSrc: "/imgs/finance-demo.jpg",
+    mediaSrc: "/svgs/admin-finance.svg",
     mediaType: "image",
     mediaAlt: "Financial tracking dashboard showing revenue and expenses",
   },
@@ -75,42 +78,31 @@ const tabs: TabContent[] = [
     contentTitle: "Seamless Communication Across Your Community",
     description:
       "Keep everyone connected with our integrated communication platform. Send instant notifications, share announcements, schedule parent-teacher meetings, and enable real-time messaging between all stakeholders. Multi-channel communication via SMS, email, and in-app notifications ensures important messages reach the right people at the right time.",
-    mediaSrc: "/imgs/communication-demo.jpg",
+    mediaSrc: "/svgs/admin-messages.svg",
     mediaType: "image",
     mediaAlt: "Communication hub showing messaging interface",
   },
   {
-    id: "results-grading",
-    title: "Results & Grading",
-    badge: "Results & Grading",
-    contentTitle: "Streamlined Assessment and Reporting",
+    id: "comprehensive-scheduler",
+    title: "Comprehensive Scheduler",
+    badge: "Comprehensive Scheduler",
+    contentTitle: "Scheduler with Conflict Resolution",
     description:
-      "Simplify the entire grading process from assessment creation to report card generation. Support multiple grading systems, weighted scoring, and customizable report formats. Teachers can input grades efficiently, while automated calculations ensure accuracy. Generate comprehensive progress reports, transcripts, and certificates with just a few clicks.",
-    mediaSrc: "/imgs/grading-demo.jpg",
+      "Simplify the entire scheduling process from class timetabling to resource allocation. Support multiple scheduling formats, conflict resolution, and customizable views. Administrators can manage schedules efficiently, while automated notifications ensure everyone stays informed. Create or update schedules with just a few clicks.",
+    mediaSrc: "/svgs/admin-scheduler.svg",
     mediaType: "image",
-    mediaAlt: "Results and grading interface showing student assessments",
-  },
-  {
-    id: "data-security",
-    title: "Data Security",
-    badge: "Data Security",
-    contentTitle: "Enterprise-Grade Security You Can Trust",
-    description:
-      "Protect sensitive student and institutional data with bank-level security measures. Our platform features end-to-end encryption, role-based access control, regular security audits, and compliance with international data protection standards including GDPR and FERPA. Automated backups and disaster recovery ensure your data is always safe and accessible.",
-    mediaSrc: "/imgs/security-demo.jpg",
-    mediaType: "image",
-    mediaAlt: "Data security dashboard showing security metrics",
+    mediaAlt:
+      "Scheduler interface showing class timetables and resource allocation",
   },
 ];
 
 const tabIcons: Record<string, React.ElementType> = {
-  "smart-automation": Zap,
+  "ai-powered": Zap,
   "performance-analytics": BarChart3,
   "staff-management": Users,
   "financial-tracking": DollarSign,
   "connect-communicate": MessageSquare,
-  "results-grading": Award,
-  "data-security": Shield,
+  "comprehensive-scheduler": Calendar,
 };
 
 export default function TabbedFeatureSection() {
@@ -120,36 +112,43 @@ export default function TabbedFeatureSection() {
   const Icon = tabIcons[activeContent.id];
 
   return (
-    <section className="w-full bg-white py-16 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto" style={{ width: "80%" }}>
-        {/* Container with brand primary color */}
-        <div className="bg-[#10375C] rounded-2xl shadow-2xl overflow-hidden">
-          {/* Tabs */}
-          <div className="border-b border-white/10">
-            <div className="flex overflow-x-auto scrollbar-hide">
-              {tabs.map((tab) => {
-                const TabIcon = tabIcons[tab.id];
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      "flex items-center gap-2 px-6 py-4 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2",
-                      activeTab === tab.id
-                        ? "text-white border-white bg-white/10"
-                        : "text-white/70 border-transparent hover:text-white hover:bg-white/5"
-                    )}
-                  >
-                    <TabIcon className="w-4 h-4" />
-                    {tab.title}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+    <section className="py-20 lg:py-28 bg-white">
+      <div className="container mx-auto px-4">
+        {/* Section Heading */}
+        <div className="text-center mb-12 lg:mb-16">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            Powerful Features for School Management
+          </h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Explore our comprehensive suite of tools designed to streamline
+            operations and enhance educational outcomes
+          </p>
+        </div>
 
+        {/* Tabs */}
+        <div className="flex justify-center overflow-x-auto scrollbar-hide gap-2 mb-[-1px]">
+          {tabs.map((tab) => {
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 rounded-t-xl rounded-tl-none cursor-pointer",
+                  activeTab === tab.id
+                    ? "text-white bg-gradient-to-br from-brand-primary to-brand-primary-hover"
+                    : "text-white/70 bg-brand-primary/60 hover:bg-brand-primary/80"
+                )}
+              >
+                {tab.title}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Container with brand primary color */}
+        <div className="bg-gradient-to-br from-brand-primary to-brand-primary-hover rounded-3xl rounded-tl-none shadow-2xl overflow-hidden">
           {/* Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 lg:p-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 p-8 lg:p-12">
             {/* Left side - Contextual content */}
             <div className="flex flex-col justify-center space-y-6">
               {/* Badge */}
@@ -169,16 +168,36 @@ export default function TabbedFeatureSection() {
               <p className="text-white/90 text-base lg:text-lg leading-relaxed">
                 {activeContent.description}
               </p>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <Button
+                  size="lg"
+                  className="bg-white text-brand-primary hover:bg-gray-100"
+                >
+                  Get Started
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-2 border-white text-white hover:bg-white hover:text-brand-primary"
+                >
+                  <Play className="mr-2 h-5 w-5" />
+                  Try a Guided Tour
+                </Button>
+              </div>
             </div>
 
             {/* Right side - Media */}
             <div className="flex items-center justify-center">
               {activeContent.mediaType === "image" ? (
-                <div className="relative w-full h-full min-h-[300px] lg:min-h-[400px] rounded-lg overflow-hidden shadow-xl">
-                  <img
+                <div className="relative w-full h-full min-h-[300px] lg:min-h-[400px] rounded-lg rounded-tl-none overflow-hidden shadow-xl">
+                  <Image
                     src={activeContent.mediaSrc}
                     alt={activeContent.mediaAlt}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover object-center"
                   />
                 </div>
               ) : (
@@ -186,7 +205,7 @@ export default function TabbedFeatureSection() {
                   <video
                     src={activeContent.mediaSrc}
                     controls
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-right-top"
                     autoPlay
                     loop
                     muted
