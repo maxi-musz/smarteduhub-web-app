@@ -1,7 +1,7 @@
 import React from "react";
 import Navigation from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
-import HeroCentered from "@/components/for/HeroCentered";
+import HeroWithLaptop from "@/components/for/HeroWithLaptop";
 import FeatureGrid from "@/components/for/FeatureGrid";
 import FeatureHighlight from "@/components/for/FeatureHighlight";
 import CTASection from "@/components/for/CTASection";
@@ -16,7 +16,7 @@ export default function ParentsHomepage() {
     <div className="min-h-screen bg-white">
       <Navigation />
 
-      <HeroCentered {...parentsData.hero} />
+      <HeroWithLaptop {...parentsData.hero} />
 
       <FeatureGrid {...parentsData.gettingStarted} />
 
@@ -24,15 +24,15 @@ export default function ParentsHomepage() {
         <TabbedFeatureSection data={parentsData.tabbedFeatures} />
       )}
 
-      {parentsData.highlights && (
+      {/* {parentsData.highlights && (
         <FeatureHighlight features={parentsData.highlights.features} />
-      )}
+      )} */}
 
       <MobileAppSection data={parentsData.mobileApp} />
 
       <FAQSection categories={parentsFAQ} />
 
-      {parentsData.cta && <CTASection {...parentsData.cta} />}
+      {/* {parentsData.cta && <CTASection {...parentsData.cta} />} */}
 
       <Footer />
     </div>

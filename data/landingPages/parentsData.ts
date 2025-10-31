@@ -15,13 +15,13 @@ import {
 
 export const parentsData: LandingPageData = {
   hero: {
-    type: "centered",
+    type: "laptop",
     title: "Stay Connected to Your Child's Learning Journey",
     subtitle:
       "Empower your involvement with real-time insights, seamless communication, and all the tools you need to support your child's success.",
     ctaPrimaryText: "Create Free Account",
     ctaSecondaryText: "See How It Works",
-    imageSrc: "/imgs/placeholder-parent-hero.jpg",
+    imageSrc: "/svgs/parent-student-dashboard.svg",
     imageAlt: "Parent portal dashboard",
   },
 
@@ -65,7 +65,7 @@ export const parentsData: LandingPageData = {
         contentTitle: "Complete Visibility Into Your Child's Education",
         description:
           "Get a comprehensive view of your child's academic performance, attendance, and behavior in one centralized dashboard. Access grades, assignments, teacher feedback, and attendance records in real-time. Stay actively engaged in their learning journey with instant updates whenever new information becomes available.",
-        mediaSrc: "/imgs/placeholder-parent-dashboard.jpg",
+        mediaSrc: "/svgs/parent-student-dashboard.svg",
         mediaType: "image",
         mediaAlt: "Parent dashboard showing child's academic overview",
       },
@@ -76,7 +76,7 @@ export const parentsData: LandingPageData = {
         contentTitle: "Seamless Communication with Educators",
         description:
           "Build strong partnerships with your child's teachers through easy, direct communication. Send messages, schedule parent-teacher conferences, and receive important updates without the hassle of phone calls or emails. Get notified instantly about your child's achievements, concerns, or upcoming events.",
-        mediaSrc: "/imgs/placeholder-parent-messages.jpg",
+        mediaSrc: "/svgs/parent-student-messages.svg",
         mediaType: "image",
         mediaAlt: "Parent-teacher communication interface",
       },
@@ -87,7 +87,7 @@ export const parentsData: LandingPageData = {
         contentTitle: "Detailed Analytics and Progress Tracking",
         description:
           "Understand your child's academic journey with comprehensive performance reports and analytics. View grade trends, attendance patterns, and behavioral notes. Identify strengths to celebrate and areas where your child may need additional support. Download report cards and transcripts anytime you need them.",
-        mediaSrc: "/imgs/placeholder-parent-analytics.jpg",
+        mediaSrc: "/svgs/parent-student-performance.svg",
         mediaType: "image",
         mediaAlt: "Student performance reports and analytics",
       },
@@ -98,7 +98,7 @@ export const parentsData: LandingPageData = {
         contentTitle: "Never Miss Important Dates and Events",
         description:
           "Keep track of everything in one centralized calendar. View assignment deadlines, test dates, school events, parent-teacher conferences, and holidays. Set reminders for important dates, submit permission slips digitally, and stay on top of your child's educational schedule effortlessly.",
-        mediaSrc: "/imgs/placeholder-parent-calendar.jpg",
+        mediaSrc: "/svgs/parent-student-events.svg",
         mediaType: "image",
         mediaAlt: "Parent calendar with school events and deadlines",
       },
@@ -111,7 +111,7 @@ export const parentsData: LandingPageData = {
         title: "Complete Visibility Into Your Child's Education",
         description:
           "Get a comprehensive view of your child's academic performance, attendance, and behavior. Access grades, assignments, and teacher feedback in real-time to stay actively engaged in their learning journey.",
-        imageSrc: "/imgs/placeholder-parent-dashboard.jpg",
+        imageSrc: "/svgs/parent-student-dashboard.svg",
         imageAlt: "Parent dashboard overview",
         benefits: [
           "Live grade updates and assignment tracking",
