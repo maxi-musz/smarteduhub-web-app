@@ -1,10 +1,10 @@
 import React from "react";
 import Navigation from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
-import HeroCentered from "@/components/for/HeroCentered";
+import HeroWithLaptop from "@/components/for/HeroWithLaptop";
 import FeatureGrid from "@/components/for/FeatureGrid";
-import FeatureHighlight from "@/components/for/FeatureHighlight";
-import CTASection from "@/components/for/CTASection";
+// import FeatureHighlight from "@/components/for/FeatureHighlight";
+// import CTASection from "@/components/for/CTASection";
 import TabbedFeatureSection from "@/components/for/TabbedFeatureSection";
 import MobileAppSection from "@/components/for/MobileAppSection";
 import FAQSection from "@/components/for/FAQSection";
@@ -16,7 +16,7 @@ export default function StudentsHomepage() {
     <div className="min-h-screen bg-white">
       <Navigation />
 
-      <HeroCentered {...studentsData.hero} />
+      <HeroWithLaptop {...studentsData.hero} />
 
       <FeatureGrid {...studentsData.gettingStarted} />
 
@@ -24,15 +24,15 @@ export default function StudentsHomepage() {
         <TabbedFeatureSection data={studentsData.tabbedFeatures} />
       )}
 
-      {studentsData.highlights && (
+      {/* {studentsData.highlights && (
         <FeatureHighlight features={studentsData.highlights.features} />
-      )}
+      )} */}
 
       <MobileAppSection data={studentsData.mobileApp} />
 
       <FAQSection categories={studentsFAQ} />
 
-      {studentsData.cta && <CTASection {...studentsData.cta} />}
+      {/* {studentsData.cta && <CTASection {...studentsData.cta} />} */}
 
       <Footer />
     </div>

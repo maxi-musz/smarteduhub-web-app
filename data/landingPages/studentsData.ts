@@ -16,13 +16,13 @@ import {
 
 export const studentsData: LandingPageData = {
   hero: {
-    type: "centered",
+    type: "laptop",
     title: "Learn Smarter, Not Harder",
     subtitle:
       "Your all-in-one platform for assignments, grades, resources, and personalized learning support. Take control of your academic journey.",
     ctaPrimaryText: "Start Learning Free",
     ctaSecondaryText: "Explore Features",
-    imageSrc: "/imgs/placeholder-student-hero.jpg",
+    imageSrc: "/svgs/parent-student-dashboard.svg",
     imageAlt: "Student learning platform",
   },
 
@@ -66,7 +66,7 @@ export const studentsData: LandingPageData = {
         contentTitle: "Your Personal Learning Dashboard",
         description:
           "Access all your subjects, assignments, and resources in one organized space. Stay on top of your coursework with a dashboard designed specifically for student success. See upcoming deadlines, track your progress across all courses, and quickly access the materials you need to succeed.",
-        mediaSrc: "/imgs/placeholder-student-dashboard.jpg",
+        mediaSrc: "/svgs/parent-student-dashboard.svg",
         mediaType: "image",
         mediaAlt: "Student dashboard with courses and assignments",
       },
@@ -77,7 +77,7 @@ export const studentsData: LandingPageData = {
         contentTitle: "Get Help Anytime, Anywhere",
         description:
           "Your personal AI tutor understands your learning style and helps you master difficult concepts. Get homework help, exam preparation support, and personalized study recommendations based on your performance. It's like having a tutor available 24/7 who knows exactly what you need to succeed.",
-        mediaSrc: "/imgs/placeholder-ai-assistant.jpg",
+        mediaSrc: "/imgs/admin-ai.png",
         mediaType: "image",
         mediaAlt: "AI learning assistant helping with homework",
       },
@@ -88,7 +88,7 @@ export const studentsData: LandingPageData = {
         contentTitle: "Visualize Your Academic Journey",
         description:
           "Understand your performance with detailed analytics and insights. See your grades, track improvement over time, identify your strengths and areas for growth. Set academic goals, monitor your progress, and celebrate your achievements as you work toward success.",
-        mediaSrc: "/imgs/placeholder-student-analytics.jpg",
+        mediaSrc: "/svgs/parent-student-performance.svg",
         mediaType: "image",
         mediaAlt: "Student performance analytics and grade tracking",
       },
@@ -99,7 +99,7 @@ export const studentsData: LandingPageData = {
         contentTitle: "Everything You Need to Learn",
         description:
           "Access a comprehensive library of learning resources including video lessons, study guides, practice tests, and course materials. Download content for offline study, bookmark important resources, and learn at your own pace with materials tailored to your curriculum.",
-        mediaSrc: "/imgs/placeholder-student-resources.jpg",
+        mediaSrc: "/svgs/parent-student-subjects.svg",
         mediaType: "image",
         mediaAlt: "Student resources library with learning materials",
       },
