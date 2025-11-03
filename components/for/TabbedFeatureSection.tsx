@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
 import { TabbedFeatureData } from "@/types/landingPages";
+import { useScrollTabs } from "@/hooks/useScrollTabs";
 
 interface TabbedFeatureSectionProps {
   data: TabbedFeatureData;
@@ -15,12 +16,22 @@ export default function TabbedFeatureSection({
   data,
 }: TabbedFeatureSectionProps) {
   const { sectionTitle, sectionSubtitle, tabs } = data;
-  const [activeTab, setActiveTab] = useState(tabs[0].id);
 
-  const activeContent = tabs.find((tab) => tab.id === activeTab) || tabs[0];
+  const { currentTab, setCurrentTab, containerRef } = useScrollTabs({
+    totalTabs: tabs.length,
+    lockDuration: 600,
+    scrollThreshold: 10, // Reasonable threshold with accumulator
+    enabled: true,
+  });
+
+  const activeContent = tabs[currentTab];
 
   return (
-    <section id="features" className="py-20 lg:py-28 bg-white">
+    <section
+      id="features"
+      ref={containerRef}
+      className="py-20 lg:py-28 bg-white"
+    >
       <div className="container mx-auto px-4">
         {/* Section Heading */}
         <div className="text-center mb-12 lg:mb-16">
@@ -34,14 +45,14 @@ export default function TabbedFeatureSection({
 
         {/* Tabs */}
         <div className="flex justify-center overflow-x-auto scrollbar-hide gap-2 mb-[-1px]">
-          {tabs.map((tab) => {
+          {tabs.map((tab, index) => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => setCurrentTab(index)}
                 className={cn(
                   "flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 rounded-t-xl rounded-tl-none cursor-pointer",
-                  activeTab === tab.id
+                  currentTab === index
                     ? "text-white bg-gradient-to-br from-brand-primary to-brand-primary-hover"
                     : "text-white/70 bg-brand-primary/60 hover:bg-brand-primary/80"
                 )}
