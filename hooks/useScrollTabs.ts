@@ -33,7 +33,7 @@ export function useScrollTabs({
   // Manual tab change handler (for clicking tabs)
   const handleSetCurrentTab = useCallback(
     (index: number) => {
-      console.log("🖱️ [Manual Tab Change] Clicked", {
+      console.log("[Manual Tab Change] Clicked", {
         requestedIndex: index,
         isValid: index >= 0 && index < totalTabs,
       });
@@ -52,7 +52,7 @@ export function useScrollTabs({
           const targetScroll =
             scrollTriggerRef.current.start + scrollDistance * targetProgress;
 
-          console.log("⏩ [Manual Scroll] Details", {
+          console.log("[Manual Scroll] Details", {
             targetTab: index,
             targetProgress: targetProgress.toFixed(4),
             scrollStart: scrollTriggerRef.current.start,
@@ -74,7 +74,7 @@ export function useScrollTabs({
               // Re-enable snapping after manual scroll completes
               setTimeout(() => {
                 isManualScrolling.current = false;
-                console.log("✅ Manual scroll complete, snapping re-enabled");
+                console.log("[Manual Scroll] Complete, snapping re-enabled");
               }, 100);
             },
           });
@@ -95,7 +95,7 @@ export function useScrollTabs({
 
     const container = containerRef.current;
 
-    console.log("🚀 [ScrollTabs] Initializing ScrollTrigger", {
+    console.log("[ScrollTabs] Initializing ScrollTrigger", {
       totalTabs,
       enabled,
       prefersReducedMotion,
@@ -107,15 +107,17 @@ export function useScrollTabs({
     // 3. Unpins when all tabs are viewed
     scrollTriggerRef.current = ScrollTrigger.create({
       trigger: container,
-      start: "top top", // Pin when top of container hits top of viewport
+      start: "top -50px", // Pin when top of container hits 30px above viewport top
       end: `+=${totalTabs * 100}%`, // Each tab gets 100vh of scroll
       pin: true,
+      pinSpacing: true,
+      anticipatePin: 1,
       scrub: 1, // Smooth scrubbing effect
       snap: {
         snapTo: (value) => {
           // Don't snap during manual scrolling
           if (isManualScrolling.current) {
-            console.log("📍 [Snap] Skipped - manual scrolling");
+            console.log("[Snap] Skipped - manual scrolling");
             return value; // Return current value, don't snap
           }
 
@@ -133,7 +135,7 @@ export function useScrollTabs({
           // Calculate which tab index this corresponds to
           const tabIndex = Math.round(snappedValue * (totalTabs - 1));
 
-          console.log("📍 [Snap] Calculating snap point", {
+          console.log("[Snap] Calculating snap point", {
             inputValue: value.toFixed(4),
             snapPoints: snapPoints.map((p) => p.toFixed(4)),
             snappedValue: snappedValue.toFixed(4),
@@ -168,15 +170,15 @@ export function useScrollTabs({
 
         // Extra logging for tab 3 (index 2)
         if (clampedTab === 2 || newTab === 2) {
-          console.log("🔍 [Tab 3 Debug]", logDetails);
+          console.log("[Tab 3 Debug]", logDetails);
         }
 
-        console.log("📊 [ScrollTrigger] Update", logDetails);
+        console.log("[ScrollTrigger] Update", logDetails);
 
         // Use functional update to avoid dependency on currentTab
         setCurrentTab((prevTab) => {
           if (clampedTab !== prevTab) {
-            console.log("✅ [Tab Change]", {
+            console.log("[Tab Change]", {
               from: prevTab,
               to: clampedTab,
               progress: progress.toFixed(4),
@@ -188,27 +190,27 @@ export function useScrollTabs({
         });
       },
       onEnter: () => {
-        console.log("🎯 [ScrollTrigger] Enter - Section pinned");
+        console.log("[ScrollTrigger] Enter - Section pinned");
       },
       onLeave: () => {
-        console.log("👋 [ScrollTrigger] Leave - Section unpinned");
+        console.log("[ScrollTrigger] Leave - Section unpinned");
       },
       onEnterBack: () => {
-        console.log("🔙 [ScrollTrigger] Enter Back");
+        console.log("[ScrollTrigger] Enter Back");
       },
       onLeaveBack: () => {
-        console.log("⬆️ [ScrollTrigger] Leave Back");
+        console.log("[ScrollTrigger] Leave Back");
       },
     });
 
-    console.log("✅ [ScrollTrigger] Created", {
+    console.log("[ScrollTrigger] Created", {
       start: scrollTriggerRef.current.start,
       end: scrollTriggerRef.current.end,
       pin: scrollTriggerRef.current.pin,
     });
 
     return () => {
-      console.log("🧹 [ScrollTrigger] Cleanup - Killing ScrollTrigger");
+      console.log("[ScrollTrigger] Cleanup - Killing ScrollTrigger");
       if (scrollTriggerRef.current) {
         scrollTriggerRef.current.kill();
       }

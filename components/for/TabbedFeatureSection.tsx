@@ -83,11 +83,11 @@ export default function TabbedFeatureSection({
     <section
       id="features"
       ref={containerRef}
-      className="h-screen relative overflow-hidden"
+      className="min-h-screen relative mb-20 lg:mb-28"
     >
-      <div className="container mx-auto px-4 h-full flex flex-col justify-center">
+      <div className="container mx-auto px-4 py-8 lg:py-12 flex flex-col">
         {/* Section Heading */}
-        <div className="text-center mb-8 lg:mb-12">
+        <div className="text-center mb-6 lg:mb-8">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
             {sectionTitle}
           </h2>
@@ -117,14 +117,14 @@ export default function TabbedFeatureSection({
         </div>
 
         {/* Container with brand primary color */}
-        <div className="bg-gradient-to-br from-brand-primary to-brand-primary-hover rounded-3xl rounded-tl-none shadow-2xl overflow-hidden flex-1 max-h-[600px]">
+        <div className="bg-gradient-to-br from-brand-primary to-brand-primary-hover rounded-3xl rounded-tl-none shadow-2xl">
           {/* Content */}
           <div
             ref={contentRef}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 p-8 lg:p-12 h-full"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 p-6 lg:p-10 min-h-[500px] lg:min-h-[450px]"
           >
             {/* Left side - Contextual content */}
-            <div className="flex flex-col justify-center space-y-6">
+            <div className="flex flex-col justify-center space-y-4 lg:space-y-5">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 self-start">
                 <span className="bg-white/10 text-white px-4 py-2 rounded-full text-sm font-medium border border-white/20">
@@ -133,30 +133,30 @@ export default function TabbedFeatureSection({
               </div>
 
               {/* Content Title */}
-              <h2 className="text-3xl lg:text-4xl font-bold text-white leading-tight">
+              <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-white leading-tight">
                 {activeContent.contentTitle}
               </h2>
 
               {/* Description */}
-              <p className="text-white/90 text-base lg:text-lg leading-relaxed">
+              <p className="text-white/90 text-sm lg:text-base leading-relaxed">
                 {activeContent.description}
               </p>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Button
-                  size="lg"
+                  size="default"
                   className="bg-white text-brand-primary hover:bg-gray-100"
                 >
                   Get Started
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
                 <Button
-                  size="lg"
+                  size="default"
                   variant="outline"
                   className="border-2 border-white text-white hover:bg-white hover:text-brand-primary"
                 >
-                  <Play className="mr-2 h-5 w-5" />
+                  <Play className="mr-2 h-4 w-4" />
                   Try a Guided Tour
                 </Button>
               </div>
