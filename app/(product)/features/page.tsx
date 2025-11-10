@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +20,7 @@ import {
 
 export default function FeaturesPage() {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const router = useRouter();
 
   const coreFeatures = [
     {
@@ -183,7 +185,11 @@ export default function FeaturesPage() {
               >
                 Get Started
               </Button>
-              <Button variant="outline" className="px-8 py-3">
+              <Button
+                variant="outline"
+                className="px-8 py-3"
+                onClick={() => router.push("/support")}
+              >
                 Schedule Demo
               </Button>
             </div>
@@ -495,6 +501,7 @@ export default function FeaturesPage() {
               <Button
                 variant="outline"
                 className="border-white text-white hover:bg-white/10 px-8 py-3"
+                onClick={() => router.push("/support")}
               >
                 Contact Sales
               </Button>
