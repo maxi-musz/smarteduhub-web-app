@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { FAQCategory } from "@/types/landingPages";
+import { GsapMorphButton } from "@/components/ui/gsapmorph-button";
 import FAQItem from "./FAQItem";
 import CategoryTabs from "./CategoryTabs";
 
@@ -11,6 +13,7 @@ interface FAQSectionProps {
 }
 
 const FAQSection: React.FC<FAQSectionProps> = ({ categories }) => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategorySlug, setActiveCategorySlug] = useState(
     categories[0].slug
@@ -113,12 +116,9 @@ const FAQSection: React.FC<FAQSectionProps> = ({ categories }) => {
         {/* Contact Support CTA */}
         <div className="text-center mt-12">
           <p className="text-gray-600 mb-4">Still have questions?</p>
-          <a
-            href="#"
-            className="inline-flex items-center justify-center px-6 py-3 bg-brand-primary text-white font-medium rounded-lg hover:bg-brand-primary-hover transition-colors"
-          >
+          <GsapMorphButton onClick={() => router.push("/support")}>
             Contact Support
-          </a>
+          </GsapMorphButton>
         </div>
       </div>
     </section>

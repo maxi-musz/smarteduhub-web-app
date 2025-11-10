@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { GsapMorphButton } from "@/components/ui/gsapmorph-button";
 import { useState, useEffect } from "react";
 
 const Navigation = () => {
@@ -91,19 +92,16 @@ const Navigation = () => {
             >
               About
             </Link>
-            <Button
+            <GsapMorphButton
               variant="outline"
               className="mr-2"
               onClick={() => router.push("/login")}
             >
               Login
-            </Button>
-            <Button
-              onClick={() => router.push("/create-account")}
-              className="bg-brand-primary hover:bg-brand-primary-hover text-white"
-            >
+            </GsapMorphButton>
+            <GsapMorphButton onClick={() => router.push("/create-account")}>
               Sign Up
-            </Button>
+            </GsapMorphButton>
           </div>
         </div>
       </div>

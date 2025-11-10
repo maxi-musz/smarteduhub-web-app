@@ -4,8 +4,7 @@ import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Play } from "lucide-react";
+import { GsapMorphButton } from "@/components/ui/gsapmorph-button";
 import { TabbedFeatureData } from "@/types/landingPages";
 import { useScrollTabs } from "@/hooks/useScrollTabs";
 
@@ -144,21 +143,19 @@ export default function TabbedFeatureSection({
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <Button
+                <GsapMorphButton
                   size="default"
-                  className="text-brand-primary hover:bg-gray-100"
+                  className="bg-white text-brand-primary hover:bg-gray-100"
                 >
                   Get Started
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <Button
+                </GsapMorphButton>
+                <GsapMorphButton
                   size="default"
                   variant="outline"
                   className="border-2 border-white text-white hover:bg-white hover:text-brand-primary"
                 >
-                  <Play className="mr-2 h-4 w-4" />
                   Try a Guided Tour
-                </Button>
+                </GsapMorphButton>
               </div>
             </div>
 

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Button } from "@/components/ui/button";
+import { GsapMorphButton } from "@/components/ui/gsapmorph-button";
 
 export default function Footer() {
   return (
@@ -19,9 +19,7 @@ export default function Footer() {
               className="flex-1 px-4 py-3 bg-transparent border border-brand-border-secondary rounded-md text-white placeholder-brand-border-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               aria-label="Subscribe to newsletter"
             />
-            <Button className="bg-brand-primary hover:bg-brand-primary-hover px-6 py-3 h-auto">
-              Subscribe
-            </Button>
+            <GsapMorphButton>Subscribe</GsapMorphButton>
           </div>
         </div>
 

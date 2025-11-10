@@ -18,7 +18,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer }) => {
     <div className="border-b border-gray-200 last:border-b-0">
       <button
         className={cn(
-          "w-full flex items-center justify-between gap-4 py-5 px-6 text-left transition-colors hover:bg-gray-50",
+          "w-full flex items-center justify-between gap-4 py-5 px-6 text-left transition-colors hover:bg-gray-50 cursor-pointer",
           isOpen && "bg-gray-50"
         )}
         onClick={toggleItem}
