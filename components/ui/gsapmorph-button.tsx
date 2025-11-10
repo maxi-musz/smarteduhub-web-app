@@ -13,14 +13,8 @@ const gsapMorphButtonVariants = cva(
       variant: {
         default:
           "[--background:var(--color-brand-primary)] [--background-hover:var(--color-brand-primary-hover)] [--shadow:rgba(79,70,229,0.3)] [--shadow-hover:rgba(79,70,229,0.5)] [--text:#fff]",
-        destructive:
-          "[--background:#dc2626] [--background-hover:#b91c1c] [--shadow:rgba(220,38,38,0.3)] [--shadow-hover:rgba(220,38,38,0.5)] [--text:#fff]",
         outline:
           "[--background:#fff] [--background-hover:#fff] [--border:var(--color-brand-border)] [--text:var(--color-brand-heading)] [--shadow:rgba(226,232,240,0.3)] [--shadow-hover:rgba(226,232,240,0.5)] [--scale-y:1.025]",
-        secondary:
-          "[--background:var(--color-brand-secondary)] [--background-hover:var(--color-brand-light-accent-2)] [--shadow:rgba(75,85,99,0.3)] [--shadow-hover:rgba(75,85,99,0.3)] [--text:#fff]",
-        ghost:
-          "[--background:transparent] [--background-hover:#f3f4f6] [--shadow:transparent] [--shadow-hover:rgba(0,0,0,0.1)] [--text:var(--color-brand-heading)]",
       },
       size: {
         default: "h-11",
@@ -36,8 +30,10 @@ const gsapMorphButtonVariants = cva(
 );
 
 export interface GsapMorphButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof gsapMorphButtonVariants> {}
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children">,
+    VariantProps<typeof gsapMorphButtonVariants> {
+  children: string; // Only accept string children (no icons)
+}
 
 const GsapMorphButton = React.forwardRef<
   HTMLButtonElement,
@@ -51,29 +47,17 @@ const GsapMorphButton = React.forwardRef<
   React.useImperativeHandle(ref, () => buttonRef.current!);
 
   React.useEffect(() => {
-    if (!buttonRef.current || !contentRef.current) return;
+    if (
+      !buttonRef.current ||
+      !contentRef.current ||
+      typeof children !== "string"
+    )
+      return;
 
     const contentDiv = contentRef.current;
+    const letters = children.trim().split("");
 
-    // Extract only text nodes, preserve other elements (icons, etc.)
-    let textContent = "";
-    const nonTextElements: HTMLElement[] = [];
-
-    // Collect text and non-text elements
-    Array.from(contentDiv.childNodes).forEach((node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        textContent += node.textContent || "";
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        nonTextElements.push(node as HTMLElement);
-      }
-    });
-
-    const letters = textContent.trim().split("");
-
-    // Don't animate if there's no text or if there are complex children (icons)
-    if (letters.length === 0 || nonTextElements.length > 0) {
-      return;
-    }
+    if (letters.length === 0) return;
 
     contentDiv.innerHTML = "";
 
@@ -97,7 +81,7 @@ const GsapMorphButton = React.forwardRef<
 
       contentDiv.appendChild(span);
     });
-  }, [children, variant]);
+  }, [children]);
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!pathRef.current || isInRef.current) {
@@ -234,11 +218,9 @@ const GsapMorphButton = React.forwardRef<
       {/* Button content */}
       <div
         ref={contentRef}
-        className="relative z-10 flex px-4 items-center justify-center gap-2"
+        className="relative z-10 flex px-4 items-center justify-center"
         style={{ lineHeight: "20px" }}
-      >
-        {children}
-      </div>
+      />
 
       {/* Right edge */}
       <span

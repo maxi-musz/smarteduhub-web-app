@@ -1,6 +1,5 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { GsapMorphButton } from "@/components/ui/gsapmorph-button";
 import Image from "next/image";
 import ScrollLink from "@/components/ui/ScrollLink";
 
@@ -99,10 +98,9 @@ export default function HeroWithLaptop({
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12 relative z-10">
                 {ctaSecondaryText && ctaSecondaryHref && (
                   <ScrollLink href={ctaSecondaryHref}>
-                    <Button size="lg" variant="outline">
+                    <GsapMorphButton size="lg" variant="outline">
                       {ctaSecondaryText}
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
+                    </GsapMorphButton>
                   </ScrollLink>
                 )}
               </div>
