@@ -2,7 +2,6 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { GsapMorphButton } from "@/components/ui/gsapmorph-button";
 import { useState, useEffect } from "react";
 
