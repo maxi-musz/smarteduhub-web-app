@@ -142,6 +142,7 @@ export default function TabbedFeatureSection({
               </p>
 
               {/* CTA Buttons */}
+              {/* 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <GsapMorphButton
                   size="default"
@@ -157,6 +158,7 @@ export default function TabbedFeatureSection({
                   Try a Guided Tour
                 </GsapMorphButton>
               </div>
+              */}
             </div>
 
             {/* Right side - Media */}

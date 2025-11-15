@@ -2,6 +2,7 @@ import React from "react";
 import Navigation from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
 import HeroWithLaptop from "@/components/for/HeroWithLaptop";
+import FreeTrialSection from "@/components/for/FreeTrialSection";
 import FeatureGrid from "@/components/for/FeatureGrid";
 // import FeatureHighlight from "@/components/for/FeatureHighlight";
 // import CTASection from "@/components/for/CTASection";
@@ -18,10 +19,14 @@ export default function StudentsHomepage() {
 
       <HeroWithLaptop {...studentsData.hero} />
 
+      <FreeTrialSection />
+
       <FeatureGrid {...studentsData.gettingStarted} />
 
       {studentsData.tabbedFeatures && (
-        <TabbedFeatureSection data={studentsData.tabbedFeatures} />
+        <div className="hidden lg:block">
+          <TabbedFeatureSection data={studentsData.tabbedFeatures} />
+        </div>
       )}
 
       {/* {studentsData.highlights && (
