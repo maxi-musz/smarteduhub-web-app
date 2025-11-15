@@ -61,18 +61,18 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl w-full h-[80vh] p-0 bg-white rounded-lg overflow-hidden">
+      <DialogContent className="max-w-6xl w-[95vw] sm:w-full h-[90vh] sm:h-[80vh] p-0 bg-white rounded-lg overflow-hidden">
         <VisuallyHidden>
           <DialogTitle>{currentStepData.title}</DialogTitle>
           <DialogDescription>{currentStepData.description}</DialogDescription>
         </VisuallyHidden>
 
-        <div className="flex h-full">
+        <div className="flex flex-col lg:flex-row h-full overflow-y-auto lg:overflow-y-hidden">
           {/* Left side - Content */}
-          <div className="flex-1 p-12 flex flex-col justify-center">
-            <div className="max-w-lg">
+          <div className="flex-1 p-6 sm:p-8 lg:p-12 flex flex-col justify-center">
+            <div className="max-w-lg w-full">
               {/* Navigation dots */}
-              <div className="flex space-x-2 mb-8">
+              <div className="flex space-x-2 mb-4 sm:mb-6 lg:mb-8">
                 {onboardingSteps.map((_, index) => (
                   <button
                     key={index}
@@ -89,7 +89,7 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
               {/* Title with animation */}
               <h1
                 key={`title-${currentStep}`}
-                className="text-3xl font-bold text-brand-heading mb-1.5 animate-fade-in"
+                className="text-xl sm:text-2xl lg:text-3xl font-bold text-brand-heading mb-2 sm:mb-1.5 animate-fade-in"
               >
                 Welcome to{" "}
                 <span className="text-brand-primary">SmartEdu-Hub</span>
@@ -98,7 +98,7 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
               {/* Description with animation */}
               <p
                 key={`desc-${currentStep}`}
-                className="text-base text-brand-secondary mb-6 leading-relaxed animate-fade-in"
+                className="text-sm sm:text-base text-brand-secondary mb-4 sm:mb-6 leading-relaxed animate-fade-in"
                 style={{ animationDelay: "0.1s" }}
               >
                 {currentStepData.description}
@@ -107,7 +107,7 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
               {/* Subtitle with animation */}
               <p
                 key={`subtitle-${currentStep}`}
-                className="text-brand-primary font-medium mb-8 animate-fade-in"
+                className="text-brand-primary font-medium mb-4 sm:mb-6 lg:mb-8 text-sm sm:text-base animate-fade-in"
                 style={{ animationDelay: "0.2s" }}
               >
                 {currentStepData.subtitle}
@@ -116,7 +116,7 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
               {/* Button */}
               <Button
                 onClick={handleNext}
-                className="bg-brand-primary-hover hover:bg-brand-primary-hover px-8 py-3  animate-fade-in min-w-4/5"
+                className="bg-brand-primary-hover hover:bg-brand-primary-hover px-6 sm:px-8 py-2.5 sm:py-3 animate-fade-in w-full sm:w-auto sm:min-w-[200px]"
                 style={{ animationDelay: "0.3s" }}
               >
                 {currentStep === onboardingSteps.length - 1
@@ -127,8 +127,8 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
           </div>
 
           {/* Right side - Images */}
-          <div className="flex-1 p-8 flex items-center justify-center">
-            <div className="grid grid-cols-2 gap-4 max-w-md">
+          <div className="flex-1 p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 max-w-md w-full">
               {/* Large image */}
               <div
                 key={`img-large-${currentStep}`}
@@ -139,7 +139,7 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
                   width={500}
                   height={300}
                   alt="Main illustration"
-                  className="w-full h-48 object-cover rounded-lg shadow-lg"
+                  className="w-full h-32 sm:h-40 lg:h-48 object-cover rounded-lg shadow-lg"
                 />
               </div>
 
@@ -154,7 +154,7 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
                   width={250}
                   height={150}
                   alt="Secondary illustration"
-                  className="w-full h-32 object-cover rounded-lg shadow-lg"
+                  className="w-full h-24 sm:h-28 lg:h-32 object-cover rounded-lg shadow-lg"
                 />
               </div>
 
@@ -168,7 +168,7 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
                   width={250}
                   height={150}
                   alt="Tertiary illustration"
-                  className="w-full h-32 object-cover rounded-lg shadow-lg"
+                  className="w-full h-24 sm:h-28 lg:h-32 object-cover rounded-lg shadow-lg"
                 />
               </div>
             </div>
