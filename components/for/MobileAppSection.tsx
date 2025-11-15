@@ -53,11 +53,11 @@ export default function MobileAppSection({ data }: MobileAppSectionProps) {
             </div>
 
             {/* Download Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <div className="flex flex-row gap-2 md:gap-4  pt-4">
               {/* App Store Button */}
               <a
                 href="#"
-                className="relative inline-flex items-center justify-center gap-3 bg-black text-white px-6 py-3.5 rounded-xl transition-all duration-200 overflow-hidden group w-full sm:w-auto max-w-50"
+                className="relative inline-flex items-center justify-center gap-3 bg-black text-white px-3 md:px-6 py-3.5 rounded-xl transition-all duration-200 overflow-hidden group w-full sm:w-auto max-w-40 md:max-w-50"
               >
                 {/* Sweep flash effect */}
                 <div className="absolute inset-0 -translate-x-full translate-y-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 group-hover:translate-x-full group-hover:-translate-y-full transition-transform duration-700 ease-in-out" />
@@ -78,7 +78,7 @@ export default function MobileAppSection({ data }: MobileAppSectionProps) {
               {/* Google Play Button */}
               <a
                 href="#"
-                className="relative inline-flex items-center justify-center gap-3 bg-black text-white px-6 py-3.5 rounded-xl transition-all duration-200 overflow-hidden group w-full sm:w-auto max-w-50"
+                className="relative inline-flex items-center justify-center gap-3 bg-black text-white px-3 md:px-6 py-3.5 rounded-xl transition-all duration-200 overflow-hidden group w-full sm:w-auto max-w-40 md:max-w-50"
               >
                 {/* Sweep flash effect */}
                 <div className="absolute inset-0 -translate-x-full translate-y-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 group-hover:translate-x-full group-hover:-translate-y-full transition-transform duration-700 ease-in-out" />
@@ -92,7 +92,9 @@ export default function MobileAppSection({ data }: MobileAppSectionProps) {
                 </svg>
                 <div className="text-left relative z-10">
                   <div className="text-xs opacity-80">GET IT ON</div>
-                  <div className="text-lg font-semibold -mt-1">Google Play</div>
+                  <div className="lg:text-lg font-semibold -mt-1">
+                    Google Play
+                  </div>
                 </div>
               </a>
             </div>
