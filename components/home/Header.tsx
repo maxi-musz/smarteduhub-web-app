@@ -16,7 +16,7 @@ const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const minorNavLinks = [
-    { label: "Schools", href: "/schools" },
+    { label: "Schools", href: "/" },
     { label: "Teachers", href: "/teachers" },
     { label: "Parents", href: "/parents" },
     { label: "Students", href: "/students" },

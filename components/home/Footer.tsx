@@ -97,7 +97,7 @@ export default function Footer() {
                 <ul className="space-y-2 text-gray-400">
                   <li>
                     <Link
-                      href="/schools"
+                      href="/"
                       className="hover:text-brand-primary transition-colors"
                     >
                       Schools
