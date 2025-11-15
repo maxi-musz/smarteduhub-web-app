@@ -1,8 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { MobileAppData } from "@/types/landingPages";
-import AppStoreButton from "@/components/ui/AppStoreButton";
-import GooglePlayButton from "@/components/ui/GooglePlayButton";
+import AppStoreButtons from "@/components/ui/AppStoreButtons";
 
 interface MobileAppSectionProps {
   data: MobileAppData;
@@ -55,10 +54,7 @@ export default function MobileAppSection({ data }: MobileAppSectionProps) {
             </div>
 
             {/* Download Buttons */}
-            <div className="flex flex-row gap-2 md:gap-4  pt-4">
-              <AppStoreButton />
-              <GooglePlayButton />
-            </div>
+            <AppStoreButtons className="pt-4" />
 
             {/* Stats */}
             <div className="flex flex-wrap gap-8 pt-4 border-t border-white/20">
