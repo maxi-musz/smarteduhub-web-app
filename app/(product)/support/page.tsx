@@ -20,7 +20,6 @@ import {
   FileText,
   Search,
 } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import DetachedCard from "@/components/ui/DetachedCard";
 
