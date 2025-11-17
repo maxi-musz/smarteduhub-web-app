@@ -29,18 +29,6 @@ export const metadata: Metadata = {
     "student dashboard",
     "educational platform",
   ],
-  openGraph: {
-    title: "SmartEdu Hub - For Students",
-    description:
-      "Access your courses, submit assignments, track grades, and engage with interactive learning tools. Take control of your education journey.",
-    images: ["/og/students.png"],
-  },
-  twitter: {
-    title: "SmartEdu Hub - For Students",
-    description:
-      "Access your courses, submit assignments, track grades, and engage with interactive learning tools. Take control of your education journey.",
-    images: ["/og/students.png"],
-  },
 };
 
 export default function StudentsHomepage() {

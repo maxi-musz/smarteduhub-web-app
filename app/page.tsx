@@ -28,18 +28,6 @@ export const metadata: Metadata = {
     "academic management",
     "school platform",
   ],
-  openGraph: {
-    title: "SmartEdu Hub - Your School Management Solution",
-    description:
-      "Transform your educational institution with comprehensive school management. Streamline operations, enhance communication, and improve learning outcomes.",
-    images: ["/og/home.png"],
-  },
-  twitter: {
-    title: "SmartEdu Hub - Your School Management Solution",
-    description:
-      "Transform your educational institution with comprehensive school management. Streamline operations, enhance communication, and improve learning outcomes.",
-    images: ["/og/home.png"],
-  },
 };
 
 export default function Home() {

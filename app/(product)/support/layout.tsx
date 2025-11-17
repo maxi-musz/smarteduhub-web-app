@@ -14,18 +14,6 @@ export const metadata: Metadata = {
     "live chat",
     "email support",
   ],
-  openGraph: {
-    title: "SmartEdu Hub - Support",
-    description:
-      "Get help and support for SmartEdu Hub. Access FAQs, contact our support team, and find resources.",
-    images: ["/og/support.png"],
-  },
-  twitter: {
-    title: "SmartEdu Hub - Support",
-    description:
-      "Get help and support for SmartEdu Hub. Access FAQs, contact our support team, and find resources.",
-    images: ["/og/support.png"],
-  },
 };
 
 export default function SupportLayout({

@@ -27,18 +27,6 @@ export const metadata: Metadata = {
     "parent engagement",
     "child education",
   ],
-  openGraph: {
-    title: "SmartEdu Hub - For Parents",
-    description:
-      "Stay connected with your child's education journey. Track progress, communicate with teachers, and support your child's learning.",
-    images: ["/og/parents.png"],
-  },
-  twitter: {
-    title: "SmartEdu Hub - For Parents",
-    description:
-      "Stay connected with your child's education journey. Track progress, communicate with teachers, and support your child's learning.",
-    images: ["/og/parents.png"],
-  },
 };
 
 export default function ParentsHomepage() {

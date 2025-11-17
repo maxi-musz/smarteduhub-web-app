@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     siteName: "SmartEdu Hub",
     images: [
       {
-        url: "/og-image.png",
+        url: `${siteUrl}/og-image.png`,
         width: 1200,
         height: 630,
         alt: "SmartEdu Hub - Your School Management Solution",
@@ -91,7 +91,7 @@ export const metadata: Metadata = {
     description:
       "Transform your school with SmartEdu Hub, the all-in-one platform for managing students, teachers, and administrative tasks. Streamline operations, enhance communication, and improve learning outcomes.",
     creator: "@smarteduhub",
-    images: ["/og-image.png"],
+    images: [`${siteUrl}/og-image.png`],
   },
   robots: {
     index: true,

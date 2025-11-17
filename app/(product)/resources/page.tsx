@@ -18,18 +18,6 @@ export const metadata: Metadata = {
     "user guides",
     "help resources",
   ],
-  openGraph: {
-    title: "SmartEdu Hub - Resources",
-    description:
-      "Access educational guides, tutorials, documentation, and best practices for SmartEdu Hub.",
-    images: ["/og/resources.png"],
-  },
-  twitter: {
-    title: "SmartEdu Hub - Resources",
-    description:
-      "Access educational guides, tutorials, documentation, and best practices for SmartEdu Hub.",
-    images: ["/og/resources.png"],
-  },
 };
 
 export default function ResourcesPage() {

@@ -27,18 +27,6 @@ export const metadata: Metadata = {
     "educator resources",
     "digital classroom",
   ],
-  openGraph: {
-    title: "SmartEdu Hub - For Teachers",
-    description:
-      "Simplify classroom management, create engaging lessons, track student progress, and collaborate effectively with powerful teaching tools.",
-    images: ["/og/teachers.png"],
-  },
-  twitter: {
-    title: "SmartEdu Hub - For Teachers",
-    description:
-      "Simplify classroom management, create engaging lessons, track student progress, and collaborate effectively with powerful teaching tools.",
-    images: ["/og/teachers.png"],
-  },
 };
 
 export default function TeachersHomepage() {
