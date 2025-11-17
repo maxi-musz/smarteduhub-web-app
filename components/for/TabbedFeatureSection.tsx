@@ -21,10 +21,25 @@ export default function TabbedFeatureSection({
   //   tabTitles: tabs.map((t) => t.title),
   // });
 
+  // Only enable scroll tabs on large screens (lg and above)
+  const [isLargeScreen, setIsLargeScreen] = React.useState(false);
+
+  React.useEffect(() => {
+    // Check if we're on large screen
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024); // lg breakpoint
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
   const { currentTab, setCurrentTab, containerRef, contentRef } = useScrollTabs(
     {
       totalTabs: tabs.length,
-      enabled: true,
+      enabled: isLargeScreen, // Only enable on large screens
     }
   );
 
