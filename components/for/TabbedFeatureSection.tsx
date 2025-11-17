@@ -46,10 +46,10 @@ export default function TabbedFeatureSection({
   const activeContent = tabs[currentTab];
   const prevTabRef = useRef(currentTab);
 
-  console.log("[Current State]", {
-    currentTab,
-    activeTabTitle: activeContent.title,
-  });
+  // console.log("[Current State]", {
+  //   currentTab,
+  //   activeTabTitle: activeContent.title,
+  // });
 
   // Animate content changes with GSAP
   useEffect(() => {
@@ -63,11 +63,11 @@ export default function TabbedFeatureSection({
 
     const direction = currentTab > prevTabRef.current ? 1 : -1;
 
-    console.log("🎬 [Animation] Tab changed", {
-      from: prevTabRef.current,
-      to: currentTab,
-      direction: direction > 0 ? "forward" : "backward",
-    });
+    // console.log("🎬 [Animation] Tab changed", {
+    //   from: prevTabRef.current,
+    //   to: currentTab,
+    //   direction: direction > 0 ? "forward" : "backward",
+    // });
 
     prevTabRef.current = currentTab;
 
@@ -86,7 +86,7 @@ export default function TabbedFeatureSection({
         duration: 0.6,
         ease: "power2.out",
         onComplete: () => {
-          console.log("✨ [Animation] Complete for tab", currentTab);
+          // console.log("✨ [Animation] Complete for tab", currentTab);
         },
       }
     );
