@@ -7,6 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import VoiceflowAgent from "@/components/ai-agent/VoiceflowAgent";
+import CookieConsent from "@/components/ui/CookieConsent";
 import type { Metadata } from "next";
 
 const averia = Averia_Serif_Libre({
@@ -152,6 +153,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Sonner />
               {children}
               <VoiceflowAgent /> {/* Add the assistant here */}
+              <CookieConsent /> {/* Cookie consent banner */}
             </TooltipProvider>
           </QueryProvider>
         </AuthProvider>
