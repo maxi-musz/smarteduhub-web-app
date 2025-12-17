@@ -8,7 +8,7 @@ import { QueryProvider } from "@/components/providers/query-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import VoiceflowAgent from "@/components/ai-agent/VoiceflowAgent";
 import CookieConsent from "@/components/ui/CookieConsent";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 const averia = Averia_Serif_Libre({
   subsets: ["latin"],
@@ -25,6 +25,16 @@ const delius = Delius({
 });
 
 const siteUrl = "https://smarteduhub.vercel.app";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -59,15 +69,6 @@ export const metadata: Metadata = {
   ],
   creator: "Best Technologies Ltd.",
   publisher: "Best Technologies Ltd.",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-  },
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
-  ],
   openGraph: {
     type: "website",
     locale: "en_US",
