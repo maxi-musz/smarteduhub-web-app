@@ -26,17 +26,23 @@ const ConfirmCreate = () => {
     cac: UploadedFile | null;
     utility: UploadedFile | null;
     taxId: UploadedFile | null;
+    schoolLogo: UploadedFile | null;
   }>({
     cac: null,
     utility: null,
     taxId: null,
+    schoolLogo: null,
   });
 
   const cacInputRef = useRef<HTMLInputElement>(null!);
   const utilityInputRef = useRef<HTMLInputElement>(null!);
   const taxIdInputRef = useRef<HTMLInputElement>(null!);
+  const schoolLogoInputRef = useRef<HTMLInputElement>(null!);
 
-  const handleFileUpload = (type: "cac" | "utility" | "taxId", file: File) => {
+  const handleFileUpload = (
+    type: "cac" | "utility" | "taxId" | "schoolLogo",
+    file: File
+  ) => {
     const newFile: UploadedFile = {
       name: file.name,
       size: file.size,
@@ -62,7 +68,7 @@ const ConfirmCreate = () => {
     }, 100);
   };
 
-  const removeFile = (type: "cac" | "utility" | "taxId") => {
+  const removeFile = (type: "cac" | "utility" | "taxId" | "schoolLogo") => {
     setUploadedFiles((prev) => ({ ...prev, [type]: null }));
   };
 
@@ -105,6 +111,7 @@ const ConfirmCreate = () => {
         cac: uploadedFiles.cac?.file || null,
         utility: uploadedFiles.utility?.file || null,
         taxId: uploadedFiles.taxId?.file || null,
+        schoolLogo: uploadedFiles.schoolLogo?.file || null,
       };
 
       // Call registration API
@@ -147,7 +154,7 @@ const ConfirmCreate = () => {
     inputRef,
     isOptional = false,
   }: {
-    type: "cac" | "utility" | "taxId";
+    type: "cac" | "utility" | "taxId" | "schoolLogo";
     label: string;
     inputRef: React.RefObject<HTMLInputElement>;
     isOptional?: boolean;
@@ -167,14 +174,14 @@ const ConfirmCreate = () => {
             className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-brand-primary transition-colors"
           >
             <Upload className="w-8 h-8 text-brand-primary mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-700">
-              Choose a file or drag & drop it here
-            </p>
+            <p className="text-sm font-medium text-gray-700">Choose a file</p>
             <p className="text-xs text-gray-500">
               {type === "cac"
                 ? "PDF, DOC, DOCX format, up to 10MB"
                 : type === "utility"
                 ? "PDF, PNG, JPG format, up to 10MB"
+                : type === "schoolLogo"
+                ? "PNG, JPG, JPEG format, up to 10MB"
                 : "PDF, DOC, DOCX format, up to 10MB"}
             </p>
             <Button
@@ -234,6 +241,8 @@ const ConfirmCreate = () => {
               ? ".pdf,.doc,.docx"
               : type === "utility"
               ? ".pdf,.png,.jpg,.jpeg"
+              : type === "schoolLogo"
+              ? ".png,.jpg,.jpeg"
               : ".pdf,.doc,.docx"
           }
           onChange={(e) => {
@@ -281,7 +290,7 @@ const ConfirmCreate = () => {
         <div className="space-y-6">
           <FileUploadArea
             type="cac"
-            label="CAC or Government approval letter"
+            label="CAC or government approval letter"
             inputRef={cacInputRef}
           />
 
@@ -295,6 +304,12 @@ const ConfirmCreate = () => {
             type="taxId"
             label="Tax certificate"
             inputRef={taxIdInputRef}
+          />
+
+          <FileUploadArea
+            type="schoolLogo"
+            label="School logo"
+            inputRef={schoolLogoInputRef}
             isOptional
           />
 

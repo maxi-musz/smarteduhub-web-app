@@ -21,7 +21,44 @@ const CreateAccount = () => {
     schoolAddress: "",
     schoolType: "",
     schoolOwnership: "",
+    academicYear: "",
+    currentTerm: "",
+    termStartDate: "",
   });
+
+  // Generate academic year options dynamically
+  const getAcademicYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const previousYear = currentYear - 1;
+    const nextYear = currentYear + 1;
+
+    return [`${previousYear}/${currentYear}`, `${currentYear}/${nextYear}`];
+  };
+
+  const academicYearOptions = getAcademicYearOptions();
+
+  // Format date for HTML input (YYYY-MM-DD)
+  const formatDateForInput = (date: string) => {
+    if (!date) return "";
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Get date restrictions (prev year, current year, next year)
+  const getDateRestrictions = () => {
+    const currentYear = new Date().getFullYear();
+    const fromDate = new Date(currentYear - 1, 0, 1); // Jan 1 of prev year
+    const toDate = new Date(currentYear + 1, 11, 31); // Dec 31 of next year
+    return {
+      min: formatDateForInput(fromDate.toISOString()),
+      max: formatDateForInput(toDate.toISOString()),
+    };
+  };
+
+  const { min, max } = getDateRestrictions();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -139,7 +176,7 @@ const CreateAccount = () => {
             <Input
               id="schoolAddress"
               type="text"
-              placeholder="15 Yemen, Yemen"
+              placeholder="15, Oke Ado, Ibadan, Oyo"
               value={formData.schoolAddress}
               onChange={(e) =>
                 handleInputChange("schoolAddress", e.target.value)
@@ -194,14 +231,95 @@ const CreateAccount = () => {
             </Select>
           </div>
 
+          <div>
+            <Label
+              htmlFor="academicYear"
+              className="text-sm font-medium text-gray-700"
+            >
+              Academic Year
+            </Label>
+            <Select
+              onValueChange={(value) =>
+                handleInputChange("academicYear", value)
+              }
+            >
+              <SelectTrigger className="mt-1 w-full">
+                <SelectValue placeholder="Select academic year" />
+              </SelectTrigger>
+              <SelectContent>
+                {academicYearOptions.map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label
+              htmlFor="currentTerm"
+              className="text-sm font-medium text-gray-700"
+            >
+              Current Term
+            </Label>
+            <Select
+              onValueChange={(value) => handleInputChange("currentTerm", value)}
+            >
+              <SelectTrigger className="mt-1 w-full">
+                <SelectValue placeholder="Select current term" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="first">First</SelectItem>
+                <SelectItem value="second">Second</SelectItem>
+                <SelectItem value="third">Third</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label
+              htmlFor="termStartDate"
+              className="text-sm font-medium text-gray-700"
+            >
+              Term Start Date
+            </Label>
+            <Input
+              type="date"
+              id="termStartDate"
+              value={formatDateForInput(formData.termStartDate)}
+              onChange={(e) => {
+                const dateValue = e.target.value;
+                // Convert to ISO string for storage
+                if (dateValue) {
+                  const isoDate = new Date(dateValue).toISOString();
+                  handleInputChange("termStartDate", isoDate);
+                } else {
+                  handleInputChange("termStartDate", "");
+                }
+              }}
+              onClick={(e) => {
+                // Ensure the date picker opens on click
+                e.currentTarget.showPicker?.();
+              }}
+              onKeyDown={(e) => {
+                // Allow Tab, Escape, and Enter, but prevent typing dates
+                if (!["Tab", "Escape", "Enter"].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              min={min}
+              max={max}
+              className="mt-1 cursor-pointer"
+              placeholder="Click to select date"
+            />
+          </div>
+
           <Button
             onClick={handleContinue}
             disabled={!isFormValid()}
-            className={`w-full py-3 text-white font-medium rounded-lg transition-colors ${
-              isFormValid()
-                ? "bg-brand-primary hover:bg-[#4338CA]"
-                : "bg-gray-300 cursor-not-allowed"
-            }`}
+            className="w-full"
+            size="lg"
           >
             Continue
           </Button>

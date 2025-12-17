@@ -5,6 +5,9 @@ interface SchoolFormData {
   schoolAddress: string;
   schoolType: string;
   schoolOwnership: string;
+  academicYear: string;
+  currentTerm: string;
+  termStartDate: string;
 }
 
 interface DocumentData {
@@ -28,49 +31,52 @@ export async function registerSchool(
   try {
     const formData = new FormData();
 
-    // Append school data
-    formData.append("schoolName", schoolData.schoolName);
-    formData.append("schoolEmail", schoolData.schoolEmail);
-    formData.append("schoolPhone", schoolData.schoolPhone);
-    formData.append("schoolAddress", schoolData.schoolAddress);
-    formData.append("schoolType", schoolData.schoolType);
-    formData.append("schoolOwnership", schoolData.schoolOwnership);
+    // Append school data with backend field names (snake_case)
+    formData.append("school_name", schoolData.schoolName);
+    formData.append("school_email", schoolData.schoolEmail);
+    formData.append("school_phone", schoolData.schoolPhone);
+    formData.append("school_address", schoolData.schoolAddress);
+    formData.append("school_type", schoolData.schoolType);
+    formData.append("school_ownership", schoolData.schoolOwnership);
+    formData.append("academic_year", schoolData.academicYear);
+    formData.append("current_term", schoolData.currentTerm);
+    formData.append("term_start_date", schoolData.termStartDate);
 
-    // Append files
+    // Append files with backend field names
     if (documentData.cac) {
-      formData.append("cac", documentData.cac);
+      formData.append("cac_or_approval_letter", documentData.cac);
     }
     if (documentData.utility) {
-      formData.append("utility", documentData.utility);
+      formData.append("utility_bill", documentData.utility);
     }
     if (documentData.taxId) {
-      formData.append("taxId", documentData.taxId);
+      formData.append("tax_cert", documentData.taxId);
     }
 
     // Log what we're sending for debugging
-    console.log("Sending registration data:", {
+    console.log("Sending registration data to backend:", {
+      endpoint: `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/onboard-school`,
       schoolData,
       files: {
-        cac: documentData.cac
-          ? `${documentData.cac.name} (${documentData.cac.size} bytes, type: ${documentData.cac.type})`
-          : null,
-        utility: documentData.utility
-          ? `${documentData.utility.name} (${documentData.utility.size} bytes, type: ${documentData.utility.type})`
-          : null,
-        taxId: documentData.taxId
-          ? `${documentData.taxId.name} (${documentData.taxId.size} bytes, type: ${documentData.taxId.type})`
-          : null,
+        cac: documentData.cac?.name,
+        utility: documentData.utility?.name,
+        taxId: documentData.taxId?.name,
       },
     });
 
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      body: formData,
-    });
+    // Call backend API directly
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/onboard-school`,
+      {
+        method: "POST",
+        body: formData,
+        // Don't set Content-Type - browser will set it with boundary for multipart/form-data
+      }
+    );
 
     const data = await response.json();
 
-    console.log("Registration response:", {
+    console.log("Backend response:", {
       status: response.status,
       statusCode: data.statusCode,
       success: data.success,
@@ -78,9 +84,9 @@ export async function registerSchool(
     });
 
     return {
-      success: data.success,
-      statusCode: data.statusCode,
-      message: data.message,
+      success: data.success || response.ok,
+      statusCode: data.statusCode || response.status,
+      message: data.message || "Registration completed",
       data: data.data,
       error: data.error,
     };
