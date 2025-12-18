@@ -25,6 +25,16 @@ export const authOptions: NextAuthOptions = {
               throw new Error("Backend URL not configured");
             }
 
+            const requestBody = {
+              email: credentials.email,
+              otp: credentials.otp,
+            };
+
+            console.log("=== OTP VERIFICATION API REQUEST ===");
+            console.log("URL:", `${backendUrl}/auth/director-verify-login-otp`);
+            console.log("Method: POST");
+            console.log("Request Body:", JSON.stringify(requestBody, null, 2));
+
             const response = await fetch(
               `${backendUrl}/auth/director-verify-login-otp`,
               {
@@ -32,26 +42,32 @@ export const authOptions: NextAuthOptions = {
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                  email: credentials.email,
-                  otp: credentials.otp,
-                }),
+                body: JSON.stringify(requestBody),
               }
             );
 
+            console.log("=== OTP VERIFICATION API RESPONSE ===");
+            console.log("Status:", response.status, response.statusText);
+            console.log("Headers:", Object.fromEntries(response.headers.entries()));
+
             const data = await response.json();
+            console.log("Response Body:", JSON.stringify(data, null, 2));
+            console.log("=====================================");
 
             if (response.ok && data.success) {
+              // Extract user data from the nested structure
+              const userData = data.data.user || data.data;
+              
               return {
-                id: data.data.id,
-                email: data.data.email,
-                name: `${data.data.first_name} ${data.data.last_name}`,
-                role: data.data.role,
-                schoolId: data.data.school_id,
-                firstName: data.data.first_name,
-                lastName: data.data.last_name,
-                phoneNumber: data.data.phone_number,
-                isEmailVerified: data.data.is_email_verified,
+                id: userData.id,
+                email: userData.email,
+                name: `${userData.first_name} ${userData.last_name}`,
+                role: userData.role,
+                schoolId: userData.school_id,
+                firstName: userData.first_name,
+                lastName: userData.last_name,
+                phoneNumber: userData.phone_number,
+                isEmailVerified: userData.is_email_verified,
                 accessToken: data.data.access_token || data.access_token,
               };
             }
@@ -69,37 +85,57 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Backend URL not configured");
           }
 
+          const requestBody = {
+            email: credentials.email,
+            password: credentials.password,
+          };
+
+          console.log("=== LOGIN API REQUEST ===");
+          console.log("URL:", `${backendUrl}/auth/sign-in`);
+          console.log("Method: POST");
+          console.log("Request Body:", JSON.stringify({ ...requestBody, password: "[REDACTED]" }, null, 2));
+
           const response = await fetch(`${backendUrl}/auth/sign-in`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
+            body: JSON.stringify(requestBody),
           });
 
+          console.log("=== LOGIN API RESPONSE ===");
+          console.log("Status:", response.status, response.statusText);
+          console.log("Headers:", Object.fromEntries(response.headers.entries()));
+
           const data = await response.json();
+          console.log("Response Body:", JSON.stringify(data, null, 2));
+          console.log("==========================");
 
           if (response.ok && data.success) {
-            // For school directors, don't return user data - throw error to trigger OTP flow
-            if (data.data.role === "school_director") {
+            // Extract user data from the nested structure
+            const userData = data.data.user || data.data;
+            const accessToken = data.data.access_token || data.access_token;
+            
+            console.log("Access Token Check:", accessToken ? "✅ Present - Logging in directly" : "❌ Missing - OTP required");
+            
+            // If access_token is not present, require OTP verification
+            if (!accessToken) {
               throw new Error("OTP_REQUIRED");
             }
 
-            // For teachers and students, return user data for immediate login
+            // If access_token is present, log the user in directly
+            console.log("✅ Logging in user with role:", userData.role);
             return {
-              id: data.data.id,
-              email: data.data.email,
-              name: `${data.data.first_name} ${data.data.last_name}`,
-              role: data.data.role,
-              schoolId: data.data.school_id,
-              firstName: data.data.first_name,
-              lastName: data.data.last_name,
-              phoneNumber: data.data.phone_number,
-              isEmailVerified: data.data.is_email_verified,
-              accessToken: data.data.access_token || data.access_token,
+              id: userData.id,
+              email: userData.email,
+              name: `${userData.first_name} ${userData.last_name}`,
+              role: userData.role,
+              schoolId: userData.school_id,
+              firstName: userData.first_name,
+              lastName: userData.last_name,
+              phoneNumber: userData.phone_number,
+              isEmailVerified: userData.is_email_verified,
+              accessToken: accessToken,
             };
           }
 

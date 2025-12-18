@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import {
   Table,
@@ -55,35 +55,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import {
-  authenticatedApi,
-  AuthenticatedApiError,
-} from "@/lib/api/authenticated";
-
-// API Response Types
-interface ApiTeacher {
-  id: string;
-  name: string;
-  display_picture: string | null;
-  contact: {
-    phone: string;
-    email: string;
-  };
-  totalSubjects: number;
-  classTeacher: string;
-  nextClass: string | null;
-  status: "active" | "inactive";
-}
-
-interface TeachersApiResponse {
-  basic_details: {
-    totalTeachers: number;
-    activeTeachers: number;
-    maleTeachers: number;
-    femaleTeachers: number;
-  };
-  teachers: ApiTeacher[];
-}
+  useTeachersData,
+  type TeachersApiResponse,
+  type ApiTeacher,
+} from "@/hooks/use-teachers-data";
 
 // Legacy interface for form/modal usage
 interface Teacher {
@@ -176,13 +153,39 @@ const TeacherAvatar = ({ teacher }: { teacher: ApiTeacher }) => {
 };
 
 const AdminTeachers = () => {
-  // API State
-  const [teachersData, setTeachersData] = useState<TeachersApiResponse | null>(
-    null
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use React Query hook for data fetching with automatic caching
+  const {
+    data: teachersData,
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useTeachersData();
+
   const [showErrorModal, setShowErrorModal] = useState(false);
+
+  // Format error message
+  const error = useMemo(() => {
+    if (!queryError) return null;
+
+    if (queryError instanceof AuthenticatedApiError) {
+      if (queryError.statusCode === 401) {
+        return "Your session has expired. Please login again.";
+      } else if (queryError.statusCode === 403) {
+        return "You don't have permission to access this data.";
+      } else {
+        return queryError.message;
+      }
+    }
+
+    return "An unexpected error occurred while loading teachers data.";
+  }, [queryError]);
+
+  // Show error modal when error occurs
+  useEffect(() => {
+    if (error) {
+      setShowErrorModal(true);
+    }
+  }, [error]);
 
   // Legacy state for modal/form functionality
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -199,54 +202,10 @@ const AdminTeachers = () => {
     status: "active",
   });
 
-  // Fetch teachers data from API
-  const fetchTeachersData = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await authenticatedApi.get(
-        "/director/teachers/dashboard"
-      );
-
-      if (response.success) {
-        setTeachersData(response.data as TeachersApiResponse);
-      } else {
-        throw new AuthenticatedApiError(
-          response.message || "Failed to fetch teachers data",
-          response.statusCode || 400,
-          response
-        );
-      }
-    } catch (error: unknown) {
-      let errorMessage =
-        "An unexpected error occurred while loading teachers data.";
-
-      if (error instanceof AuthenticatedApiError) {
-        if (error.statusCode === 401) {
-          errorMessage = "Your session has expired. Please login again.";
-        } else if (error.statusCode === 403) {
-          errorMessage = "You don't have permission to access this data.";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
-      setError(errorMessage);
-      setShowErrorModal(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchTeachersData();
-  }, []);
-
   // Retry mechanism
   const handleRetry = () => {
     setShowErrorModal(false);
-    fetchTeachersData();
+    refetch();
   };
 
   // Calculate statistics from API data

@@ -72,11 +72,16 @@ const Login = () => {
               router.push("/student/home");
               break;
             default:
-              router.push("/dashboard");
+              // Unknown role - show error and stay on login page
+              setError("Your account role is not recognized. Please contact support.");
+              setIsLoading(false);
+              return;
           }
         } else {
-          // Fallback redirect
-          router.push("/dashboard");
+          // No role in session - show error and stay on login page
+          setError("Unable to determine your account role. Please try again or contact support.");
+          setIsLoading(false);
+          return;
         }
       }
     } catch (err) {

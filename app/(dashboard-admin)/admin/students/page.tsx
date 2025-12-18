@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import {
   Table,
@@ -56,56 +56,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import {
-  authenticatedApi,
-  AuthenticatedApiError,
-} from "@/lib/api/authenticated";
-
-// API Response Types
-interface ApiStudent {
-  id: string;
-  school_id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  phone_number: string;
-  display_picture: string | null;
-  gender: "male" | "female" | "other";
-  status: "active" | "inactive" | "suspended";
-  student_id: string;
-  current_class: string;
-  next_class: string;
-  next_class_time: string | null;
-  next_class_teacher: string | null;
-  performance: {
-    cgpa: number;
-    term_average: number;
-    improvement_rate: number;
-    attendance_rate: number;
-    position: number;
-  };
-  classesEnrolled: Array<{
-    id: string;
-    name: string;
-    schoolId: string;
-    classTeacherId: string | null;
-  }>;
-}
-
-interface StudentsApiResponse {
-  basic_details: {
-    totalStudents: number;
-    activeStudents: number;
-    totalClasses: number;
-  };
-  pagination: {
-    total_pages: number;
-    current_page: number;
-    total_results: number;
-    results_per_page: number;
-  };
-  students: ApiStudent[];
-}
+  useStudentsData,
+  type StudentsApiResponse,
+  type ApiStudent,
+} from "@/hooks/use-students-data";
 
 // Skeleton component
 const SkeletonCard = () => (
@@ -188,13 +144,39 @@ const StudentAvatar = ({ student }: { student: ApiStudent }) => {
 const AdminStudents = () => {
   const { toast } = useToast();
 
-  // API State
-  const [studentsData, setStudentsData] = useState<StudentsApiResponse | null>(
-    null
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use React Query hook for data fetching with automatic caching
+  const {
+    data: studentsData,
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useStudentsData();
+
   const [showErrorModal, setShowErrorModal] = useState(false);
+
+  // Format error message
+  const error = useMemo(() => {
+    if (!queryError) return null;
+
+    if (queryError instanceof AuthenticatedApiError) {
+      if (queryError.statusCode === 401) {
+        return "Your session has expired. Please login again.";
+      } else if (queryError.statusCode === 403) {
+        return "You don't have permission to access this data.";
+      } else {
+        return queryError.message;
+      }
+    }
+
+    return "An unexpected error occurred while loading students data.";
+  }, [queryError]);
+
+  // Show error modal when error occurs
+  useEffect(() => {
+    if (error) {
+      setShowErrorModal(true);
+    }
+  }, [error]);
 
   // UI State
   const [searchQuery, setSearchQuery] = useState("");
@@ -224,54 +206,10 @@ const AdminStudents = () => {
     }
   };
 
-  // Fetch students data from API
-  const fetchStudentsData = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await authenticatedApi.get(
-        "/director/students/dashboard"
-      );
-
-      if (response.success) {
-        setStudentsData(response.data as StudentsApiResponse);
-      } else {
-        throw new AuthenticatedApiError(
-          response.message || "Failed to fetch students data",
-          response.statusCode || 400,
-          response
-        );
-      }
-    } catch (error: unknown) {
-      let errorMessage =
-        "An unexpected error occurred while loading students data.";
-
-      if (error instanceof AuthenticatedApiError) {
-        if (error.statusCode === 401) {
-          errorMessage = "Your session has expired. Please login again.";
-        } else if (error.statusCode === 403) {
-          errorMessage = "You don't have permission to access this data.";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
-      setError(errorMessage);
-      setShowErrorModal(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchStudentsData();
-  }, []);
-
   // Retry mechanism
   const handleRetry = () => {
     setShowErrorModal(false);
-    fetchStudentsData();
+    refetch();
   };
 
   // Handle performance modal

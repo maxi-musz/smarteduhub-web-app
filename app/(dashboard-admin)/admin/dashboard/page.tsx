@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Wallet,
   Users,
@@ -21,10 +21,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
-import {
-  authenticatedApi,
-  AuthenticatedApiError,
-} from "@/lib/api/authenticated";
+import { AuthenticatedApiError } from "@/lib/api/authenticated";
+import { useDashboardData, type DashboardData } from "@/hooks/use-dashboard-data";
 
 // Types for API response
 type OngoingClass = {
@@ -45,30 +43,7 @@ type NotificationEvent = {
   // Add other properties as they come from API
 };
 
-type DashboardData = {
-  basic_details: {
-    email: string;
-    school_id: string;
-  };
-  teachers: {
-    totalTeachers: number;
-    activeClasses: number;
-    totalSubjects: number;
-  };
-  students: {
-    totalStudents: number;
-    activeStudents: number;
-    suspendedStudents: number;
-  };
-  finance: {
-    totalRevenue: number;
-    outstandingFees: number;
-    totalExpenses: number;
-    netBalance: number;
-  };
-  ongoingClasses: OngoingClass[];
-  notifications: NotificationEvent[];
-};
+// Types moved to use-dashboard-data.ts hook
 
 // Skeleton component
 const SkeletonCard = () => (
@@ -104,62 +79,44 @@ const classFilters = [
 const AdminDashboard = () => {
   const router = useRouter();
 
-  // State for API data
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use React Query hook for data fetching with automatic caching
+  const {
+    data: dashboardData,
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useDashboardData();
+
   const [showErrorModal, setShowErrorModal] = useState(false);
 
-  // Fetch dashboard data
-  const fetchDashboardData = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await authenticatedApi.get(
-        "/director/dashboard/fetch-dashboard-data"
-      );
+  // Format error message
+  const error = useMemo(() => {
+    if (!queryError) return null;
 
-      if (response.success) {
-        setDashboardData(response.data as DashboardData);
+    if (queryError instanceof AuthenticatedApiError) {
+      if (queryError.statusCode === 401) {
+        return "Your session has expired. Please login again.";
+      } else if (queryError.statusCode === 403) {
+        return "You don't have permission to access this data.";
       } else {
-        throw new AuthenticatedApiError(
-          response.message || "Failed to fetch dashboard data",
-          response.statusCode || 400,
-          response
-        );
+        return queryError.message;
       }
-    } catch (error: unknown) {
-      let errorMessage =
-        "An unexpected error occurred while loading dashboard data.";
-
-      if (error instanceof AuthenticatedApiError) {
-        if (error.statusCode === 401) {
-          errorMessage = "Your session has expired. Please login again.";
-        } else if (error.statusCode === 403) {
-          errorMessage = "You don't have permission to access this data.";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
-      setError(errorMessage);
-      setShowErrorModal(true);
-    } finally {
-      setIsLoading(false);
     }
-  };
 
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    return "An unexpected error occurred while loading dashboard data.";
+  }, [queryError]);
+
+  // Show error modal when error occurs
+  React.useEffect(() => {
+    if (error) {
+      setShowErrorModal(true);
+    }
+  }, [error]);
 
   // Retry mechanism
   const handleRetry = () => {
     setShowErrorModal(false);
-    fetchDashboardData();
+    refetch();
   };
 
   const [classFilter, setClassFilter] = useState("all");
