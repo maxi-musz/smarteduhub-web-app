@@ -6,16 +6,83 @@ import Image from "next/image";
 import { GsapMorphButton } from "@/components/ui/gsapmorph-button";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Navigation = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const queryClient = useQueryClient();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const isAuthenticated = status === "authenticated" && session?.user;
+
+  // Get dashboard URL based on user type
+  const getDashboardUrl = () => {
+    if (!session?.user) return "/login";
+    
+    // Check if library owner
+    if (session.user.userType === "libraryresourceowner") {
+      return "/library-owner/dashboard";
+    }
+    
+    // Check role for school users
+    switch (session.user.role) {
+      case "school_director":
+        return "/admin/dashboard";
+      case "teacher":
+        return "/teacher/dashboard";
+      case "student":
+        return "/student/home";
+      default:
+        return "/login";
+    }
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    setUserMenuOpen(false);
+    // Clear React Query cache
+    queryClient.clear();
+    // Clear any session storage
+    if (typeof window !== "undefined") {
+      sessionStorage.clear();
+      localStorage.clear();
+    }
+    // Sign out without redirect, then manually redirect
+    await signOut({ redirect: false });
+    // Manually redirect to landing page on current port
+    router.push("/");
+    router.refresh(); // Refresh to clear any cached data
+  };
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [userMenuOpen]);
 
   const minorNavLinks = [
     { label: "Schools", href: "/" },
@@ -237,16 +304,65 @@ const Navigation = () => {
                 Support
               </Link>
 
-              <GsapMorphButton
-                variant="outline"
-                className="mr-2"
-                onClick={() => router.push("/login")}
-              >
-                Login
-              </GsapMorphButton>
-              <GsapMorphButton onClick={() => router.push("/create-account")}>
-                Sign Up
-              </GsapMorphButton>
+              {/* Auth Section - Show user menu if logged in, otherwise show login/signup */}
+              {isAuthenticated ? (
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="h-8 w-8 rounded-full bg-brand-primary text-white flex items-center justify-center text-sm font-medium">
+                      {session.user.firstName?.[0] || session.user.name?.[0] || "U"}
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">
+                      {session.user.firstName || session.user.name || "User"}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                  </button>
+
+                  {/* User Dropdown Menu */}
+                  {userMenuOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      <div className="px-4 py-2 border-b border-gray-200">
+                        <p className="text-sm font-medium text-gray-900">
+                          {session.user.firstName} {session.user.lastName}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {session.user.email}
+                        </p>
+                      </div>
+                      <Link
+                        href={getDashboardUrl()}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <User className="h-4 w-4" />
+                        <span>Dashboard</span>
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <GsapMorphButton
+                    variant="outline"
+                    className="mr-2"
+                    onClick={() => router.push("/login")}
+                  >
+                    Login
+                  </GsapMorphButton>
+                  <GsapMorphButton onClick={() => router.push("/create-account")}>
+                    Sign Up
+                  </GsapMorphButton>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -393,27 +509,63 @@ const Navigation = () => {
                 </button>
               </div>
 
-              {/* Auth Buttons */}
-              <div className="pt-6 border-t border-gray-200 flex space-x-3">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    router.push("/login");
-                  }}
-                >
-                  Login
-                </Button>
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    router.push("/create-account");
-                  }}
-                >
-                  Sign Up
-                </Button>
+              {/* Auth Section - Mobile */}
+              <div className="pt-6 border-t border-gray-200">
+                {isAuthenticated ? (
+                  <div className="space-y-3">
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm font-medium text-gray-900">
+                        {session.user.firstName} {session.user.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {session.user.email}
+                      </p>
+                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        router.push(getDashboardUrl());
+                      }}
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      Go to Dashboard
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex space-x-3">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        router.push("/login");
+                      }}
+                    >
+                      Login
+                    </Button>
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        router.push("/create-account");
+                      }}
+                    >
+                      Sign Up
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

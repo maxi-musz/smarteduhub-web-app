@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,50 @@ import {
 
 const CreateAccount = () => {
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Redirect logged-in users to their dashboard
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      // Check if user is a library owner
+      if (session.user.userType === "libraryresourceowner") {
+        router.push("/library-owner/dashboard");
+        return;
+      }
+
+      // Redirect based on user role
+      if (session.user.role) {
+        switch (session.user.role) {
+          case "school_director":
+            router.push("/admin/dashboard");
+            break;
+          case "teacher":
+            router.push("/teacher/dashboard");
+            break;
+          case "student":
+            router.push("/student/home");
+            break;
+        }
+      }
+    }
+  }, [status, session, router]);
+
+  // Show loading state while checking session
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary mx-auto"></div>
+          <p className="mt-4 text-sm text-brand-light-accent-1">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render form if user is authenticated (will redirect)
+  if (status === "authenticated") {
+    return null;
+  }
   const [formData, setFormData] = useState({
     schoolName: "",
     schoolEmail: "",

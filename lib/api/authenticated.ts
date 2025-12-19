@@ -1,4 +1,5 @@
 import { getSession } from "next-auth/react";
+import { logger } from "@/lib/logger";
 
 type ApiResponse<T = unknown> = {
   success: boolean;
@@ -51,12 +52,31 @@ export async function makeAuthenticatedRequest<T = unknown>(
       );
     }
 
-    const response = await fetch(`${baseUrl}${endpoint}`, {
+    const fullUrl = `${baseUrl}${endpoint}`;
+    const method = options.method || "GET";
+    
+    // Log API call to terminal
+    logger.info(`[API Call] ${method} ${fullUrl}`, {
+      timestamp: new Date().toISOString(),
+      method,
+      endpoint,
+      fullUrl,
+    });
+
+    const response = await fetch(fullUrl, {
       ...options,
       headers,
     });
 
     const data = await response.json();
+
+    // Log API response to terminal
+    logger.info(`[API Response] ${method} ${fullUrl}`, {
+      status: response.status,
+      success: data.success,
+      timestamp: new Date().toISOString(),
+      statusText: response.statusText,
+    });
 
     // Handle authentication errors
     if (response.status === 401) {

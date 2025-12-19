@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn, getSession } from "next-auth/react";
+import { signIn, getSession, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,34 @@ import { IconHeading } from "@/components/IconHeading";
 
 const Login = () => {
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Redirect logged-in users to their dashboard
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      // Check if user is a library owner
+      if (session.user.userType === "libraryresourceowner") {
+        router.push("/library-owner/dashboard");
+        return;
+      }
+
+      // Redirect based on user role
+      if (session.user.role) {
+        switch (session.user.role) {
+          case "school_director":
+            router.push("/admin/dashboard");
+            break;
+          case "teacher":
+            router.push("/teacher/dashboard");
+            break;
+          case "student":
+            router.push("/student/home");
+            break;
+        }
+      }
+    }
+  }, [status, session, router]);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -19,6 +47,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isLibraryOwner, setIsLibraryOwner] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -41,6 +70,7 @@ const Login = () => {
       const result = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
+        isLibraryOwner: isLibraryOwner ? "true" : "false",
         redirect: false,
       });
 
@@ -56,8 +86,14 @@ const Login = () => {
       }
 
       if (result?.ok) {
-        // Get the session to determine redirect based on role
+        // Get the session to determine redirect based on role or userType
         const session = await getSession();
+
+        // Check if user is a library owner
+        if (session?.user?.userType === "libraryresourceowner") {
+          router.push("/library-owner/dashboard");
+          return;
+        }
 
         if (session?.user?.role) {
           // Redirect based on user role
@@ -91,6 +127,25 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking session
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-lg w-full bg-white rounded-lg shadow-sm p-8 mt-8 lg:mt-0">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary mx-auto"></div>
+            <p className="mt-4 text-sm text-brand-light-accent-1">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render login form if user is authenticated (will redirect)
+  if (status === "authenticated") {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -171,16 +226,18 @@ const Login = () => {
           <div className="flex items-center justify-between flex-col md:flex-row">
             <div className="flex items-center">
               <input
-                id="remember-me"
-                name="remember-me"
+                id="library-owner"
+                name="library-owner"
                 type="checkbox"
+                checked={isLibraryOwner}
+                onChange={(e) => setIsLibraryOwner(e.target.checked)}
                 className="h-4 w-4 text-brand-primary focus:ring-brand-primary border-gray-300 rounded"
               />
               <label
-                htmlFor="remember-me"
+                htmlFor="library-owner"
                 className="ml-2 block text-sm text-gray-900"
               >
-                Remember me
+                I&apos;m a library Owner
               </label>
             </div>
 

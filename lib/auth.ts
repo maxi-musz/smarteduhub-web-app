@@ -10,6 +10,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
         otp: { label: "OTP", type: "text" },
         isOtpVerification: { label: "Is OTP Verification", type: "text" },
+        isLibraryOwner: { label: "Is Library Owner", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email) {
@@ -85,17 +86,26 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Backend URL not configured");
           }
 
+          // Check if this is a library owner login
+          const isLibraryOwner = credentials.isLibraryOwner === "true";
+
           const requestBody = {
             email: credentials.email,
             password: credentials.password,
           };
 
+          // Determine the endpoint based on user type
+          const endpoint = isLibraryOwner
+            ? "/library/auth/sign-in"
+            : "/auth/sign-in";
+
           console.log("=== LOGIN API REQUEST ===");
-          console.log("URL:", `${backendUrl}/auth/sign-in`);
+          console.log("User Type:", isLibraryOwner ? "Library Owner" : "School User");
+          console.log("URL:", `${backendUrl}${endpoint}`);
           console.log("Method: POST");
           console.log("Request Body:", JSON.stringify({ ...requestBody, password: "[REDACTED]" }, null, 2));
 
-          const response = await fetch(`${backendUrl}/auth/sign-in`, {
+          const response = await fetch(`${backendUrl}${endpoint}`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -112,7 +122,31 @@ export const authOptions: NextAuthOptions = {
           console.log("==========================");
 
           if (response.ok && data.success) {
-            // Extract user data from the nested structure
+            // Handle library owner response structure
+            if (isLibraryOwner) {
+              // Extract user data from nested structure (same as school users now)
+              const userData = data.data.user || data.data;
+              const accessToken = data.data.access_token || data.access_token || "";
+              
+              console.log("✅ Logging in library owner with userType:", userData.userType);
+              console.log("Access Token Check:", accessToken ? "✅ Present" : "⚠️ Not provided (may not be required for library owners)");
+              
+              return {
+                id: userData.id,
+                email: userData.email,
+                name: `${userData.first_name} ${userData.last_name}`,
+                role: userData.role,
+                platformId: userData.platformId,
+                firstName: userData.first_name,
+                lastName: userData.last_name,
+                phoneNumber: userData.phone_number || "",
+                isEmailVerified: true, // Library owners don't have this field, assume verified
+                userType: userData.userType,
+                accessToken: accessToken,
+              };
+            }
+
+            // Handle school user response structure
             const userData = data.data.user || data.data;
             const accessToken = data.data.access_token || data.access_token;
             
@@ -157,12 +191,14 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role;
         token.schoolId = user.schoolId;
+        token.platformId = user.platformId;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
         token.phoneNumber = user.phoneNumber;
         token.isEmailVerified = user.isEmailVerified;
         token.requiresOtp = user.requiresOtp;
         token.accessToken = user.accessToken;
+        token.userType = user.userType;
       }
       return token;
     },
@@ -171,12 +207,14 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub || "";
         session.user.role = token.role;
         session.user.schoolId = token.schoolId;
+        session.user.platformId = token.platformId;
         session.user.firstName = token.firstName;
         session.user.lastName = token.lastName;
         session.user.phoneNumber = token.phoneNumber;
         session.user.isEmailVerified = token.isEmailVerified;
         session.user.requiresOtp = token.requiresOtp;
         session.user.accessToken = token.accessToken;
+        session.user.userType = token.userType;
       }
       return session;
     },

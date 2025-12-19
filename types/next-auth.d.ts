@@ -7,13 +7,15 @@ declare module "next-auth" {
       email: string;
       name: string;
       role: string;
-      schoolId: string;
+      schoolId?: string;
+      platformId?: string;
       firstName: string;
       lastName: string;
       phoneNumber: string;
       isEmailVerified: boolean;
       requiresOtp?: boolean;
       accessToken?: string;
+      userType?: string;
     } & DefaultSession["user"];
   }
 
@@ -22,25 +24,29 @@ declare module "next-auth" {
     email: string;
     name: string;
     role: string;
-    schoolId: string;
+    schoolId?: string;
+    platformId?: string;
     firstName: string;
     lastName: string;
     phoneNumber: string;
     isEmailVerified: boolean;
     requiresOtp?: boolean;
     accessToken?: string;
+    userType?: string;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     role: string;
-    schoolId: string;
+    schoolId?: string;
+    platformId?: string;
     firstName: string;
     lastName: string;
     phoneNumber: string;
     isEmailVerified: boolean;
     requiresOtp?: boolean;
     accessToken?: string;
+    userType?: string;
   }
 }
