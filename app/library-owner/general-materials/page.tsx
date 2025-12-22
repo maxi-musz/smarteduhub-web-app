@@ -19,8 +19,10 @@ import {
   Plus,
 } from "lucide-react";
 import { AiBookUploadModal } from "./components/AiBookUploadModal";
+import { useRouter } from "next/navigation";
 
 const GeneralMaterialsPage = () => {
+  const router = useRouter();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const {
     data: dashboard,
@@ -198,6 +200,7 @@ const GeneralMaterialsPage = () => {
                   <tr className="text-left text-xs text-brand-light-accent-1">
                     <th className="px-4 py-2 font-medium">Book</th>
                     <th className="px-4 py-2 font-medium">AI</th>
+                    <th className="px-4 py-2 font-medium">Chapters</th>
                     <th className="px-4 py-2 font-medium">Views</th>
                     <th className="px-4 py-2 font-medium">Downloads</th>
                     <th className="px-4 py-2 font-medium">Uploaded By</th>
@@ -239,6 +242,9 @@ const GeneralMaterialsPage = () => {
                       </td>
                       <td className="px-4 py-2 text-brand-light-accent-1">
                         {item.isAiEnabled ? "Enabled" : "Disabled"}
+                      </td>
+                      <td className="px-4 py-2 text-brand-light-accent-1">
+                        {item.chapterCount !== undefined ? item.chapterCount.toLocaleString() : "-"}
                       </td>
                       <td className="px-4 py-2 text-brand-light-accent-1">
                         {item.views.toLocaleString()}

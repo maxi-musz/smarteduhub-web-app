@@ -49,6 +49,7 @@ export interface GeneralMaterialDashboardItem {
   status: string;
   views: number;
   downloads: number;
+  chapterCount?: number;
   createdAt: string;
   updatedAt: string;
   uploadedBy: GeneralMaterialUploadedBy;
@@ -83,6 +84,7 @@ export interface GeneralMaterialItem {
   downloads: number;
   thumbnailUrl: string | null;
   thumbnailS3Key: string | null;
+  chapterCount?: number;
   createdAt: string;
   updatedAt: string;
   class: GeneralMaterialClass | null;

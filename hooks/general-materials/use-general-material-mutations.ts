@@ -170,9 +170,12 @@ export function useCreateAiBookChapter() {
       );
     },
     onSuccess: (_, variables) => {
-      // Invalidate AI Books list so any material-level chapter counts can update
+      // Invalidate AI Books list and dashboard so any material-level chapter counts can update
       queryClient.invalidateQueries({
         queryKey: ["library-owner", "general-materials", "list"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["library-owner", "general-materials", "dashboard"],
       });
       // Optionally, we could invalidate a material-specific query if added later
       logger.info("[useCreateAiBookChapter] Cache invalidated", {

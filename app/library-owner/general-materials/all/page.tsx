@@ -21,6 +21,10 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  MoreVertical,
+  Plus,
+  MessageSquare,
+  BookOpen,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -30,6 +34,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CreateGeneralMaterialChapterModal } from "../components/CreateGeneralMaterialChapterModal";
+import { ChapterFileUploadFromTableModal } from "../components/ChapterFileUploadFromTableModal";
+import { ChaptersDropdown } from "../components/ChaptersDropdown";
 
 const AllAiBooksPage = () => {
   const router = useRouter();
@@ -38,6 +51,12 @@ const AllAiBooksPage = () => {
   const [search, setSearch] = useState("");
   const [isAiEnabled, setIsAiEnabled] = useState<string>("all");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedBookForChapter, setSelectedBookForChapter] = useState<string | null>(null);
+  const [selectedBookForFile, setSelectedBookForFile] = useState<{
+    bookId: string;
+    chapterId: string;
+    chapterTitle: string;
+  } | null>(null);
 
   // Debounce search input
   React.useEffect(() => {
@@ -213,10 +232,12 @@ const AllAiBooksPage = () => {
                   <tr className="text-left text-xs text-brand-light-accent-1">
                     <th className="px-4 py-2 font-medium">Book</th>
                     <th className="px-4 py-2 font-medium">AI</th>
+                    <th className="px-4 py-2 font-medium">Chapters</th>
                     <th className="px-4 py-2 font-medium">Views</th>
                     <th className="px-4 py-2 font-medium">Downloads</th>
                     <th className="px-4 py-2 font-medium">Uploaded By</th>
                     <th className="px-4 py-2 font-medium">Status</th>
+                    <th className="px-4 py-2 font-medium text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -225,7 +246,10 @@ const AllAiBooksPage = () => {
                       key={item.id}
                       className="border-t border-brand-border/60 hover:bg-gray-50"
                     >
-                      <td className="px-4 py-2 text-brand-heading max-w-xs">
+                      <td 
+                        className="px-4 py-2 text-brand-heading max-w-xs cursor-pointer"
+                        onClick={() => router.push(`/library-owner/general-materials/${item.id}`)}
+                      >
                         <div className="flex items-center gap-3">
                           <div className="relative w-14 h-20 rounded-md overflow-hidden border border-brand-border bg-gray-100 flex-shrink-0">
                             {item.thumbnailUrl ? (
@@ -259,6 +283,12 @@ const AllAiBooksPage = () => {
                         {item.isAiEnabled ? "Enabled" : "Disabled"}
                       </td>
                       <td className="px-4 py-2 text-brand-light-accent-1">
+                        <ChaptersDropdown
+                          materialId={item.id}
+                          chapterCount={item.chapterCount}
+                        />
+                      </td>
+                      <td className="px-4 py-2 text-brand-light-accent-1">
                         {item.views.toLocaleString()}
                       </td>
                       <td className="px-4 py-2 text-brand-light-accent-1">
@@ -272,12 +302,59 @@ const AllAiBooksPage = () => {
                       <td className="px-4 py-2 text-brand-light-accent-1">
                         {item.status}
                       </td>
+                      <td className="px-4 py-2 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/library-owner/general-materials/${item.id}`);
+                              }}
+                            >
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              AI Chat
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedBookForChapter(item.id);
+                              }}
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Chapter
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedBookForFile({
+                                  bookId: item.id,
+                                  chapterId: "",
+                                  chapterTitle: "",
+                                });
+                              }}
+                            >
+                              <BookOpen className="h-4 w-4 mr-2" />
+                              Upload Chapter File
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
                     </tr>
                   ))}
                   {materials.items.length === 0 && (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={8}
                         className="px-4 py-8 text-center text-brand-light-accent-1"
                       >
                         No AI Books found.
@@ -325,6 +402,30 @@ const AllAiBooksPage = () => {
             )}
           </div>
         </div>
+      )}
+
+      {selectedBookForChapter && (
+        <CreateGeneralMaterialChapterModal
+          isOpen={!!selectedBookForChapter}
+          onClose={() => setSelectedBookForChapter(null)}
+          materialId={selectedBookForChapter}
+          onSuccess={() => {
+            setSelectedBookForChapter(null);
+            refetchList();
+          }}
+        />
+      )}
+
+      {selectedBookForFile && (
+        <ChapterFileUploadFromTableModal
+          isOpen={!!selectedBookForFile}
+          onClose={() => setSelectedBookForFile(null)}
+          bookId={selectedBookForFile.bookId}
+          onSuccess={() => {
+            setSelectedBookForFile(null);
+            refetchList();
+          }}
+        />
       )}
     </div>
   );
