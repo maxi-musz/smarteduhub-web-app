@@ -2,7 +2,6 @@
 
 import {
   Home,
-  Upload,
   BookOpen,
   FileText,
   BarChart3,
@@ -23,8 +22,12 @@ import { logger } from "@/lib/logger";
 const libraryOwnerTabs = [
   { href: "/library-owner/dashboard", label: "Dashboard", icon: Home },
   { href: "/library-owner/schools", label: "Schools", icon: School },
-  { href: "/library-owner/upload", label: "Upload Resources", icon: Upload },
-  { href: "/library-owner/resources", label: "My Resources", icon: BookOpen },
+  { href: "/library-owner/resources", label: "Resources", icon: BookOpen },
+  {
+    href: "/library-owner/general-materials",
+    label: "AI Books",
+    icon: FileText,
+  },
   { href: "/library-owner/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
@@ -98,7 +101,13 @@ export default function LibraryOwnerShell({
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {libraryOwnerTabs.map((tab) => {
               const Icon = tab.icon;
-              const isActive = pathname === tab.href;
+              // Check if active - use startsWith for routes with sub-pages
+              const isActive =
+                tab.href === "/library-owner/resources"
+                  ? pathname.startsWith("/library-owner/resources")
+                  : tab.href === "/library-owner/general-materials"
+                  ? pathname.startsWith("/library-owner/general-materials")
+                  : pathname === tab.href;
               return (
                 <Link
                   key={tab.href}

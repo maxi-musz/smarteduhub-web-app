@@ -76,13 +76,6 @@ export async function registerSchool(
 
     const data = await response.json();
 
-    console.log("Backend response:", {
-      status: response.status,
-      statusCode: data.statusCode,
-      success: data.success,
-      message: data.message,
-    });
-
     return {
       success: data.success || response.ok,
       statusCode: data.statusCode || response.status,

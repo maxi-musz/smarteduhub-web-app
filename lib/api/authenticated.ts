@@ -36,11 +36,17 @@ export async function makeAuthenticatedRequest<T = unknown>(
     }
 
     // Prepare headers with Authorization
+    // Don't set Content-Type for FormData - browser will set it with boundary
+    const isFormData = options.body instanceof FormData;
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${session.user.accessToken}`,
       ...((options.headers as Record<string, string>) || {}),
     };
+    
+    // Only set Content-Type for non-FormData requests
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
 
     // Make the API request
     const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -119,12 +125,20 @@ export const authenticatedApi = {
     endpoint: string,
     data?: unknown,
     options?: RequestInit
-  ) =>
-    makeAuthenticatedRequest<T>(endpoint, {
+  ) => {
+    // If data is FormData, use it directly; otherwise stringify as JSON
+    const body = data instanceof FormData 
+      ? data 
+      : data 
+        ? JSON.stringify(data) 
+        : undefined;
+    
+    return makeAuthenticatedRequest<T>(endpoint, {
       ...options,
       method: "POST",
-      body: data ? JSON.stringify(data) : undefined,
-    }),
+      body,
+    });
+  },
 
   put: <T = unknown>(endpoint: string, data?: unknown, options?: RequestInit) =>
     makeAuthenticatedRequest<T>(endpoint, {
@@ -137,12 +151,20 @@ export const authenticatedApi = {
     endpoint: string,
     data?: unknown,
     options?: RequestInit
-  ) =>
-    makeAuthenticatedRequest<T>(endpoint, {
+  ) => {
+    // If data is FormData, use it directly; otherwise stringify as JSON
+    const body = data instanceof FormData 
+      ? data 
+      : data 
+        ? JSON.stringify(data) 
+        : undefined;
+    
+    return makeAuthenticatedRequest<T>(endpoint, {
       ...options,
       method: "PATCH",
-      body: data ? JSON.stringify(data) : undefined,
-    }),
+      body,
+    });
+  },
 
   delete: <T = unknown>(endpoint: string, options?: RequestInit) =>
     makeAuthenticatedRequest<T>(endpoint, { ...options, method: "DELETE" }),

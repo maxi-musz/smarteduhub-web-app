@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useLibraryOwnerSchools, AllSchoolsResponse } from "@/hooks/use-library-owner-schools";
 import { useLibraryOwnerSchool, SingleSchoolResponse } from "@/hooks/use-library-owner-school";
-import { SchoolsSkeleton } from "@/components/library-owner/SchoolsSkeleton";
-import { SchoolsStatistics } from "@/components/library-owner/SchoolsStatistics";
-import { SchoolsBreakdown } from "@/components/library-owner/SchoolsBreakdown";
-import { SchoolCard } from "@/components/library-owner/SchoolCard";
-import { SchoolDetailsModal } from "@/components/library-owner/SchoolDetailsModal";
+import { SchoolsSkeleton } from "./components/SchoolsSkeleton";
+import { SchoolsStatistics } from "./components/SchoolsStatistics";
+import { SchoolsBreakdown } from "./components/SchoolsBreakdown";
+import { SchoolCard } from "./components/SchoolCard";
+import { SchoolDetailsModal } from "./components/SchoolDetailsModal";
 import {
   Dialog,
   DialogContent,
