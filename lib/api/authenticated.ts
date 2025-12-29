@@ -61,13 +61,15 @@ export async function makeAuthenticatedRequest<T = unknown>(
     const fullUrl = `${baseUrl}${endpoint}`;
     const method = options.method || "GET";
     
-    // Log API call to terminal
-    logger.info(`[API Call] ${method} ${fullUrl}`, {
-      timestamp: new Date().toISOString(),
-      method,
-      endpoint,
-      fullUrl,
-    });
+    // Log API call to terminal (only if logging is enabled)
+    if (process.env.ENABLE_LOGGING === "true") {
+      logger.info(`[API Call] ${method} ${fullUrl}`, {
+        timestamp: new Date().toISOString(),
+        method,
+        endpoint,
+        fullUrl,
+      });
+    }
 
     const response = await fetch(fullUrl, {
       ...options,
@@ -76,13 +78,15 @@ export async function makeAuthenticatedRequest<T = unknown>(
 
     const data = await response.json();
 
-    // Log API response to terminal
-    logger.info(`[API Response] ${method} ${fullUrl}`, {
-      status: response.status,
-      success: data.success,
-      timestamp: new Date().toISOString(),
-      statusText: response.statusText,
-    });
+    // Log API response to terminal (only if logging is enabled)
+    if (process.env.ENABLE_LOGGING === "true") {
+      logger.info(`[API Response] ${method} ${fullUrl}`, {
+        status: response.status,
+        success: data.success,
+        timestamp: new Date().toISOString(),
+        statusText: response.statusText,
+      });
+    }
 
     // Handle authentication errors
     if (response.status === 401) {

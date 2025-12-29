@@ -174,18 +174,11 @@ export function useGeneralMaterialDetail(materialId: string | null) {
 
       // Try to fetch from API - single endpoint returns material with chapters
       try {
-        const response = await authenticatedApi.get<GeneralMaterialDetailApiResponse>(
+        const response = await authenticatedApi.get<GeneralMaterialDetail>(
           `/library/general-materials/${materialId}`
         );
 
         if (response.success && response.data) {
-          logger.info(
-            "[useGeneralMaterialDetail] Material detail fetched successfully",
-            {
-              materialId,
-              chaptersCount: response.data.chapters?.length || 0,
-            }
-          );
           return {
             material: response.data,
             chapters: response.data.chapters || [],
@@ -199,46 +192,47 @@ export function useGeneralMaterialDetail(materialId: string | null) {
         );
       } catch (error) {
         // If API fails and we have mock data, use it
-        if (mockBook) {
+        const fallbackMockBook = getMockBookById(materialId);
+        if (fallbackMockBook) {
           logger.info(
             "[useGeneralMaterialDetail] API failed, using mock data",
             { materialId }
           );
           return {
             material: {
-              id: mockBook.id,
-              title: mockBook.title,
-              description: mockBook.description,
-              author: mockBook.author,
-              isbn: mockBook.isbn,
-              publisher: mockBook.publisher,
-              materialType: mockBook.materialType,
-              url: mockBook.url,
-              s3Key: mockBook.s3Key,
+              id: fallbackMockBook.id,
+              title: fallbackMockBook.title,
+              description: fallbackMockBook.description,
+              author: fallbackMockBook.author,
+              isbn: fallbackMockBook.isbn,
+              publisher: fallbackMockBook.publisher,
+              materialType: fallbackMockBook.materialType,
+              url: fallbackMockBook.url,
+              s3Key: fallbackMockBook.s3Key,
               sizeBytes: null,
-              pageCount: mockBook.pageCount,
-              thumbnailUrl: mockBook.thumbnailUrl,
-              thumbnailS3Key: mockBook.thumbnailS3Key,
-              isAvailable: mockBook.isAvailable,
-              isAiEnabled: mockBook.isAiEnabled,
-              status: mockBook.status,
-              views: mockBook.views,
-              downloads: mockBook.downloads,
-              createdAt: mockBook.createdAt,
-              updatedAt: mockBook.updatedAt,
-              class: mockBook.classId
-                ? { id: mockBook.classId, name: "SSS 1" }
+              pageCount: fallbackMockBook.pageCount,
+              thumbnailUrl: fallbackMockBook.thumbnailUrl,
+              thumbnailS3Key: fallbackMockBook.thumbnailS3Key,
+              isAvailable: fallbackMockBook.isAvailable,
+              isAiEnabled: fallbackMockBook.isAiEnabled,
+              status: fallbackMockBook.status,
+              views: fallbackMockBook.views,
+              downloads: fallbackMockBook.downloads,
+              createdAt: fallbackMockBook.createdAt,
+              updatedAt: fallbackMockBook.updatedAt,
+              class: fallbackMockBook.classId
+                ? { id: fallbackMockBook.classId, name: "SSS 1" }
                 : null,
-              subject: mockBook.subjectId
-                ? { id: mockBook.subjectId, name: "Mathematics", code: "MATH" }
+              subject: fallbackMockBook.subjectId
+                ? { id: fallbackMockBook.subjectId, name: "Mathematics", code: "MATH" }
                 : null,
               uploadedBy: {
-                id: mockBook.uploadedById,
+                id: fallbackMockBook.uploadedById,
                 email: "uploader@example.com",
                 first_name: "John",
                 last_name: "Doe",
               },
-              chapters: mockBook.chapters.map((ch) => ({
+              chapters: fallbackMockBook.chapters.map((ch) => ({
                 id: ch.id,
                 title: ch.title,
                 description: ch.description,
@@ -252,7 +246,7 @@ export function useGeneralMaterialDetail(materialId: string | null) {
                 files: [],
               })),
             },
-            chapters: mockBook.chapters.map((ch) => ({
+            chapters: fallbackMockBook.chapters.map((ch) => ({
               id: ch.id,
               title: ch.title,
               description: ch.description,

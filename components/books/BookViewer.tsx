@@ -135,6 +135,7 @@ export function BookViewer({
         <BookDetailChat
           selectedChapter={selectedChapter}
           hasChapters={data.chapters.length > 0}
+          materialId={bookId}
         />
       </div>
     </div>

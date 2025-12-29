@@ -10,6 +10,11 @@ interface LogData {
 }
 
 async function sendLog(level: LogLevel, message: string, data?: LogData) {
+  // Disable logging by default - only enable when ENABLE_LOGGING is explicitly "true"
+  if (process.env.ENABLE_LOGGING !== "true") {
+    return;
+  }
+  
   try {
     // Send logs to server-side API route which logs to terminal
     await fetch("/api/log", {

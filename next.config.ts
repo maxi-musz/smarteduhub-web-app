@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   // Enable compression for better performance
   compress: true,
 
+  // Reduce logging output
+  logging: {
+    fetches: {
+      fullUrl: false,
+    },
+  },
+
   // Image optimization configuration
   images: {
     formats: ["image/avif", "image/webp"],
