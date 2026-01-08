@@ -28,12 +28,20 @@ interface Teacher {
   name: string;
 }
 
+interface TimeSlotInfo {
+  id?: string;
+  label?: string;
+  startTime?: string;
+  endTime?: string;
+  timeSlot: string; // The time slot string format (e.g., "08:45-09:30")
+}
+
 interface TimetableGridProps {
   periods: Period[];
   subjects: Subject[];
   teachers: Teacher[];
   onEdit: (period: Period) => void;
-  timeSlots?: string[]; // Optional prop for dynamic time slots
+  timeSlots?: string[] | TimeSlotInfo[]; // Optional prop for dynamic time slots (can be strings or objects with labels)
 }
 
 const TimetableGrid: React.FC<TimetableGridProps> = ({
@@ -46,9 +54,15 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
   const isMobile = useIsMobile();
 
   // Use dynamic timeSlots from props, fallback to hardcoded ones
-  const timeSlots =
+  // Normalize timeSlots to TimeSlotInfo format
+  const timeSlots: TimeSlotInfo[] =
     propTimeSlots && propTimeSlots.length > 0
-      ? propTimeSlots
+      ? propTimeSlots.map((slot) => {
+          if (typeof slot === "string") {
+            return { timeSlot: slot };
+          }
+          return slot as TimeSlotInfo;
+        }).filter((slot) => slot.timeSlot && slot.timeSlot !== "[object Object]")
       : [
           "08:00-09:00",
           "09:00-10:00",
@@ -58,12 +72,20 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
           "13:00-14:00",
           "14:00-15:00",
           "15:00-16:00",
-        ];
+        ].map((ts) => ({ timeSlot: ts }));
 
   const getPeriodForSlot = (day: string, timeSlot: string) => {
     return periods.find(
       (period) => period.day === day && period.timeSlot === timeSlot
     );
+  };
+
+  const getTimeSlotDisplay = (slot: TimeSlotInfo) => {
+    const timeRange = slot.timeSlot.replace("-", " - ");
+    if (slot.label) {
+      return `${slot.label} (${timeRange})`;
+    }
+    return timeRange;
   };
 
   const getSubjectById = (id: string) => {
@@ -82,8 +104,9 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
           <div key={day} className="rounded-lg p-3">
             <h3 className="font-semibold text-lg mb-3 text-primary">{day}</h3>
             <div className="space-y-2">
-              {timeSlots.map((timeSlot) => {
-                const period = getPeriodForSlot(day, timeSlot);
+              {timeSlots.map((timeSlot, slotIndex) => {
+                const timeSlotStr = timeSlot.timeSlot;
+                const period = getPeriodForSlot(day, timeSlotStr);
                 const subject = period
                   ? getSubjectById(period.subjectId)
                   : null;
@@ -93,12 +116,21 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
 
                 return (
                   <div
-                    key={`${day}-${timeSlot}`}
+                    key={`${day}-${slotIndex}-${timeSlotStr}`}
                     className="flex items-center justify-between p-3 border border-red-500 rounded-lg min-h-[60px]"
                   >
                     <div className="flex-1">
                       <div className="text-sm font-medium text-brand-light-accent-1 mb-1">
-                        {timeSlot.replace("-", " - ")}
+                        <div className="flex flex-col">
+                          <span className="font-semibold">
+                            {timeSlot.timeSlot.replace("-", " - ")}
+                          </span>
+                          {timeSlot.label && (
+                            <span className="text-xs text-brand-light-accent-1 mt-0.5">
+                              {timeSlot.label}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {period && subject && teacher ? (
                         <div className="flex items-center gap-2">
@@ -107,11 +139,11 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
                               backgroundColor: subject.color,
                               color: "white",
                             }}
-                            className="text-xs"
+                            className="text-xs capitalize"
                           >
                             {subject.name}
                           </Badge>
-                          <span className="text-sm">{teacher.name}</span>
+                          <span className="text-sm capitalize">{teacher.name}</span>
                         </div>
                       ) : (
                         <span className="text-sm text-brand-light-accent-1">
@@ -132,7 +164,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
                               subjectId: "",
                               teacherId: "",
                               day,
-                              timeSlot,
+                              timeSlot: timeSlotStr,
                               isNew: true,
                             })
                       }
@@ -164,14 +196,21 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
             <Clock className="w-4 h-4 mx-auto mb-1" />
             <span className="text-xs lg:text-sm">Time</span>
           </div>
-          {timeSlots.map((timeSlot) => (
+          {timeSlots.map((timeSlot, index) => (
             <div
-              key={timeSlot}
+              key={`time-slot-${index}-${timeSlot.timeSlot}`}
               className="p-2 lg:p-3 font-medium text-center bg-brand-border rounded-lg"
             >
-              <span className="text-xs lg:text-sm">
-                {timeSlot.replace("-", " - ")}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-xs lg:text-sm font-semibold">
+                  {timeSlot.timeSlot.replace("-", " - ")}
+                </span>
+                {timeSlot.label && (
+                  <span className="text-[10px] lg:text-xs text-brand-light-accent-1 mt-0.5">
+                    {timeSlot.label}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -188,14 +227,15 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
             <div className="p-3 lg:p-4 font-semibold text-center bg-brand-primary text-white rounded-lg flex items-center justify-center">
               <span className="text-sm lg:text-base">{day}</span>
             </div>
-            {timeSlots.map((timeSlot) => {
-              const period = getPeriodForSlot(day, timeSlot);
+            {timeSlots.map((timeSlot, slotIndex) => {
+              const timeSlotStr = String(timeSlot);
+              const period = getPeriodForSlot(day, timeSlotStr);
               const subject = period ? getSubjectById(period.subjectId) : null;
               const teacher = period ? getTeacherById(period.teacherId) : null;
 
               return (
                 <div
-                  key={`${day}-${timeSlot}`}
+                  key={`${day}-${slotIndex}-${timeSlotStr}`}
                   className="min-h-[60px] lg:min-h-[80px] border-2 border-dashed border-brand-primary rounded-lg hover:border-primary/50 transition-colors relative group"
                 >
                   {period && subject && teacher ? (
@@ -214,11 +254,11 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
                               backgroundColor: subject.color,
                               color: "white",
                             }}
-                            className="text-[10px] lg:text-xs mb-1"
+                            className="text-[10px] lg:text-xs mb-1 capitalize"
                           >
                             {subject.name}
                           </Badge>
-                          <p className="text-[10px] lg:text-xs font-medium text-brand-light-accent-1 line-clamp-2">
+                          <p className="text-[10px] lg:text-xs font-medium text-brand-light-accent-1 line-clamp-2 capitalize">
                             {teacher.name}
                           </p>
                         </div>
@@ -248,7 +288,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
                             subjectId: "",
                             teacherId: "",
                             day,
-                            timeSlot,
+                            timeSlot: timeSlotStr,
                             isNew: true,
                           })
                         }
