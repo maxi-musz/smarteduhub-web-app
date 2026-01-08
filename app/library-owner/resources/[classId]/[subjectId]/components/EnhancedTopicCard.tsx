@@ -5,8 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Topic } from "@/hooks/use-library-class-resources";
-import { TopicVideo, TopicMaterial, TopicLink } from "@/hooks/topics/use-topic-materials";
-import { Video, FileText, Pencil, GripVertical, Link as LinkIcon, Plus, Play, ExternalLink, ChevronDown, ChevronRight, Clock, MoreVertical, Trash2 } from "lucide-react";
+import { TopicVideo, TopicMaterial, TopicLink, TopicCBT } from "@/hooks/topics/use-topic-materials";
+import { Video, FileText, Pencil, GripVertical, Link as LinkIcon, Plus, Play, ExternalLink, ChevronDown, ChevronRight, Clock, MoreVertical, Trash2, ClipboardList } from "lucide-react";
 import { formatTopicTitle } from "@/lib/text-formatter";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Image from "next/image";
@@ -70,6 +70,7 @@ export const EnhancedTopicCard = ({
   const videos = topicMaterials?.content?.videos || topic.videos || [];
   const materials = topicMaterials?.content?.materials || topic.materials || [];
   const links = topicMaterials?.content?.links || topic.links || [];
+  const assessments = topicMaterials?.content?.cbts || [];
   
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -273,6 +274,134 @@ export const EnhancedTopicCard = ({
     );
   };
 
+  const renderAssessmentItem = (assessment: TopicCBT) => {
+    const assessmentOrderColors = getOrderBadgeColors(assessment.order);
+    const formatDuration = (minutes: number): string => {
+      if (minutes < 60) return `${minutes} min`;
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+    };
+
+    const formatDate = (dateString: string): string => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    };
+
+    const getStatusBadge = () => {
+      if (assessment.isPublished) {
+        return (
+          <Badge variant="default" className="text-[10px] h-4 px-1.5">
+            Published
+          </Badge>
+        );
+      }
+      return (
+        <Badge variant="outline" className="text-[10px] h-4 px-1.5">
+          Draft
+        </Badge>
+      );
+    };
+
+    return (
+      <div
+        key={assessment.id}
+        className="flex-shrink-0 w-64 bg-white rounded-lg border border-brand-border p-4 hover:shadow-md transition-shadow relative group"
+      >
+        {/* Order Badge */}
+        <div className={`absolute top-2 left-2 z-10 flex items-center justify-center min-w-[20px] h-5 rounded-md border ${assessmentOrderColors.bg} ${assessmentOrderColors.text} ${assessmentOrderColors.border} font-semibold text-[10px] px-1`}>
+          {assessment.order}
+        </div>
+
+        <div className="flex flex-col gap-3 pt-1">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0 pr-6">
+              <h6 className="font-medium text-sm text-brand-heading line-clamp-2 mb-1">
+                {assessment.title}
+              </h6>
+              {assessment.description && (
+                <p className="text-xs text-brand-light-accent-1 line-clamp-2 mb-2">
+                  {assessment.description}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Status Badge */}
+          <div className="flex items-center gap-2">
+            {getStatusBadge()}
+            {assessment.isResultReleased && (
+              <Badge variant="outline" className="text-[10px] h-4 px-1.5 text-green-600 border-green-300">
+                Results Released
+              </Badge>
+            )}
+          </div>
+
+          {/* Assessment Details */}
+          <div className="space-y-1.5 text-xs text-brand-light-accent-1">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="h-3 w-3" />
+              <span>{assessment._count?.questions || 0} questions</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-3 w-3" />
+              <span>{formatDuration(assessment.duration)}</span>
+              {assessment.timeLimit > 0 && (
+                <span className="text-[10px]">({Math.floor(assessment.timeLimit / 60)} min limit)</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-brand-heading">{assessment.totalPoints} points</span>
+              {assessment.passingScore > 0 && (
+                <span className="text-[10px]">(Pass: {assessment.passingScore}%)</span>
+              )}
+            </div>
+            {assessment.maxAttempts > 0 && (
+              <div className="flex items-center gap-2">
+                <span>Max attempts: {assessment.maxAttempts}</span>
+              </div>
+            )}
+            {assessment.startDate && assessment.endDate && (
+              <div className="flex items-center gap-2 text-[10px] pt-1 border-t border-brand-border/30">
+                <span>{formatDate(assessment.startDate)} - {formatDate(assessment.endDate)}</span>
+              </div>
+            )}
+            {assessment._count?.attempts > 0 && (
+              <div className="flex items-center gap-2 text-[10px]">
+                <span>{assessment._count.attempts} attempts</span>
+              </div>
+            )}
+          </div>
+
+          {/* Tags */}
+          {assessment.tags && assessment.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {assessment.tags.slice(0, 3).map((tag, idx) => (
+                <Badge
+                  key={idx}
+                  variant="outline"
+                  className="text-[9px] h-4 px-1.5"
+                >
+                  {tag}
+                </Badge>
+              ))}
+              {assessment.tags.length > 3 && (
+                <Badge variant="outline" className="text-[9px] h-4 px-1.5">
+                  +{assessment.tags.length - 3}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderLinkItem = (link: TopicLink) => {
     const handleDeleteClick = (e: React.MouseEvent) => {
       e.preventDefault();
@@ -370,6 +499,12 @@ export const EnhancedTopicCard = ({
                 <span>{topic.materialsCount || 0} materials</span>
                 <span>•</span>
                 <span>{topic.linksCount || 0} links</span>
+                {topicMaterials?.statistics?.totalCbts ? (
+                  <>
+                    <span>•</span>
+                    <span>{topicMaterials.statistics.totalCbts} assessments</span>
+                  </>
+                ) : null}
               </div>
             </div>
           </div>
@@ -429,6 +564,10 @@ export const EnhancedTopicCard = ({
           <TabsTrigger value="links" className="text-xs px-3">
             <LinkIcon className="h-3 w-3 mr-1.5" />
             Links ({isLoadingMaterials ? "..." : links.length})
+          </TabsTrigger>
+          <TabsTrigger value="assessments" className="text-xs px-3">
+            <ClipboardList className="h-3 w-3 mr-1.5" />
+            Assessments ({isLoadingMaterials ? "..." : assessments.length})
           </TabsTrigger>
           <TabsTrigger value="other" className="text-xs px-3">
             Any Other (0)
@@ -524,6 +663,26 @@ export const EnhancedTopicCard = ({
                   Add Link
                 </Button>
               )}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="assessments" className="mt-3">
+          {isLoadingMaterials ? (
+            <div className="text-center py-6">
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-brand-primary"></div>
+              <p className="text-xs text-brand-light-accent-1 mt-2">Loading assessments...</p>
+            </div>
+          ) : assessments.length > 0 ? (
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-3 px-3" style={{ scrollbarWidth: 'thin' }}>
+              {assessments
+                .sort((a, b) => a.order - b.order)
+                .map(renderAssessmentItem)}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-sm text-brand-light-accent-1">
+              <ClipboardList className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>No assessments yet</p>
             </div>
           )}
         </TabsContent>

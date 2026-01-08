@@ -64,12 +64,56 @@ export interface TopicLink {
   };
 }
 
+export interface TopicCBT {
+  id: string;
+  title: string;
+  description: string;
+  instructions: string;
+  assessmentType: string;
+  gradingType: string;
+  status: string;
+  duration: number;
+  timeLimit: number;
+  startDate: string;
+  endDate: string;
+  maxAttempts: number;
+  allowReview: boolean;
+  autoSubmit: boolean;
+  totalPoints: number;
+  passingScore: number;
+  showCorrectAnswers: boolean;
+  showFeedback: boolean;
+  studentCanViewGrading: boolean;
+  shuffleQuestions: boolean;
+  shuffleOptions: boolean;
+  isPublished: boolean;
+  publishedAt: string | null;
+  isResultReleased: boolean;
+  resultReleasedAt: string | null;
+  tags: string[];
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+  };
+  questions: any[];
+  _count: {
+    questions: number;
+    attempts: number;
+  };
+}
+
 export interface TopicMaterialsStatistics {
   totalVideos: number;
   totalMaterials: number;
   totalLinks: number;
   totalAssignments: number;
   totalComments: number;
+  totalCbts: number;
   totalContent: number;
   totalVideoViews: number;
   totalVideoDuration: number;
@@ -85,6 +129,9 @@ export interface TopicMaterialsStatistics {
   topLevelComments: number;
   totalReplies: number;
   editedComments: number;
+  totalCbtQuestions: number;
+  totalCbtAttempts: number;
+  publishedCbts: number;
   totalContentSize: number;
   totalContentSizeFormatted: string;
 }
@@ -95,6 +142,7 @@ export interface TopicMaterialsContent {
   links: TopicLink[];
   assignments: any[];
   comments: any[];
+  cbts: TopicCBT[];
 }
 
 export interface TopicMaterialsResponse {
@@ -149,6 +197,7 @@ export function useTopicMaterials(topicId: string | null) {
           videosCount: response.data.content.videos.length,
           materialsCount: response.data.content.materials.length,
           linksCount: response.data.content.links.length,
+          cbtsCount: response.data.content.cbts?.length || 0,
           statistics: response.data.statistics,
         });
         return response.data;
