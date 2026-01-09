@@ -11,6 +11,7 @@ import {
   Settings,
   MessageSquare,
   UserPlus,
+  Compass,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +20,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 
 const adminTabs = [
+  { href: "/admin/explore", label: "Explore", icon: Compass },
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
   { href: "/admin/teachers", label: "Teachers", icon: Users },
   { href: "/admin/students", label: "Students", icon: User },
@@ -72,7 +74,9 @@ export default function AdminShell({ children }: { children: ReactNode }) {
             {adminTabs.map(({ href, label, icon: Icon }) => {
               const isActive = 
                 href === "/onboarding-classes" 
-                  ? pathname.startsWith("/onboarding") 
+                  ? pathname.startsWith("/onboarding")
+                  : href === "/admin/explore"
+                  ? pathname.startsWith("/admin/explore")
                   : pathname === href;
               
               return (
@@ -126,7 +130,9 @@ export default function AdminShell({ children }: { children: ReactNode }) {
           {adminTabs.slice(0, 5).map(({ href, label, icon: Icon }) => {
             const isActive = 
               href === "/onboarding-classes" 
-                ? pathname.startsWith("/onboarding") 
+                ? pathname.startsWith("/onboarding")
+                : href === "/admin/explore"
+                ? pathname.startsWith("/admin/explore")
                 : pathname === href;
             
             return (

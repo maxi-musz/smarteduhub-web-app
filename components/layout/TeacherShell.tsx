@@ -9,6 +9,7 @@ import {
   User,
   Bell,
   Settings,
+  Compass,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 
 const teacherTabs = [
+  { href: "/teacher/explore", label: "Explore", icon: Compass },
   { href: "/teacher/dashboard", label: "Dashboard", icon: Home },
   { href: "/teacher/students", label: "Students", icon: Users },
   { href: "/teacher/schedules", label: "Schedules", icon: Calendar },
@@ -60,21 +62,28 @@ export default function TeacherShell({ children }: { children: ReactNode }) {
             <p className="text-sm text-gray-500">Teacher&apos;s Portal</p>
           </div>
           <nav className="p-4 flex flex-col gap-1 flex-grow">
-            {teacherTabs.map(({ href, label, icon: Icon }) => (
-              <button
-                key={href}
-                onClick={() => handleTabClick(href, label)}
-                className={cn(
-                  "flex items-center w-full p-2 rounded-md transition-colors duration-200 cursor-pointer",
-                  pathname === href
-                    ? "bg-brand-primary text-white"
-                    : "text-gray-700 hover:bg-gray-100"
-                )}
-              >
-                <Icon className="h-5 w-5 mr-2" />
-                <span>{label}</span>
-              </button>
-            ))}
+            {teacherTabs.map(({ href, label, icon: Icon }) => {
+              const isActive = 
+                href === "/teacher/explore"
+                  ? pathname.startsWith("/teacher/explore")
+                  : pathname === href;
+              
+              return (
+                <button
+                  key={href}
+                  onClick={() => handleTabClick(href, label)}
+                  className={cn(
+                    "flex items-center w-full p-2 rounded-md transition-colors duration-200 cursor-pointer",
+                    isActive
+                      ? "bg-brand-primary text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  )}
+                >
+                  <Icon className="h-5 w-5 mr-2" />
+                  <span>{label}</span>
+                </button>
+              );
+            })}
           </nav>
           {/* Bottom Fixed Navigation */}
           <div className="p-4 border-t border-brand-border">
