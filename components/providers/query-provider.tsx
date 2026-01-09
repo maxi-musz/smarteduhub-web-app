@@ -14,8 +14,8 @@ export const QueryProvider = ({ children }: { children: ReactNode }) => {
             staleTime: 5 * 60 * 1000, // 5 minutes
             // Cache data for 10 minutes
             gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-            // Retry failed requests once
-            retry: 1,
+            // Retry failed requests up to 3 times (1 initial + 2 retries = 3 total attempts)
+            retry: 2,
             // Refetch on window focus only if data is stale
             refetchOnWindowFocus: false,
             // Don't refetch on reconnect if data is fresh

@@ -170,6 +170,21 @@ export const authenticatedApi = {
     });
   },
 
-  delete: <T = unknown>(endpoint: string, options?: RequestInit) =>
-    makeAuthenticatedRequest<T>(endpoint, { ...options, method: "DELETE" }),
+  delete: <T = unknown>(endpoint: string, options?: RequestInit) => {
+    // If body is provided, stringify it and set Content-Type
+    const body = options?.body 
+      ? (typeof options.body === 'string' ? options.body : JSON.stringify(options.body))
+      : undefined;
+    
+    const headers = body 
+      ? { ...((options?.headers as Record<string, string>) || {}), 'Content-Type': 'application/json' }
+      : (options?.headers as Record<string, string>);
+    
+    return makeAuthenticatedRequest<T>(endpoint, { 
+      ...options, 
+      method: "DELETE",
+      body,
+      headers,
+    });
+  },
 };

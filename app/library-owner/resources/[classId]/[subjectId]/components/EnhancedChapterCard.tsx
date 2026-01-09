@@ -47,6 +47,7 @@ interface EnhancedChapterCardProps {
   onUploadVideo?: (topic: Topic) => void;
   onUploadMaterial?: (topic: Topic) => void;
   onCreateLink?: (topic: Topic) => void;
+  onCreateAssessment?: (topic: Topic) => void;
   onEditVideo?: (video: any, allVideos: any[]) => void;
   onDeleteVideo?: (video: any) => void;
   onDeleteMaterial?: (material: any) => void;
@@ -62,6 +63,7 @@ export const EnhancedChapterCard = ({
   onUploadVideo,
   onUploadMaterial,
   onCreateLink,
+  onCreateAssessment,
   onEditVideo,
   onDeleteVideo,
   onDeleteMaterial,
@@ -206,6 +208,7 @@ export const EnhancedChapterCard = ({
                         onUploadVideo={onUploadVideo ? () => onUploadVideo(topicForCard) : undefined}
                         onUploadMaterial={onUploadMaterial ? () => onUploadMaterial(topicForCard) : undefined}
                         onCreateLink={onCreateLink ? () => onCreateLink(topicForCard) : undefined}
+                        onCreateAssessment={onCreateAssessment ? () => onCreateAssessment(topicForCard) : undefined}
                       />
                     );
                   })}

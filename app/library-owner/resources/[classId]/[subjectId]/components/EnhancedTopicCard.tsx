@@ -13,7 +13,7 @@ import Image from "next/image";
 import { useTopicMaterials } from "@/hooks/topics/use-topic-materials";
 
 // Color palette for order badges - cycles through appealing colors
-const getOrderBadgeColors = (order: number) => {
+const getOrderBadgeColors = (order: number | null | undefined) => {
   const colors = [
     { bg: "bg-blue-100", text: "text-blue-700", border: "border-blue-300" },
     { bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-300" },
@@ -28,7 +28,9 @@ const getOrderBadgeColors = (order: number) => {
     { bg: "bg-violet-100", text: "text-violet-700", border: "border-violet-300" },
     { bg: "bg-sky-100", text: "text-sky-700", border: "border-sky-300" },
   ];
-  return colors[(order - 1) % colors.length];
+  // Handle undefined, null, or invalid order values
+  const validOrder = typeof order === 'number' && !isNaN(order) && order > 0 ? order : 1;
+  return colors[(validOrder - 1) % colors.length];
 };
 
 interface EnhancedTopicCardProps {
@@ -41,6 +43,7 @@ interface EnhancedTopicCardProps {
   onUploadVideo?: () => void;
   onUploadMaterial?: () => void;
   onCreateLink?: () => void;
+  onCreateAssessment?: () => void;
 }
 
 export const EnhancedTopicCard = ({
@@ -53,6 +56,7 @@ export const EnhancedTopicCard = ({
   onUploadVideo,
   onUploadMaterial,
   onCreateLink,
+  onCreateAssessment,
 }: EnhancedTopicCardProps) => {
   const params = useParams();
   const router = useRouter();
@@ -276,6 +280,9 @@ export const EnhancedTopicCard = ({
 
   const renderAssessmentItem = (assessment: TopicCBT) => {
     const assessmentOrderColors = getOrderBadgeColors(assessment.order);
+    // Fallback colors in case getOrderBadgeColors returns undefined (shouldn't happen, but safety check)
+    const colors = assessmentOrderColors || { bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-300" };
+    
     const formatDuration = (minutes: number): string => {
       if (minutes < 60) return `${minutes} min`;
       const hours = Math.floor(minutes / 60);
@@ -307,14 +314,20 @@ export const EnhancedTopicCard = ({
       );
     };
 
+    const handleAssessmentClick = () => {
+      // Navigate to assessment page to manage this assessment
+      router.push(`/library-owner/resources/assessment?subjectId=${params?.subjectId}&cbtId=${assessment.id}`);
+    };
+
     return (
       <div
         key={assessment.id}
-        className="flex-shrink-0 w-64 bg-white rounded-lg border border-brand-border p-4 hover:shadow-md transition-shadow relative group"
+        className="flex-shrink-0 w-64 bg-white rounded-lg border border-brand-border p-4 hover:shadow-md transition-shadow relative group cursor-pointer"
+        onClick={handleAssessmentClick}
       >
         {/* Order Badge */}
-        <div className={`absolute top-2 left-2 z-10 flex items-center justify-center min-w-[20px] h-5 rounded-md border ${assessmentOrderColors.bg} ${assessmentOrderColors.text} ${assessmentOrderColors.border} font-semibold text-[10px] px-1`}>
-          {assessment.order}
+        <div className={`absolute top-2 left-2 z-10 flex items-center justify-center min-w-[20px] h-5 rounded-md border ${colors.bg} ${colors.text} ${colors.border} font-semibold text-[10px] px-1`}>
+          {assessment.order || '?'}
         </div>
 
         <div className="flex flex-col gap-3 pt-1">
@@ -509,7 +522,7 @@ export const EnhancedTopicCard = ({
             </div>
           </div>
           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-            {(onUploadVideo || onUploadMaterial || onCreateLink) && (
+            {(onUploadVideo || onUploadMaterial || onCreateLink || onCreateAssessment) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -518,6 +531,7 @@ export const EnhancedTopicCard = ({
                   if (activeTab === "videos" && onUploadVideo) onUploadVideo();
                   else if (activeTab === "materials" && onUploadMaterial) onUploadMaterial();
                   else if (activeTab === "links" && onCreateLink) onCreateLink();
+                  else if (activeTab === "assessments" && onCreateAssessment) onCreateAssessment();
                 }}
                 className="h-6 w-6 p-0"
                 title="Add content"
@@ -683,6 +697,17 @@ export const EnhancedTopicCard = ({
             <div className="text-center py-6 text-sm text-brand-light-accent-1">
               <ClipboardList className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p>No assessments yet</p>
+              {onCreateAssessment && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onCreateAssessment}
+                  className="mt-3"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add Assessment
+                </Button>
+              )}
             </div>
           )}
         </TabsContent>

@@ -352,6 +352,10 @@ const SubjectDetailPage = () => {
                   setSelectedTopicForContent(topic);
                   setIsLinkCreateModalOpen(true);
                 }}
+                onCreateAssessment={(topic) => {
+                  // Navigate to assessment page with subject and topic pre-selected
+                  router.push(`/library-owner/resources/assessment?subjectId=${subjectId}&topicId=${topic.id}`);
+                }}
               />
             ))}
           </div>
