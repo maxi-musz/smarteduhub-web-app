@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLibraryOwnerResources } from "@/hooks/use-library-owner-resources";
 import { useCBTs } from "@/hooks/assessment/use-cbt";
@@ -35,7 +35,6 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
-import { logger } from "@/lib/logger";
 import { CreateCBTDialog } from "./components/CreateCBTDialog";
 import { EditCBTDialog } from "./components/EditCBTDialog";
 import { DeleteCBTDialog } from "./components/DeleteCBTDialog";
@@ -45,7 +44,8 @@ import { usePublishCBT, useUnpublishCBT } from "@/hooks/assessment/use-cbt";
 import { toast } from "sonner";
 import { formatTopicTitle } from "@/lib/text-formatter";
 
-const AssessmentsPage = () => {
+// Inner component that uses useSearchParams - must be wrapped in Suspense
+const AssessmentsPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -143,7 +143,6 @@ const AssessmentsPage = () => {
 
     const subjectIdParam = searchParams.get("subjectId");
     const topicIdParam = searchParams.get("topicId");
-    const cbtIdParam = searchParams.get("cbtId");
 
     if (subjectIdParam) {
       // Find the subject and its class
@@ -205,16 +204,18 @@ const AssessmentsPage = () => {
   const handlePublish = async (cbt: CBT) => {
     try {
       await publishCBT.mutateAsync(cbt.id);
-    } catch (error) {
-      // Error is handled by the hook
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      console.log("Error publishing CBT:", errorMessage);
     }
   };
 
   const handleUnpublish = async (cbt: CBT) => {
     try {
       await unpublishCBT.mutateAsync(cbt.id);
-    } catch (error) {
-      // Error is handled by the hook
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      console.log("Error unpublishing CBT:", errorMessage);
     }
   };
 
@@ -444,7 +445,7 @@ const AssessmentsPage = () => {
               </SelectContent>
             </Select>
             <p className="text-xs text-brand-light-accent-1 mt-1">
-              Select "General" for subject-level assessment, or choose a specific topic
+              Select &quot;General&quot; for subject-level assessment, or choose a specific topic
             </p>
           </div>
         </div>
@@ -793,6 +794,26 @@ const AssessmentsPage = () => {
         </>
       )}
     </div>
+  );
+};
+
+// Main page component with Suspense boundary
+const AssessmentsPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="py-6 space-y-6 bg-brand-bg">
+          <div className="px-6">
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
+          </div>
+          <div className="px-6">
+            <div className="h-64 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </div>
+      }
+    >
+      <AssessmentsPageContent />
+    </Suspense>
   );
 };
 

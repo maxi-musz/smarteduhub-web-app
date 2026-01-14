@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useLibraryClassResources } from "@/hooks/use-library-class-resources";
 import { Subject, Chapter, Topic } from "@/hooks/use-library-class-resources";
+import { TopicVideo, TopicMaterial, TopicLink } from "@/hooks/topics/use-topic-materials";
 import { EnhancedChapterCard } from "./components/EnhancedChapterCard";
 import { CreateChapterModal } from "./components/CreateChapterModal";
 import { EditChapterModal } from "./components/EditChapterModal";
@@ -60,10 +61,10 @@ const SubjectDetailPage = () => {
   const [isDeleteMaterialModalOpen, setIsDeleteMaterialModalOpen] = useState(false);
   const [isDeleteLinkModalOpen, setIsDeleteLinkModalOpen] = useState(false);
   const [selectedTopicForContent, setSelectedTopicForContent] = useState<Topic | null>(null);
-  const [selectedVideo, setSelectedVideo] = useState<{ video: any; allVideos: any[] } | null>(null);
-  const [videoToDelete, setVideoToDelete] = useState<any | null>(null);
-  const [materialToDelete, setMaterialToDelete] = useState<any | null>(null);
-  const [linkToDelete, setLinkToDelete] = useState<any | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{ video: TopicVideo; allVideos: TopicVideo[] } | null>(null);
+  const [videoToDelete, setVideoToDelete] = useState<TopicVideo | null>(null);
+  const [materialToDelete, setMaterialToDelete] = useState<TopicMaterial | null>(null);
+  const [linkToDelete, setLinkToDelete] = useState<TopicLink | null>(null);
 
   // Fetch class resources data
   const {

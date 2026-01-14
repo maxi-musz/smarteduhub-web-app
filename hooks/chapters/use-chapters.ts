@@ -39,11 +39,10 @@ export interface UpdateChapterDto {
   is_active?: boolean;
 }
 
-export interface ChapterApiResponse {
-  success: boolean;
-  message: string;
-  data: ChapterData;
-}
+// The authenticated API already wraps responses in its own ApiResponse<T>
+// shape (with success, message, data, statusCode). Here we only model the
+// inner data shape so hooks can return the concrete chapter object directly.
+export type ChapterApiResponse = ChapterData;
 
 // Create Chapter Mutation
 export function useCreateChapter() {
@@ -62,7 +61,7 @@ export function useCreateChapter() {
         logger.info("[useCreateChapter] Chapter created successfully", {
           chapterId: response.data.id,
         });
-        return response;
+        return response.data;
       }
 
       throw new AuthenticatedApiError(
@@ -104,7 +103,7 @@ export function useUpdateChapter() {
         logger.info("[useUpdateChapter] Chapter updated successfully", {
           chapterId: response.data.id,
         });
-        return response;
+        return response.data;
       }
 
       throw new AuthenticatedApiError(

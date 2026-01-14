@@ -157,7 +157,7 @@ export const EditCBTDialog = ({
       await updateCBT.mutateAsync({ id: cbt.id, data: submitData });
       handleClose();
       onSuccess();
-    } catch (error: any) {
+    } catch {
       // Error is handled by the hook
     }
   };

@@ -22,8 +22,6 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
-  Play,
-  Pause,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatTopicTitle, formatDescription } from "@/lib/text-formatter";
@@ -49,7 +47,6 @@ export const VideoUploadModal = ({
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { startUpload, uploadState, reset } = useVideoUpload();
@@ -64,7 +61,6 @@ export const VideoUploadModal = ({
       };
     } else {
       setVideoPreviewUrl(null);
-      setIsPlaying(false);
     }
   }, [videoFile]);
 
@@ -77,15 +73,12 @@ export const VideoUploadModal = ({
       setThumbnailFile(null);
       setIsDragOver(false);
       setVideoPreviewUrl(null);
-      setIsPlaying(false);
       reset();
     }
   }, [isOpen, reset]);
 
   const handleVideoTimeUpdate = () => {
-    if (videoRef.current) {
-      setIsPlaying(!videoRef.current.paused);
-    }
+    // Intentionally left blank - reserved for future playback UI logic
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -215,7 +208,7 @@ export const VideoUploadModal = ({
         video: videoFile,
         thumbnail: thumbnailFile || undefined,
       });
-    } catch (error) {
+    } catch {
       // Error already handled in hook
     }
   };
@@ -356,9 +349,6 @@ export const VideoUploadModal = ({
                           src={videoPreviewUrl}
                           className="w-full h-full object-contain"
                           controls
-                          onPlay={() => setIsPlaying(true)}
-                          onPause={() => setIsPlaying(false)}
-                          onEnded={() => setIsPlaying(false)}
                           onTimeUpdate={handleVideoTimeUpdate}
                         />
                       </div>

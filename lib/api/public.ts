@@ -37,7 +37,6 @@ export async function makePublicRequest<T = unknown>(
     }
 
     const fullUrl = `${baseUrl}${endpoint}`;
-    const method = options.method || "GET";
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Wallet,
   Users,
@@ -22,18 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
-import { useDashboardData, type DashboardData } from "@/hooks/use-dashboard-data";
-
-// Types for API response
-type OngoingClass = {
-  id?: string;
-  class: string;
-  subject: string;
-  teacher: string;
-  from: string;
-  to: string;
-  // Add other properties as they come from API
-};
+import { useDashboardData } from "@/hooks/use-dashboard-data";
 
 type NotificationEvent = {
   id?: string;

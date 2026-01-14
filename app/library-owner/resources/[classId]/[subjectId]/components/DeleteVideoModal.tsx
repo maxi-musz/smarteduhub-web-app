@@ -34,9 +34,10 @@ export const DeleteVideoModal = ({
       await deleteVideo.mutateAsync(video.id);
       toast.success("Video deleted successfully");
       onClose();
-    } catch (error: any) {
-      const errorMessage =
-        error?.message || "Failed to delete video. Please try again.";
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Failed to delete video. Please try again.";
       toast.error(errorMessage);
     }
   };

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
@@ -318,10 +319,12 @@ export const AiBookUploadModal = ({ isOpen, onClose }: AiBookUploadModalProps) =
                   <div className="flex items-center gap-4">
                     {thumbnailPreview && (
                       <div className="relative w-24 h-32 rounded-lg overflow-hidden border-2 border-brand-border flex-shrink-0">
-                        <img
+                        <Image
                           src={thumbnailPreview}
                           alt="Thumbnail preview"
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="96px"
+                          className="object-cover"
                         />
                       </div>
                     )}

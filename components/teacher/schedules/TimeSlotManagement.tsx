@@ -27,6 +27,7 @@ import {
   useDeleteTimeSlot,
   type CreateTimeSlotRequest,
   type UpdateTimeSlotRequest,
+  type TimeSlot,
 } from "@/hooks/schedules/use-schedules";
 import { useToast } from "@/hooks/use-toast";
 
@@ -139,6 +140,7 @@ const TimeSlotFormDialog: React.FC<{
 const TimeSlotManagement: React.FC = () => {
   const { toast } = useToast();
   const { data: timeSlots, isLoading, error } = useTimeSlots();
+  const typedTimeSlots = (timeSlots as TimeSlot[] | undefined) || [];
   const createMutation = useCreateTimeSlot();
   const updateMutation = useUpdateTimeSlot();
   const deleteMutation = useDeleteTimeSlot();
@@ -151,8 +153,8 @@ const TimeSlotManagement: React.FC = () => {
     label: string;
   } | null>(null);
 
-  const handleCreate = (data: CreateTimeSlotRequest) => {
-    createMutation.mutate(data, {
+  const handleCreate = (data: CreateTimeSlotRequest | UpdateTimeSlotRequest) => {
+    createMutation.mutate(data as CreateTimeSlotRequest, {
       onSuccess: () => {
         toast({
           title: "Success",
@@ -170,10 +172,10 @@ const TimeSlotManagement: React.FC = () => {
     });
   };
 
-  const handleUpdate = (data: UpdateTimeSlotRequest) => {
+  const handleUpdate = (data: CreateTimeSlotRequest | UpdateTimeSlotRequest) => {
     if (!editingSlot) return;
     updateMutation.mutate(
-      { id: editingSlot.id, data },
+      { id: editingSlot.id, data: data as UpdateTimeSlotRequest },
       {
         onSuccess: () => {
           toast({
@@ -256,7 +258,7 @@ const TimeSlotManagement: React.FC = () => {
           <div className="text-center py-8 text-red-600">
             {error.message || "Failed to load time slots"}
           </div>
-        ) : timeSlots && timeSlots.length > 0 ? (
+        ) : typedTimeSlots.length > 0 ? (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -269,7 +271,7 @@ const TimeSlotManagement: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {timeSlots
+                {typedTimeSlots
                   .sort((a, b) => a.order - b.order)
                   .map((slot) => (
                     <TableRow key={slot.id}>

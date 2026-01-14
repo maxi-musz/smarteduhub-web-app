@@ -28,7 +28,7 @@ import {
   useUpdateQuestion,
   useDeleteQuestionImage,
 } from "@/hooks/assessment/use-cbt-questions";
-import { Loader2, X, Check, Plus as PlusIcon, Image as ImageIcon, Upload, Trash2, ChevronDown } from "lucide-react";
+import { Loader2, X, Check, Plus as PlusIcon, Image as ImageIcon, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import {
@@ -40,6 +40,13 @@ import {
   UpdateQuestionRequest,
   QuestionOption,
 } from "@/hooks/assessment/use-cbt-types";
+
+// Extend Window interface for cancel handler
+declare global {
+  interface Window {
+    __inlineFormCancelHandler?: () => Promise<void>;
+  }
+}
 
 interface InlineQuestionFormProps {
   cbt: CBT;
@@ -88,7 +95,6 @@ export const InlineQuestionForm = ({
   const [explanation, setExplanation] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null); // For editing existing questions
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isExpanded, setIsExpanded] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
@@ -132,7 +138,7 @@ export const InlineQuestionForm = ({
   }, [hasUnsavedChanges]);
 
   // Cleanup function to handle cancel
-  const handleCancelWithCleanup = async () => {
+  const handleCancelWithCleanup = useCallback(async () => {
     if (!hasUnsavedChanges()) {
       onCancel();
       return;
@@ -140,18 +146,18 @@ export const InlineQuestionForm = ({
 
     // Show confirmation dialog
     setShowCancelConfirm(true);
-  };
+  }, [hasUnsavedChanges, onCancel]);
 
   // Expose cancel handler to parent for dialog close interception
   useEffect(() => {
     if (onRequestCleanup) {
       // Store the cancel handler so parent can call it
-      (window as any).__inlineFormCancelHandler = handleCancelWithCleanup;
+      window.__inlineFormCancelHandler = handleCancelWithCleanup;
     }
     return () => {
-      delete (window as any).__inlineFormCancelHandler;
+      delete window.__inlineFormCancelHandler;
     };
-  }, [onRequestCleanup, hasUnsavedChanges]);
+  }, [onRequestCleanup, handleCancelWithCleanup]);
 
   const confirmCancel = async () => {
     // Reset form state
@@ -170,7 +176,6 @@ export const InlineQuestionForm = ({
     setExplanation("");
     setImageFile(null);
     setImagePreview(null);
-    setExistingImageUrl(null);
     setShowExplanation(false);
     setErrors({});
     setShowCancelConfirm(false);
@@ -222,7 +227,6 @@ export const InlineQuestionForm = ({
       setHintText(question.hintText || "");
       setExplanation(question.explanation || "");
       setImagePreview(question.imageUrl || null);
-      setExistingImageUrl(question.imageUrl || null);
       setShowExplanation(!!question.explanation);
     } else {
       // Reset form for new question
@@ -241,7 +245,6 @@ export const InlineQuestionForm = ({
       setExplanation("");
       setImageFile(null);
       setImagePreview(null);
-      setExistingImageUrl(null);
       setShowExplanation(false);
     }
     setErrors({});
@@ -286,35 +289,37 @@ export const InlineQuestionForm = ({
           cbtId: cbt.id,
           questionId: question.id,
         });
-      } catch (error) {
+      } catch {
         // Error handled by hook
       }
     }
     // Clear local image state
     setImageFile(null);
     setImagePreview(null);
-    setExistingImageUrl(null);
   };
 
   // Auto-add default options for multiple choice
   useEffect(() => {
-    if (formData.questionType === "MULTIPLE_CHOICE_SINGLE" && formData.options?.length === 0) {
-      setFormData({
-        ...formData,
-        options: [
-          { optionText: "", order: 1, isCorrect: false },
-          { optionText: "", order: 2, isCorrect: false },
-        ],
-      });
-    } else if (formData.questionType === "TRUE_FALSE" && formData.options?.length === 0) {
-      setFormData({
-        ...formData,
-        options: [
-          { optionText: "True", order: 1, isCorrect: false },
-          { optionText: "False", order: 2, isCorrect: true },
-        ],
-      });
-    }
+    setFormData((prev) => {
+      if (prev.questionType === "MULTIPLE_CHOICE_SINGLE" && prev.options?.length === 0) {
+        return {
+          ...prev,
+          options: [
+            { optionText: "", order: 1, isCorrect: false },
+            { optionText: "", order: 2, isCorrect: false },
+          ],
+        };
+      } else if (prev.questionType === "TRUE_FALSE" && prev.options?.length === 0) {
+        return {
+          ...prev,
+          options: [
+            { optionText: "True", order: 1, isCorrect: false },
+            { optionText: "False", order: 2, isCorrect: true },
+          ],
+        };
+      }
+      return prev;
+    });
   }, [formData.questionType]);
 
   // Handle options for multiple choice questions
@@ -340,7 +345,9 @@ export const InlineQuestionForm = ({
     }
   };
 
-  const handleUpdateOption = (index: number, field: keyof QuestionOption, value: any) => {
+  type OptionFieldValue = string | number | boolean | null | undefined;
+
+  const handleUpdateOption = (index: number, field: keyof QuestionOption, value: OptionFieldValue) => {
     const newOptions = [...(formData.options || [])];
     newOptions[index] = { ...newOptions[index], [field]: value };
     setFormData({ ...formData, options: newOptions });
@@ -354,9 +361,17 @@ export const InlineQuestionForm = ({
     setFormData({ ...formData, options: newOptions });
   };
 
+  type CorrectAnswerDraft = {
+    answerText?: string;
+    answerNumber?: number;
+    answerDate?: string;
+    optionIds?: string[];
+    answerJson?: unknown;
+  };
+
   // Handle correct answers for text-based questions
   const handleAddCorrectAnswer = () => {
-    const newAnswer: any = {};
+    const newAnswer: CorrectAnswerDraft = {};
     if (formData.questionType === "NUMERIC" || formData.questionType === "RATING_SCALE") {
       newAnswer.answerNumber = 0;
     } else if (formData.questionType === "DATE") {
@@ -532,7 +547,7 @@ export const InlineQuestionForm = ({
       }
 
       onSuccess();
-    } catch (error: any) {
+    } catch {
       // Error handled by hook
     }
   };

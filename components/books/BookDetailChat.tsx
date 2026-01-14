@@ -15,6 +15,7 @@ interface ChatMessage {
   timestamp: Date;
   status?: "sending" | "sent" | "failed";
   error?: string;
+  tempId?: string;
 }
 
 interface BookDetailChatProps {
@@ -30,7 +31,7 @@ interface SocketError {
   event?: string;
 }
 
-export function BookDetailChat({ selectedChapter, hasChapters, materialId }: BookDetailChatProps) {
+export function BookDetailChat({ selectedChapter, hasChapters }: BookDetailChatProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const conversationIdRef = useRef<string | null>(null);
@@ -218,14 +219,14 @@ export function BookDetailChat({ selectedChapter, hasChapters, materialId }: Boo
 
     socket.on("connect_error", (error: Error & { type?: string; description?: string }) => {
       console.error("[AI Chat] ❌ Socket.IO connect_error:", error);
-      console.error("[AI Chat] Error type:", (error as any).type);
+      console.error("[AI Chat] Error type:", error.type);
       console.error("[AI Chat] Error message:", error.message);
-      console.error("[AI Chat] Error description:", (error as any).description);
+      console.error("[AI Chat] Error description:", error.description);
       setIsConnected(false);
       isConnectingRef.current = false;
       
-      const errorType = (error as any).type || "Unknown";
-      const errorDesc = (error as any).description || "";
+      const errorType = error.type || "Unknown";
+      const errorDesc = error.description || "";
       const errorDetails = `${errorType}: ${error.message || errorDesc || "Connection failed"}`;
       setDebugInfo((prev) => ({ ...prev, lastError: errorDetails }));
       
@@ -379,7 +380,15 @@ export function BookDetailChat({ selectedChapter, hasChapters, materialId }: Boo
         
         // Map and set messages
         if (conversationHistory && Array.isArray(conversationHistory)) {
-          const history: ChatMessage[] = conversationHistory.map((msg: any) => ({
+          interface ConversationHistoryItem {
+            id: string;
+            content: string;
+            role: string;
+            createdAt: string | number | Date;
+            conversationId?: string | null;
+          }
+
+          const history: ChatMessage[] = conversationHistory.map((msg: ConversationHistoryItem) => ({
             id: msg.id,
             content: msg.content,
             role: (msg.role === "USER" ? "user" : msg.role === "ASSISTANT" ? "assistant" : "assistant") as "user" | "assistant",
@@ -421,7 +430,7 @@ export function BookDetailChat({ selectedChapter, hasChapters, materialId }: Boo
         }
       }
     });
-  }, [session?.user?.accessToken]); // Only depend on access token, not materialId
+  }, [session]); // Depend on full session object
 
   // Initialize socket connection on mount or when access token changes
   useEffect(() => {
@@ -496,7 +505,7 @@ export function BookDetailChat({ selectedChapter, hasChapters, materialId }: Boo
       isConnected: socketRef.current?.connected,
     });
 
-    if (socketRef.current?.connected) {
+      if (socketRef.current?.connected) {
       // Always request history by chapter when chapter changes or when we need to load history
       console.log("[AI Chat] Requesting conversation:history for chapterId:", selectedChapter.id);
       console.log("[AI Chat] Emitting conversation:history with:", {
@@ -512,18 +521,21 @@ export function BookDetailChat({ selectedChapter, hasChapters, materialId }: Boo
     } else {
       console.log("[AI Chat] Socket not connected yet, waiting for connection...");
       // Show welcome message while waiting for connection if no messages
-      if (chatMessages.length === 0 && selectedChapter) {
-        setChatMessages([
-          {
-            id: "welcome-" + Date.now(),
-            role: "assistant",
-            content: `Hello! I'm your AI study assistant for "${selectedChapter.title}". I can help you understand concepts, answer questions, and provide explanations about this chapter. How can I assist you today?`,
-            timestamp: new Date(),
-          },
-        ]);
+      if (selectedChapter) {
+        setChatMessages((prev) => {
+          if (prev.length > 0) return prev;
+          return [
+            {
+              id: "welcome-" + Date.now(),
+              role: "assistant",
+              content: `Hello! I'm your AI study assistant for "${selectedChapter.title}". I can help you understand concepts, answer questions, and provide explanations about this chapter. How can I assist you today?`,
+              timestamp: new Date(),
+            },
+          ];
+        });
       }
     }
-  }, [selectedChapter?.id, selectedChapter?.title]);
+  }, [selectedChapter]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -563,7 +575,7 @@ export function BookDetailChat({ selectedChapter, hasChapters, materialId }: Boo
       });
       
       // Store temp ID to track this message
-      (pendingMessage as any).tempId = tempMessageId;
+      pendingMessage.tempId = tempMessageId;
     } catch (error) {
       console.error("Error sending message:", error);
       setIsLoading(false);
@@ -694,7 +706,7 @@ export function BookDetailChat({ selectedChapter, hasChapters, materialId }: Boo
               No Files Available
             </h3>
             <p className="text-sm text-brand-light-accent-1">
-              This chapter doesn't have any files uploaded yet. Please upload a file to this chapter to enable AI chat functionality.
+              This chapter doesn&apos;t have any files uploaded yet. Please upload a file to this chapter to enable AI chat functionality.
             </p>
           </div>
         </div>

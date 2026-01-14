@@ -16,6 +16,17 @@ import {
 const CreateAccount = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [formData, setFormData] = useState({
+    schoolName: "",
+    schoolEmail: "",
+    schoolPhone: "",
+    schoolAddress: "",
+    schoolType: "",
+    schoolOwnership: "",
+    academicYear: "",
+    currentTerm: "",
+    termStartDate: "",
+  });
 
   // Redirect logged-in users to their dashboard
   useEffect(() => {
@@ -59,17 +70,6 @@ const CreateAccount = () => {
   if (status === "authenticated") {
     return null;
   }
-  const [formData, setFormData] = useState({
-    schoolName: "",
-    schoolEmail: "",
-    schoolPhone: "",
-    schoolAddress: "",
-    schoolType: "",
-    schoolOwnership: "",
-    academicYear: "",
-    currentTerm: "",
-    termStartDate: "",
-  });
 
   // Generate academic year options dynamically
   const getAcademicYearOptions = () => {

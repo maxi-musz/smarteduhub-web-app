@@ -147,13 +147,8 @@ export interface SubjectsWithTeachers {
   };
 }
 
-// API Response types
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  statusCode?: number;
-}
+// Inner data type used with the shared authenticated ApiResponse<T> wrapper
+type ApiResponseData<T> = T;
 
 // 1. Get All Time Slots
 export function useTimeSlots() {
@@ -161,7 +156,7 @@ export function useTimeSlots() {
     queryKey: ["schedules", "time-slots"],
     queryFn: async () => {
       logger.info("[useTimeSlots] Fetching all time slots");
-      const response = await authenticatedApi.get<ApiResponse<TimeSlot[]>>(
+      const response = await authenticatedApi.get<ApiResponseData<TimeSlot[]>>(
         "/director/schedules/time-slots"
       );
 
@@ -191,8 +186,12 @@ export function useCreateTimeSlot() {
 
   return useMutation<TimeSlot, AuthenticatedApiError, CreateTimeSlotRequest>({
     mutationFn: async (data) => {
-      logger.info("[useCreateTimeSlot] Creating time slot", data);
-      const response = await authenticatedApi.post<ApiResponse<TimeSlot>>(
+      logger.info("[useCreateTimeSlot] Creating time slot", {
+        startTime: data.startTime,
+        endTime: data.endTime,
+        label: data.label,
+      });
+      const response = await authenticatedApi.post<ApiResponseData<TimeSlot>>(
         "/director/schedules/create-time-slot",
         data
       );
@@ -224,7 +223,7 @@ export function useUpdateTimeSlot() {
   return useMutation<TimeSlot, AuthenticatedApiError, { id: string; data: UpdateTimeSlotRequest }>({
     mutationFn: async ({ id, data }) => {
       logger.info("[useUpdateTimeSlot] Updating time slot", { id, data });
-      const response = await authenticatedApi.patch<ApiResponse<TimeSlot>>(
+      const response = await authenticatedApi.patch<ApiResponseData<TimeSlot>>(
         `/director/schedules/time-slots/${id}`,
         data
       );
@@ -256,7 +255,7 @@ export function useDeleteTimeSlot() {
   return useMutation<TimeSlot, AuthenticatedApiError, string>({
     mutationFn: async (id) => {
       logger.info("[useDeleteTimeSlot] Deleting time slot", { id });
-      const response = await authenticatedApi.delete<ApiResponse<TimeSlot>>(
+      const response = await authenticatedApi.delete<ApiResponseData<TimeSlot>>(
         `/director/schedules/time-slots/${id}`
       );
 
@@ -286,7 +285,7 @@ export function useTimetableOptions() {
     queryKey: ["schedules", "timetable-options"],
     queryFn: async () => {
       logger.info("[useTimetableOptions] Fetching timetable options");
-      const response = await authenticatedApi.get<ApiResponse<TimetableOptions>>(
+      const response = await authenticatedApi.get<ApiResponseData<TimetableOptions>>(
         "/director/schedules/timetable-options"
       );
 
@@ -323,7 +322,7 @@ export function useTimetableSchedule(classLevel: string | null) {
       }
 
       logger.info("[useTimetableSchedule] Fetching timetable schedule", { classLevel });
-      const response = await authenticatedApi.post<ApiResponse<TimetableSchedule>>(
+      const response = await authenticatedApi.post<ApiResponseData<TimetableSchedule>>(
         "/director/schedules/timetable",
         { class: classLevel.toLowerCase() }
       );
@@ -355,8 +354,16 @@ export function useCreateTimetableEntry() {
 
   return useMutation<TimetableEntry, AuthenticatedApiError, CreateTimetableEntryRequest>({
     mutationFn: async (data) => {
-      logger.info("[useCreateTimetableEntry] Creating timetable entry", data);
-      const response = await authenticatedApi.post<ApiResponse<TimetableEntry>>(
+      logger.info("[useCreateTimetableEntry] Creating timetable entry", {
+        class_id: data.class_id,
+        subject_id: data.subject_id,
+        teacher_id: data.teacher_id,
+        timeSlotId: data.timeSlotId,
+        day_of_week: data.day_of_week,
+        hasRoom: !!data.room,
+        hasNotes: !!data.notes,
+      });
+      const response = await authenticatedApi.post<ApiResponseData<TimetableEntry>>(
         "/director/schedules/create-timetable",
         data
       );
@@ -387,7 +394,7 @@ export function useSubjectsWithTeachers() {
     queryKey: ["schedules", "subjects-with-teachers"],
     queryFn: async () => {
       logger.info("[useSubjectsWithTeachers] Fetching subjects with teachers");
-      const response = await authenticatedApi.get<ApiResponse<SubjectsWithTeachers>>(
+      const response = await authenticatedApi.get<ApiResponseData<SubjectsWithTeachers>>(
         "/director/schedules/subjects-with-teachers"
       );
 

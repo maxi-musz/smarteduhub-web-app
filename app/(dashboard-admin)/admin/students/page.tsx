@@ -57,11 +57,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
-import {
-  useStudentsData,
-  type StudentsApiResponse,
-  type ApiStudent,
-} from "@/hooks/use-students-data";
+import { useStudentsData, type ApiStudent } from "@/hooks/use-students-data";
 
 // Skeleton component
 const SkeletonCard = () => (

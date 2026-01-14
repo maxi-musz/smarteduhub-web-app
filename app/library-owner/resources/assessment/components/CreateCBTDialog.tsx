@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateCBT } from "@/hooks/assessment/use-cbt";
-import { useLibraryOwnerResources } from "@/hooks/use-library-owner-resources";
 import { Loader2, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import { CreateCBTRequest, GradingType } from "@/hooks/assessment/use-cbt-types";
@@ -223,7 +222,7 @@ export const CreateCBTDialog = ({
       await createCBT.mutateAsync(submitData);
       handleClose();
       onSuccess();
-    } catch (error: any) {
+    } catch {
       // Error is handled by the hook
     }
   };
@@ -622,7 +621,7 @@ export const CreateCBTDialog = ({
                     });
                   }
                 }}
-                onBlur={(e) => {
+                onBlur={() => {
                   // On blur, if invalid, reset to minimum valid value or clear
                   if (endDate && startDate) {
                     const start = new Date(startDate);
@@ -991,7 +990,7 @@ export const CreateCBTDialog = ({
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs">
-                      Automatically submit the assessment when the time limit expires, even if the student hasn't finished. Requires a time limit to be set.
+                      Automatically submit the assessment when the time limit expires, even if the student hasn&apos;t finished. Requires a time limit to be set.
                     </p>
                   </TooltipContent>
                 </Tooltip>

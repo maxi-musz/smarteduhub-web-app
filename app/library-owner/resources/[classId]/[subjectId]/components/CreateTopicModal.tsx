@@ -66,10 +66,11 @@ export const CreateTopicModal = ({
 
       toast.success("Topic created successfully");
       handleClose();
-    } catch (error: any) {
-      toast.error(
-        error?.message || "Failed to create topic. Please try again."
-      );
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Failed to create topic. Please try again.";
+      toast.error(errorMessage);
     }
   };
 

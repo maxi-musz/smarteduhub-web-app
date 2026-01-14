@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { BookOpen, FileText, Upload, Plus } from "lucide-react";
+import { BookOpen, FileText, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { GeneralMaterialChapter, GeneralMaterialDetail } from "@/hooks/general-materials/use-general-material-detail";
 
@@ -36,10 +36,10 @@ export function BookDetailPdfViewer({
               No Chapters Available
             </h3>
             <p className="text-sm text-brand-light-accent-1 mb-4">
-              This book doesn't have any chapters uploaded yet. Please add a chapter to start reading and chatting with the AI assistant.
+              This book doesn&apos;t have any chapters uploaded yet. Please add a chapter to start reading and chatting with the AI assistant.
             </p>
             <p className="text-xs text-brand-light-accent-1">
-              Use the "Add Chapter" button in the header to create your first chapter.
+              Use the &quot;Add Chapter&quot; button in the header to create your first chapter.
             </p>
           </div>
         </div>

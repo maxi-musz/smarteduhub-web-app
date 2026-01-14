@@ -73,7 +73,7 @@ export const ChapterFileUploadFromTableModal = ({
         ) : !typedBookData || typedBookData.chapters.length === 0 ? (
           <div className="py-8 text-center">
             <p className="text-sm text-brand-light-accent-1 mb-4">
-              This book doesn't have any chapters yet. Please create a chapter first.
+              This book doesn&apos;t have any chapters yet. Please create a chapter first.
             </p>
             <Button onClick={onClose} variant="outline">
               Close

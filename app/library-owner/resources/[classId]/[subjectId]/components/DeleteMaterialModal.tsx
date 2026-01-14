@@ -41,9 +41,10 @@ export const DeleteMaterialModal = ({
       await deleteMaterial.mutateAsync(material.id);
       toast.success("Material deleted successfully");
       onClose();
-    } catch (error: any) {
-      const errorMessage =
-        error?.message || "Failed to delete material. Please try again.";
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Failed to delete material. Please try again.";
       toast.error(errorMessage);
     }
   };

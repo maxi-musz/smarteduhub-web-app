@@ -19,10 +19,8 @@ import {
   Plus,
 } from "lucide-react";
 import { AiBookUploadModal } from "./components/AiBookUploadModal";
-import { useRouter } from "next/navigation";
 
 const GeneralMaterialsPage = () => {
-  const router = useRouter();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const {
     data: dashboard,

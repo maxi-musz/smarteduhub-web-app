@@ -56,7 +56,6 @@ const LibraryOwnerSchools = () => {
   // Fetch single school data when a school is selected
   const {
     data: schoolDetails,
-    isLoading: isSchoolDetailsLoading,
   } = useLibraryOwnerSchool(selectedSchoolId);
 
   const handleViewDetails = (schoolId: string) => {

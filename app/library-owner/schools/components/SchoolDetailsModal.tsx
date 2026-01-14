@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { SingleSchoolResponse } from "@/hooks/use-library-owner-school";
 import {
   Building2,

@@ -23,7 +23,7 @@ export function formatTitle(text: string): string {
       if (word.length === 0) return word;
       
       // Handle common prepositions and articles (lowercase unless first word)
-      const smallWords = ["a", "an", "and", "as", "at", "but", "by", "for", "from", "in", "of", "on", "or", "the", "to", "with"];
+      
       
       // Handle words with special characters (like "GSM", "JSS1", etc.)
       // If word is all uppercase and 2-4 chars, keep it uppercase (acronyms)
@@ -68,7 +68,7 @@ export function formatDescription(text: string): string {
     .replace(/\s+/g, " ") // Replace multiple spaces with single space
     .replace(/\n\s*\n/g, "\n") // Replace multiple line breaks with single
     .split(". ")
-    .map((sentence, index) => {
+    .map((sentence) => {
       const trimmed = sentence.trim();
       if (!trimmed) return "";
       

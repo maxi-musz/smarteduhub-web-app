@@ -7,15 +7,12 @@ export interface UpdateVideoDto {
   swapOrderWith?: string;
 }
 
+// Inner data type for the authenticated API response
 export interface VideoUpdateApiResponse {
-  success: boolean;
-  message: string;
-  data: {
-    id: string;
-    title: string;
-    order: number;
-    [key: string]: any;
-  };
+  id: string;
+  title: string;
+  order: number;
+  [key: string]: any;
 }
 
 export function useUpdateVideo() {
@@ -38,7 +35,7 @@ export function useUpdateVideo() {
         logger.info("[useUpdateVideo] Video updated successfully", {
           videoId: response.data.id,
         });
-        return response;
+        return response.data;
       }
 
       throw new AuthenticatedApiError(

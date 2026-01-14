@@ -34,9 +34,10 @@ export const DeleteLinkModal = ({
       await deleteLink.mutateAsync(link.id);
       toast.success("Link deleted successfully");
       onClose();
-    } catch (error: any) {
-      const errorMessage =
-        error?.message || "Failed to delete link. Please try again.";
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Failed to delete link. Please try again.";
       toast.error(errorMessage);
     }
   };

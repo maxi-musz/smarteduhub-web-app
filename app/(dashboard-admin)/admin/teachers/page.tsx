@@ -56,11 +56,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
-import {
-  useTeachersData,
-  type TeachersApiResponse,
-  type ApiTeacher,
-} from "@/hooks/use-teachers-data";
+import { useTeachersData, type ApiTeacher } from "@/hooks/use-teachers-data";
 
 // Legacy interface for form/modal usage
 interface Teacher {

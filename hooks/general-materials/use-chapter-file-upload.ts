@@ -40,11 +40,8 @@ export interface ChapterFileUploadResponse {
   };
 }
 
-export interface ChapterFileUploadApiResponse {
-  success: boolean;
-  message: string;
-  data: ChapterFileUploadResponse;
-}
+// Inner data type for the authenticated API response
+export type ChapterFileUploadApiResponse = ChapterFileUploadResponse;
 
 export function useChapterFileUpload() {
   const queryClient = useQueryClient();
@@ -80,7 +77,7 @@ export function useChapterFileUpload() {
         logger.info("[useChapterFileUpload] File uploaded successfully", {
           fileId: response.data.id,
         });
-        return response;
+        return response.data;
       }
 
       throw new AuthenticatedApiError(

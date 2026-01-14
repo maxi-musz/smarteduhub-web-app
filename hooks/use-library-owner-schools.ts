@@ -105,11 +105,8 @@ export interface AllSchoolsResponse {
   total: number;
 }
 
-export interface AllSchoolsApiResponse {
-  success: boolean;
-  message: string;
-  data: AllSchoolsResponse;
-}
+// Inner data type for the authenticated API response
+export type AllSchoolsApiResponse = AllSchoolsResponse;
 
 export function useLibraryOwnerSchools() {
   return useQuery<AllSchoolsResponse, AuthenticatedApiError>({

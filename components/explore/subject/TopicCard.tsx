@@ -4,7 +4,6 @@ import { LibraryTopic } from "@/hooks/explore/use-explore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Video, Eye, Clock, Play } from "lucide-react";
 import { formatDuration } from "@/lib/utils/explore";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 interface TopicCardProps {
@@ -21,9 +20,9 @@ export function TopicCard({ topic, onClick }: TopicCardProps) {
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
           {/* Recent Videos Preview */}
-          {topic.recentVideos && topic.recentVideos.length > 0 && (
+          {topic.videos && topic.videos.length > 0 && (
             <div className="flex gap-1 flex-shrink-0">
-              {topic.recentVideos.slice(0, 3).map((video, idx) => (
+              {topic.videos.slice(0, 3).map((video) => (
                 <div
                   key={video.id}
                   className="relative w-16 h-12 rounded overflow-hidden bg-gray-200"
@@ -59,15 +58,15 @@ export function TopicCard({ topic, onClick }: TopicCardProps) {
             <div className="flex items-center gap-4 text-sm text-brand-light-accent-1">
               <div className="flex items-center gap-1">
                 <Video className="h-4 w-4" />
-                <span>{topic.analytics.videosCount} videos</span>
+                <span>{topic.statistics.videosCount} videos</span>
               </div>
               <div className="flex items-center gap-1">
                 <Eye className="h-4 w-4" />
-                <span>{topic.analytics.totalViews.toLocaleString()} views</span>
+                <span>{topic.statistics.totalViews.toLocaleString()} views</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                <span>{formatDuration(topic.analytics.totalDuration)}</span>
+                <span>{formatDuration(topic.statistics.totalDuration)}</span>
               </div>
             </div>
           </div>

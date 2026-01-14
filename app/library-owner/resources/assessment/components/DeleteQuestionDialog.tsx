@@ -37,8 +37,9 @@ export const DeleteQuestionDialog = ({
       });
       onClose();
       onSuccess();
-    } catch (error) {
-      // Error is handled by the hook
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      console.log("Error deleting question:", errorMessage);
     }
   };
 

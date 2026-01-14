@@ -4,9 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import { useVideoPlay } from "@/hooks/content/use-video-play";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, AlertCircle, Play, Clock, Eye, User } from "lucide-react";
+import { ArrowLeft, Loader2, AlertCircle, Clock, Eye, User } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import Image from "next/image";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 
 export default function VideoPlayerPage() {

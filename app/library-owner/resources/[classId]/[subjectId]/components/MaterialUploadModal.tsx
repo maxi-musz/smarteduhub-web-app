@@ -174,7 +174,7 @@ export const MaterialUploadModal = ({
         description: description.trim() ? formatDescription(description) : undefined,
         material: materialFile,
       });
-    } catch (error) {
+    } catch {
       // Error already handled in hook
     }
   };

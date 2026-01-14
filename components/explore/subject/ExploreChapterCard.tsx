@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LibraryChapter, LibraryTopic } from "@/hooks/explore/use-explore";
+import { LibraryChapter } from "@/hooks/explore/use-explore";
 import {
   Layers,
   Video,
@@ -98,15 +98,15 @@ export function ExploreChapterCard({
               <div className="flex items-center gap-4 text-xs text-brand-light-accent-1">
                 <div className="flex items-center gap-1">
                   <Layers className="h-3.5 w-3.5" />
-                  <span>{chapter.statistics.topicsCount} topics</span>
+                  <span>{chapter.topics.length} topics</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Video className="h-3.5 w-3.5" />
-                  <span>{chapter.statistics.videosCount} videos</span>
+                  <span>{chapter.statistics?.videosCount || 0} videos</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <FileText className="h-3.5 w-3.5" />
-                  <span>{chapter.statistics.materialsCount} materials</span>
+                  <span>{chapter.statistics?.materialsCount || 0} materials</span>
                 </div>
               </div>
             </div>

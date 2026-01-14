@@ -164,11 +164,8 @@ export interface SingleSchoolResponse {
   details: SchoolDetailsData;
 }
 
-export interface SingleSchoolApiResponse {
-  success: boolean;
-  message: string;
-  data: SingleSchoolResponse;
-}
+// Inner data type for the authenticated API response
+export type SingleSchoolApiResponse = SingleSchoolResponse;
 
 export function useLibraryOwnerSchool(schoolId: string | null) {
   return useQuery<SingleSchoolResponse, AuthenticatedApiError>({

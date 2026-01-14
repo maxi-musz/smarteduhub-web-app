@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, X, Shield } from "lucide-react";
+import { AlertTriangle, Shield } from "lucide-react";
 import { MalpracticeViolation } from "@/hooks/explore/use-anti-malpractice";
 
 interface ViolationWarningModalProps {

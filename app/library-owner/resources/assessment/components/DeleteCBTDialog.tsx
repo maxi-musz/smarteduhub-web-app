@@ -32,7 +32,7 @@ export const DeleteCBTDialog = ({
       await deleteCBT.mutateAsync(cbt.id);
       onClose();
       onSuccess();
-    } catch (error) {
+    } catch {
       // Error is handled by the hook
     }
   };

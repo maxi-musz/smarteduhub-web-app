@@ -95,10 +95,11 @@ export const CreateGeneralMaterialChapterModal = ({
       toast.success("Chapter created successfully");
       handleClose();
       onSuccess?.();
-    } catch (error: any) {
-      toast.error(
-        error?.message || "Failed to create chapter. Please try again."
-      );
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Failed to create chapter. Please try again.";
+      toast.error(errorMessage);
     }
   };
 

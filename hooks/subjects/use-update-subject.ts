@@ -32,11 +32,8 @@ export interface UpdateSubjectResponse {
   };
 }
 
-export interface UpdateSubjectApiResponse {
-  success: boolean;
-  message: string;
-  data: UpdateSubjectResponse;
-}
+// Inner data type for the authenticated API response
+export type UpdateSubjectApiResponse = UpdateSubjectResponse;
 
 export function useUpdateSubject() {
   const queryClient = useQueryClient();

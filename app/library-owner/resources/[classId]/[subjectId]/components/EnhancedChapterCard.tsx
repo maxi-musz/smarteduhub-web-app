@@ -17,7 +17,8 @@ import {
 import { useState } from "react";
 import { EnhancedTopicCard } from "./EnhancedTopicCard";
 import { formatChapterTitle } from "@/lib/text-formatter";
-import { useChapterContents } from "@/hooks/chapters/use-chapter-contents";
+import { useChapterContents, type ChapterContentTopic } from "@/hooks/chapters/use-chapter-contents";
+import { TopicVideo, TopicMaterial, TopicLink } from "@/hooks/topics/use-topic-materials";
 
 // Color palette for order badges - cycles through appealing colors
 const getOrderBadgeColors = (order: number) => {
@@ -48,14 +49,15 @@ interface EnhancedChapterCardProps {
   onUploadMaterial?: (topic: Topic) => void;
   onCreateLink?: (topic: Topic) => void;
   onCreateAssessment?: (topic: Topic) => void;
-  onEditVideo?: (video: any, allVideos: any[]) => void;
-  onDeleteVideo?: (video: any) => void;
-  onDeleteMaterial?: (material: any) => void;
-  onDeleteLink?: (link: any) => void;
+  onEditVideo?: (video: TopicVideo, allVideos: TopicVideo[]) => void;
+  onDeleteVideo?: (video: TopicVideo) => void;
+  onDeleteMaterial?: (material: TopicMaterial) => void;
+  onDeleteLink?: (link: TopicLink) => void;
 }
 
 export const EnhancedChapterCard = ({
   chapter,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   subjectId,
   onEdit,
   onCreateTopic,
@@ -181,6 +183,11 @@ export const EnhancedChapterCard = ({
                   .sort((a, b) => a.order - b.order)
                   .map((topic) => {
                     // Convert ChapterContentTopic to Topic format for EnhancedTopicCard
+                    const isChapterContentTopic = 'contentCounts' in topic;
+                    const contentCounts = isChapterContentTopic 
+                      ? (topic as ChapterContentTopic).contentCounts 
+                      : { videos: 0, materials: 0, links: 0 };
+                    
                     const topicForCard: Topic = {
                       id: topic.id,
                       title: topic.title,
@@ -192,9 +199,9 @@ export const EnhancedChapterCard = ({
                       videos: [],
                       materials: [],
                       links: [],
-                      videosCount: topic.contentCounts.videos,
-                      materialsCount: topic.contentCounts.materials,
-                      linksCount: topic.contentCounts.links,
+                      videosCount: contentCounts.videos,
+                      materialsCount: contentCounts.materials,
+                      linksCount: contentCounts.links,
                     };
                     return (
                       <EnhancedTopicCard

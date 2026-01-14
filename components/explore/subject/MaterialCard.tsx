@@ -2,7 +2,7 @@
 
 import { LibraryMaterial } from "@/hooks/explore/use-explore";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Download, User, File } from "lucide-react";
+import { Download, User } from "lucide-react";
 import { formatFileSize } from "@/lib/utils/explore";
 import { Badge } from "@/components/ui/badge";
 

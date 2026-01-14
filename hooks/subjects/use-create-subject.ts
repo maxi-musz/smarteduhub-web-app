@@ -33,11 +33,8 @@ export interface CreateSubjectResponse {
   };
 }
 
-export interface CreateSubjectApiResponse {
-  success: boolean;
-  message: string;
-  data: CreateSubjectResponse;
-}
+// Inner data type for the authenticated API response
+export type CreateSubjectApiResponse = CreateSubjectResponse;
 
 export function useCreateSubject() {
   const queryClient = useQueryClient();

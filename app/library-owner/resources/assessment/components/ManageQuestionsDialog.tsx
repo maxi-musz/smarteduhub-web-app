@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useCBTQuestions, useDeleteQuestion } from "@/hooks/assessment/use-cbt-questions";
-import { CBT, Question } from "@/hooks/assessment/use-cbt-types";
+import { useCBTQuestions } from "@/hooks/assessment/use-cbt-questions";
+import { CBT, Question, QuestionOption, CorrectAnswer } from "@/hooks/assessment/use-cbt-types";
 import {
   Plus,
   Edit,
@@ -20,7 +20,6 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
-  Image as ImageIcon,
 } from "lucide-react";
 import { QuestionFormDialog } from "./QuestionFormDialog";
 import { InlineQuestionForm } from "./InlineQuestionForm";
@@ -53,8 +52,6 @@ export const ManageQuestionsDialog = ({
     error: questionsError,
     refetch: refetchQuestions,
   } = useCBTQuestions(cbt.id);
-
-  const deleteQuestion = useDeleteQuestion();
 
   // Refetch questions when dialog opens to ensure fresh data
   useEffect(() => {
@@ -127,22 +124,6 @@ export const ManageQuestionsDialog = ({
     return colors[difficulty] || "bg-gray-100 text-gray-700 border-gray-300";
   };
 
-  const handleDialogCloseAttempt = (e?: Event) => {
-    // If there are unsaved changes, trigger the form's cancel handler
-    // The form will show confirmation dialog and handle cleanup
-    if (hasUnsavedChanges && isAddingInline) {
-      e?.preventDefault();
-      e?.stopPropagation();
-      const cancelHandler = (window as any).__inlineFormCancelHandler;
-      if (cancelHandler) {
-        cancelHandler();
-      }
-      // Don't close the dialog - let the form handle it
-      return;
-    }
-    onClose();
-  };
-
   // Handle when form confirms cancel - actually close the dialog
   const handleInlineFormCancel = async () => {
     setIsAddingInline(false);
@@ -167,7 +148,7 @@ export const ManageQuestionsDialog = ({
             // If there are unsaved changes, prevent closing and show confirmation
             if (hasUnsavedChanges && isAddingInline) {
               // Trigger the form's cancel handler which will show confirmation
-              const cancelHandler = (window as any).__inlineFormCancelHandler;
+              const cancelHandler = (window as Window & { __inlineFormCancelHandler?: () => void }).__inlineFormCancelHandler;
               if (cancelHandler) {
                 cancelHandler();
               }
@@ -184,7 +165,7 @@ export const ManageQuestionsDialog = ({
           onEscapeKeyDown={(e) => {
             if (hasUnsavedChanges && isAddingInline) {
               e.preventDefault();
-              const cancelHandler = (window as any).__inlineFormCancelHandler;
+              const cancelHandler = (window as Window & { __inlineFormCancelHandler?: () => void }).__inlineFormCancelHandler;
               if (cancelHandler) {
                 cancelHandler();
               }
@@ -193,7 +174,7 @@ export const ManageQuestionsDialog = ({
           onPointerDownOutside={(e) => {
             if (hasUnsavedChanges && isAddingInline) {
               e.preventDefault();
-              const cancelHandler = (window as any).__inlineFormCancelHandler;
+              const cancelHandler = (window as Window & { __inlineFormCancelHandler?: () => void }).__inlineFormCancelHandler;
               if (cancelHandler) {
                 cancelHandler();
               }
@@ -202,7 +183,7 @@ export const ManageQuestionsDialog = ({
           onInteractOutside={(e) => {
             if (hasUnsavedChanges && isAddingInline) {
               e.preventDefault();
-              const cancelHandler = (window as any).__inlineFormCancelHandler;
+              const cancelHandler = (window as Window & { __inlineFormCancelHandler?: () => void }).__inlineFormCancelHandler;
               if (cancelHandler) {
                 cancelHandler();
               }
@@ -314,7 +295,7 @@ export const ManageQuestionsDialog = ({
                               question.questionType === "MULTIPLE_CHOICE_MULTIPLE" ||
                               question.questionType === "TRUE_FALSE" ? (
                                 <div className="space-y-1 mt-2">
-                                  {question.options.map((option: any) => (
+                                  {question.options.map((option: QuestionOption) => (
                                     <div
                                       key={option.id}
                                       className={`flex items-center gap-2 text-sm p-2 rounded ${
@@ -346,7 +327,7 @@ export const ManageQuestionsDialog = ({
                                     <div>
                                       <span className="font-medium">Correct answers: </span>
                                       {question.correctAnswers
-                                        .map((ans: any) => ans.answerText)
+                                        .map((ans: CorrectAnswer) => ans.answerText)
                                         .filter(Boolean)
                                         .join(", ")}
                                     </div>

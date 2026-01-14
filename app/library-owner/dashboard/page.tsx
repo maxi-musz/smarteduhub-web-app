@@ -29,7 +29,6 @@ const LibraryOwnerDashboard = () => {
 
   // Fetch profile data
   const {
-    data: profileData,
     isLoading: isProfileLoading,
     error: profileError,
   } = useLibraryOwnerProfile();

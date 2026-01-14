@@ -4,7 +4,6 @@ import { LibraryAssessment } from "@/hooks/explore/use-explore";
 import { Card, CardContent } from "@/components/ui/card";
 import { ClipboardList, Clock, Target, FileQuestion } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 interface AssessmentCardProps {
   assessment: LibraryAssessment;

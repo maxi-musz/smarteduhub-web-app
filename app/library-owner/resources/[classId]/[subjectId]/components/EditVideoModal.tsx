@@ -121,9 +121,10 @@ export const EditVideoModal = ({
 
       toast.success("Video updated successfully");
       onClose();
-    } catch (error: any) {
-      const errorMessage =
-        error?.message || "Failed to update video. Please try again.";
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Failed to update video. Please try again.";
       toast.error(errorMessage);
     }
   };
@@ -202,11 +203,11 @@ export const EditVideoModal = ({
                   <p className="font-medium mb-1">Order will be interchanged:</p>
                   <ul className="list-disc list-inside space-y-0.5 text-xs">
                     <li>
-                      <span className="font-medium">"{video.title}"</span> will move to order{" "}
+                      <span className="font-medium">&quot;{video.title}&quot;</span> will move to order{" "}
                       <span className="font-medium">{order}</span>
                     </li>
                     <li>
-                      <span className="font-medium">"{affectedVideo.title}"</span> will move to
+                      <span className="font-medium">&quot;{affectedVideo.title}&quot;</span> will move to
                       order <span className="font-medium">{video.order}</span>
                     </li>
                   </ul>

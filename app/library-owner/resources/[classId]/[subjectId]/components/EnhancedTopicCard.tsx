@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Topic } from "@/hooks/use-library-class-resources";
 import { TopicVideo, TopicMaterial, TopicLink, TopicCBT } from "@/hooks/topics/use-topic-materials";
-import { Video, FileText, Pencil, GripVertical, Link as LinkIcon, Plus, Play, ExternalLink, ChevronDown, ChevronRight, Clock, MoreVertical, Trash2, ClipboardList } from "lucide-react";
+import { Video, FileText, Pencil, GripVertical, Link as LinkIcon, Plus, Play, ExternalLink, ChevronDown, ChevronRight, Clock, Trash2, ClipboardList } from "lucide-react";
 import { formatTopicTitle } from "@/lib/text-formatter";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Image from "next/image";
@@ -71,9 +71,30 @@ export const EnhancedTopicCard = ({
   } = useTopicMaterials(isExpanded ? topic.id : null);
   
   // Use fetched materials if available, otherwise use passed data
-  const videos = topicMaterials?.content?.videos || topic.videos || [];
-  const materials = topicMaterials?.content?.materials || topic.materials || [];
-  const links = topicMaterials?.content?.links || topic.links || [];
+  // Convert Video[] to TopicVideo[] if needed (add views property with default 0)
+  const videos: TopicVideo[] = topicMaterials?.content?.videos || 
+    (topic.videos?.map(v => ({ 
+      ...v, 
+      views: 0,
+      videoUrl: v.videoUrl,
+      thumbnailUrl: v.thumbnailUrl || null,
+      uploadedBy: v.uploadedBy
+    })) as TopicVideo[]) || [];
+  const materials: TopicMaterial[] = topicMaterials?.content?.materials || 
+    (topic.materials?.map(m => ({ 
+      ...m,
+      uploadedBy: m.uploadedBy
+    })) as TopicMaterial[]) || [];
+  const links: TopicLink[] = topicMaterials?.content?.links || 
+    (topic.links?.map(l => ({ 
+      ...l, 
+      uploadedBy: l.uploadedById ? { 
+        id: l.uploadedById, 
+        email: '', 
+        first_name: '', 
+        last_name: '' 
+      } : { id: '', email: '', first_name: '', last_name: '' }
+    })) as TopicLink[]) || [];
   const assessments = topicMaterials?.content?.cbts || [];
   
   const formatDuration = (seconds: number): string => {

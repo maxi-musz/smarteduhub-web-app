@@ -43,11 +43,8 @@ export interface LinkData {
   } | null;
 }
 
-export interface CreateLinkApiResponse {
-  success: boolean;
-  message: string;
-  data: LinkData;
-}
+// Inner data type for the authenticated API response
+export type CreateLinkApiResponse = LinkData;
 
 export function useCreateLink() {
   const queryClient = useQueryClient();
@@ -69,7 +66,7 @@ export function useCreateLink() {
         logger.info("[useCreateLink] Link created successfully", {
           linkId: response.data.id,
         });
-        return response;
+        return response.data;
       }
 
       throw new AuthenticatedApiError(

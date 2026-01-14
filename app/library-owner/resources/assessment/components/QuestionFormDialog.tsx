@@ -20,13 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
   useCreateQuestion,
   useUpdateQuestion,
   useDeleteQuestionImage,
 } from "@/hooks/assessment/use-cbt-questions";
-import { Loader2, X, Upload, Trash2, Image as ImageIcon } from "lucide-react";
+import { Loader2, X, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   CBT,
@@ -36,6 +35,7 @@ import {
   CreateQuestionRequest,
   UpdateQuestionRequest,
   QuestionOption,
+  CorrectAnswer,
 } from "@/hooks/assessment/use-cbt-types";
 import Image from "next/image";
 
@@ -77,7 +77,6 @@ export const QuestionFormDialog = ({
   const [explanation, setExplanation] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null); // For editing existing questions
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Initialize form when editing
@@ -120,7 +119,6 @@ export const QuestionFormDialog = ({
       setHintText(question.hintText || "");
       setExplanation(question.explanation || "");
       setImagePreview(question.imageUrl || null);
-      setExistingImageUrl(question.imageUrl || null);
     } else {
       // Reset form for new question
       setFormData({
@@ -138,7 +136,6 @@ export const QuestionFormDialog = ({
       setExplanation("");
       setImageFile(null);
       setImagePreview(null);
-      setExistingImageUrl(null);
     }
     setErrors({});
   }, [isEditing, question, isOpen]);
@@ -177,14 +174,13 @@ export const QuestionFormDialog = ({
           cbtId: cbt.id,
           questionId: question.id,
         });
-      } catch (error) {
+      } catch {
         // Error handled by hook
       }
     }
     // Clear local image state
     setImageFile(null);
     setImagePreview(null);
-    setExistingImageUrl(null);
   };
 
   // Handle options for multiple choice questions
@@ -211,7 +207,7 @@ export const QuestionFormDialog = ({
     }
   };
 
-  const handleUpdateOption = (index: number, field: keyof QuestionOption, value: any) => {
+  const handleUpdateOption = (index: number, field: keyof QuestionOption, value: string | number | boolean) => {
     const newOptions = [...(formData.options || [])];
     newOptions[index] = { ...newOptions[index], [field]: value };
     setFormData({ ...formData, options: newOptions });
@@ -230,7 +226,7 @@ export const QuestionFormDialog = ({
 
   // Handle correct answers for text-based questions
   const handleAddCorrectAnswer = () => {
-    const newAnswer: any = {};
+    const newAnswer: Partial<CorrectAnswer> = {};
     if (formData.questionType === "NUMERIC" || formData.questionType === "RATING_SCALE") {
       newAnswer.answerNumber = 0;
     } else if (formData.questionType === "DATE") {
@@ -446,7 +442,7 @@ export const QuestionFormDialog = ({
 
       handleClose();
       onSuccess();
-    } catch (error: any) {
+    } catch {
       // Error is handled by the hook
     }
   };
@@ -467,7 +463,6 @@ export const QuestionFormDialog = ({
     setExplanation("");
     setImageFile(null);
     setImagePreview(null);
-    setExistingImageUrl(null);
     setErrors({});
     onClose();
   };

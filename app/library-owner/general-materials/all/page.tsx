@@ -15,7 +15,6 @@ import Image from "next/image";
 import {
   AlertCircle,
   RefreshCw,
-  FileText,
   ArrowLeft,
   Search,
   Filter,
@@ -47,7 +46,7 @@ import { ChaptersDropdown } from "../components/ChaptersDropdown";
 const AllAiBooksPage = () => {
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit] = useState(20);
   const [search, setSearch] = useState("");
   const [isAiEnabled, setIsAiEnabled] = useState<string>("all");
   const [debouncedSearch, setDebouncedSearch] = useState("");

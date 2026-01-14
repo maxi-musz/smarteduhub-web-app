@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,19 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, AlertCircle } from "lucide-react";
-import { useTimetableOptions, useTimetableSchedule, useCreateTimeSlot } from "@/hooks/schedules/use-schedules";
-import { useToast } from "@/hooks/use-toast";
+import { useTimetableOptions, useTimetableSchedule, useCreateTimeSlot, type TimetableSchedule, type TimetableOptions } from "@/hooks/schedules/use-schedules";
 
-// Define types for subject and teacher
-interface Subject {
-  id: string;
-  name: string;
-  color: string | null;
-}
-interface Teacher {
-  id: string;
-  name: string;
-}
 interface PeriodFormData {
   day: string;
   timeSlotId: string;
@@ -90,7 +79,6 @@ interface AddPeriodDialogProps {
     notes?: string;
   }) => void;
   editingPeriod?: Period;
-  selectedClass: string;
   selectedClassId?: string;
   selectedClassName?: string; // Class name for fetching schedule
 }
@@ -100,13 +88,15 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
   onClose,
   onSubmit,
   editingPeriod,
-  selectedClass,
   selectedClassId,
   selectedClassName,
 }) => {
-  const { toast } = useToast();
   const { data: timetableOptions, isLoading } = useTimetableOptions();
   const { data: scheduleData } = useTimetableSchedule(selectedClassName || null);
+  
+  // Type assertions for proper TypeScript inference
+  const typedScheduleData = scheduleData as TimetableSchedule | undefined;
+  const typedTimetableOptions = timetableOptions as TimetableOptions | undefined;
   const createTimeSlotMutation = useCreateTimeSlot();
 
   const [formData, setFormData] = useState<PeriodFormData>({
@@ -181,14 +171,14 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
   }, [editingPeriod, isOpen, isInitialized]);
 
   // Check for time conflicts
-  const checkTimeConflict = (
+  const checkTimeConflict = useCallback((
     day: string,
     startTime: string,
     endTime: string
   ): boolean => {
-    if (!scheduleData?.schedule || !day) return false;
+    if (!typedScheduleData?.schedule || !day) return false;
 
-    const daySchedule = scheduleData.schedule[day as keyof typeof scheduleData.schedule];
+    const daySchedule = typedScheduleData.schedule[day as keyof typeof typedScheduleData.schedule];
     if (!daySchedule || !Array.isArray(daySchedule)) return false;
 
     const startMinutes = timeToMinutes(startTime);
@@ -210,7 +200,7 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
         (startMinutes === periodStart && endMinutes === periodEnd)
       );
     });
-  };
+  }, [typedScheduleData]);
 
   const timeToMinutes = (time: string): number => {
     const [hours, minutes] = time.split(":").map(Number);
@@ -221,7 +211,7 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
     return `${hour}:${minute}`;
   };
 
-  const validateTime = (): string | null => {
+  const validateTime = useCallback((): string | null => {
     if (!formData.useCustomTime) {
       if (!formData.timeSlotId) {
         return "Please select a time slot or enter custom time";
@@ -244,7 +234,7 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
     }
 
     return null;
-  };
+  }, [formData.useCustomTime, formData.timeSlotId, formData.startHour, formData.startMinute, formData.endHour, formData.endMinute, formData.day, checkTimeConflict]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -269,7 +259,7 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
       const endTime = formatTime(formData.endHour, formData.endMinute);
 
       // First, try to find an existing time slot with the same times
-      const existingTimeSlot = timetableOptions?.timeSlots.find(
+      const existingTimeSlot = typedTimetableOptions?.timeSlots.find(
         (slot) => slot.startTime === startTime && slot.endTime === endTime
       );
 
@@ -285,10 +275,11 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
             label: `${startTime} - ${endTime}`,
           });
           finalTimeSlotId = newTimeSlot.id;
-        } catch (error: any) {
-          setValidationError(
-            error.message || "Failed to create time slot. Please try again."
-          );
+        } catch (error) {
+          const errorMessage = error instanceof Error 
+            ? error.message 
+            : "Failed to create time slot. Please try again.";
+          setValidationError(errorMessage);
           setIsCreatingTimeSlot(false);
           return;
         }
@@ -315,15 +306,15 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
       
       // Only clear form if submission was successful (dialog will be closed by parent)
       // If there was an error, the parent will keep the dialog open and we keep the form data
-    } catch (error) {
+    } catch {
       // Error handling is done in the parent component
       // Don't clear the form on error
     }
   };
 
-  const subjects = timetableOptions?.subjects || [];
-  const teachers = timetableOptions?.teachers || [];
-  const timeSlots = timetableOptions?.timeSlots || [];
+  const subjects = typedTimetableOptions?.subjects || [];
+  const teachers = typedTimetableOptions?.teachers || [];
+  const timeSlots = typedTimetableOptions?.timeSlots || [];
   const selectedSubject = subjects.find((s) => s.id === formData.subjectId);
 
   // Update validation when time or day changes
@@ -342,6 +333,7 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
     formData.endMinute,
     formData.day,
     formData.timeSlotId,
+    validateTime,
   ]);
 
   if (isLoading) {
@@ -544,9 +536,9 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
                 <SelectContent className="max-h-[300px]">
                   {timeSlots.map((slot) => {
                     // Check if this timeSlotId is already used on the selected day
-                    const isOccupied = formData.day && scheduleData?.schedule
+                    const isOccupied = formData.day && typedScheduleData?.schedule
                       ? (() => {
-                          const daySchedule = scheduleData.schedule[formData.day as keyof typeof scheduleData.schedule];
+                          const daySchedule = typedScheduleData.schedule[formData.day as keyof typeof typedScheduleData.schedule];
                           if (!daySchedule || !Array.isArray(daySchedule)) return false;
                           return daySchedule.some(
                             (period) =>

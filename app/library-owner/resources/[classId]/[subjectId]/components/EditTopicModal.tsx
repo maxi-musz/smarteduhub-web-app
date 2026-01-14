@@ -123,10 +123,11 @@ export const EditTopicModal = ({
 
       toast.success("Topic updated successfully");
       handleClose();
-    } catch (error: any) {
-      toast.error(
-        error?.message || "Failed to update topic. Please try again."
-      );
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Failed to update topic. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
@@ -220,11 +221,11 @@ export const EditTopicModal = ({
                     <p className="font-medium mb-1">Order will be interchanged:</p>
                     <ul className="list-disc list-inside space-y-0.5 text-xs">
                       <li>
-                        <span className="font-medium">"{topic.title}"</span> will move to order{" "}
+                        <span className="font-medium">&quot;{topic.title}&quot;</span> will move to order{" "}
                         <span className="font-medium">{order}</span>
                       </li>
                       <li>
-                        <span className="font-medium">"{affectedTopic.title}"</span> will move to
+                        <span className="font-medium">&quot;{affectedTopic.title}&quot;</span> will move to
                         order <span className="font-medium">{topic.order}</span>
                       </li>
                     </ul>

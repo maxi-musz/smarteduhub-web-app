@@ -80,14 +80,6 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
     );
   };
 
-  const getTimeSlotDisplay = (slot: TimeSlotInfo) => {
-    const timeRange = slot.timeSlot.replace("-", " - ");
-    if (slot.label) {
-      return `${slot.label} (${timeRange})`;
-    }
-    return timeRange;
-  };
-
   const getSubjectById = (id: string) => {
     return subjects.find((subject) => subject.id === id);
   };

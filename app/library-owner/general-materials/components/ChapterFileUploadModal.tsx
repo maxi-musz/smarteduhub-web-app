@@ -124,7 +124,7 @@ export const ChapterFileUploadModal = ({
 
       handleClose();
       onSuccess?.();
-    } catch (error) {
+    } catch {
       // Error is handled by the hook
     }
   };

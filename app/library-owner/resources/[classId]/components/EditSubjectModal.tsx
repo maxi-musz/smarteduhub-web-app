@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateSubject, useUpdateSubjectThumbnail } from "@/hooks/subjects/use-update-subject";
 import { Subject } from "@/hooks/use-library-class-resources";
-import { Loader2, X, Upload, Camera } from "lucide-react";
+import { Loader2, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 
@@ -297,7 +297,7 @@ export const EditSubjectModal = ({
             </div>
             {isUpdatingThumbnail && (
               <p className="text-xs text-brand-light-accent-1">
-                New thumbnail selected. Click "Update Subject" to save changes.
+                New thumbnail selected. Click &quot;Update Subject&quot; to save changes.
               </p>
             )}
             {!isUpdatingThumbnail && (

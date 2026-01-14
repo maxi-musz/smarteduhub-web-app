@@ -34,8 +34,11 @@ export function useCBTQuestions(cbtId: string | null) {
         dataType: typeof response.data,
         isArray: Array.isArray(response.data),
         dataLength: Array.isArray(response.data) ? response.data.length : "N/A",
-        hasQuestionsProperty: response.data && typeof response.data === 'object' && 'questions' in response.data,
-        questionsArray: response.data?.questions,
+        hasQuestionsProperty:
+          response.data &&
+          typeof response.data === "object" &&
+          "questions" in (response.data as any),
+        questionsArray: (response.data as any)?.questions,
         fullResponse: JSON.stringify(response, null, 2),
       });
 
@@ -47,9 +50,14 @@ export function useCBTQuestions(cbtId: string | null) {
         if (Array.isArray(response.data)) {
           // If data is directly an array (legacy format)
           questions = response.data;
-        } else if (response.data && typeof response.data === 'object' && 'questions' in response.data) {
+        } else if (
+          response.data &&
+          typeof response.data === "object" &&
+          "questions" in (response.data as any)
+        ) {
           // If data is an object with questions property (current format)
-          questions = Array.isArray(response.data.questions) ? response.data.questions : [];
+          const questionsValue = (response.data as any).questions;
+          questions = Array.isArray(questionsValue) ? questionsValue : [];
         }
         
         console.log("[useCBTQuestions] Processed Questions:", {
@@ -94,7 +102,7 @@ export function useUploadQuestionImage() {
       const formData = new FormData();
       formData.append("image", imageFile);
 
-      const response = await authenticatedApi.post<{ data: UploadImageResponse }>(
+      const response = await authenticatedApi.post<UploadImageResponse>(
         `/library/assessment/cbt/${cbtId}/questions/upload-image`,
         formData
       );
@@ -149,7 +157,7 @@ export function useCreateQuestion() {
         // Append image file
         formData.append('image', imageFile);
 
-        const response = await authenticatedApi.post<{ data: Question }>(
+        const response = await authenticatedApi.post<Question>(
           `/library/assessment/cbt/${cbtId}/questions`,
           formData
         );
@@ -173,7 +181,7 @@ export function useCreateQuestion() {
         const { imageUrl, imageS3Key, ...questionData } = data;
         formData.append('questionData', JSON.stringify(questionData));
 
-        const response = await authenticatedApi.post<{ data: Question }>(
+        const response = await authenticatedApi.post<Question>(
           `/library/assessment/cbt/${cbtId}/questions`,
           formData
         );
@@ -252,7 +260,7 @@ export function useUpdateQuestion() {
         // Append image file
         formData.append('image', imageFile);
 
-        const response = await authenticatedApi.patch<{ data: Question }>(
+        const response = await authenticatedApi.patch<Question>(
           `/library/assessment/cbt/${cbtId}/questions/${questionId}`,
           formData
         );
@@ -276,7 +284,7 @@ export function useUpdateQuestion() {
         const { imageUrl, imageS3Key, ...questionData } = data;
         formData.append('questionData', JSON.stringify(questionData));
 
-        const response = await authenticatedApi.patch<{ data: Question }>(
+        const response = await authenticatedApi.patch<Question>(
           `/library/assessment/cbt/${cbtId}/questions/${questionId}`,
           formData
         );

@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, BookOpen, Loader2, AlertCircle, MessageSquare } from "lucide-react";
-import { useMaterialChapters } from "@/hooks/general-materials/use-material-chapters";
+import { useMaterialChapters, type MaterialChapter } from "@/hooks/general-materials/use-material-chapters";
 
 interface ChaptersDropdownProps {
   materialId: string;
@@ -70,20 +70,20 @@ export function ChaptersDropdown({
           </div>
         )}
 
-        {!isLoading && !error && chapters && chapters.length === 0 && (
+        {!isLoading && !error && chapters && (chapters as MaterialChapter[]).length === 0 && (
           <div className="px-4 py-3 text-sm text-brand-light-accent-1">
             No chapters available
           </div>
         )}
 
-        {!isLoading && !error && chapters && chapters.length > 0 && (
+        {!isLoading && !error && chapters && (chapters as MaterialChapter[]).length > 0 && (
           <>
             <div className="px-4 py-2 border-b border-brand-border">
               <p className="text-xs font-semibold text-brand-heading">
-                Chapters ({chapters.length})
+                Chapters ({(chapters as MaterialChapter[]).length})
               </p>
             </div>
-            {chapters.map((chapter) => (
+            {(chapters as MaterialChapter[]).map((chapter) => (
               <DropdownMenuItem
                 key={chapter.id}
                 className="flex flex-col items-start gap-1 px-4 py-3 cursor-pointer hover:bg-brand-bg"

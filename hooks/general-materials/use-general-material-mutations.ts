@@ -44,11 +44,8 @@ export interface AiBookMaterial {
   updatedAt: string;
 }
 
-export interface CreateAiBookApiResponse {
-  success: boolean;
-  message: string;
-  data: AiBookMaterial;
-}
+// Inner data type for the authenticated API response
+export type CreateAiBookApiResponse = AiBookMaterial;
 
 export interface CreateAiBookChapterRequest {
   materialId: string;
@@ -71,11 +68,8 @@ export interface AiBookChapter {
   updatedAt: string;
 }
 
-export interface CreateAiBookChapterApiResponse {
-  success: boolean;
-  message: string;
-  data: AiBookChapter;
-}
+// Inner data type for the authenticated API response
+export type CreateAiBookChapterApiResponse = AiBookChapter;
 
 export function useCreateAiBook() {
   const queryClient = useQueryClient();
@@ -112,7 +106,7 @@ export function useCreateAiBook() {
           logger.info("[useCreateAiBook] AI Book created successfully", {
             materialId: response.data.id,
           });
-          return response;
+          return response.data;
         }
 
         throw new AuthenticatedApiError(
@@ -160,7 +154,7 @@ export function useCreateAiBookChapter() {
         logger.info("[useCreateAiBookChapter] Chapter created successfully", {
           chapterId: response.data.id,
         });
-        return response;
+        return response.data;
       }
 
       throw new AuthenticatedApiError(

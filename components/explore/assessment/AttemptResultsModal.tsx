@@ -1,7 +1,8 @@
 "use client";
 
-import { useAttemptResults } from "@/hooks/explore/use-assessment";
+import { useAttemptResults, AttemptQuestionResponse } from "@/hooks/explore/use-assessment";
 import { Loader2, CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -44,14 +45,14 @@ export function AttemptResultsModal({ attemptId, isOpen, onClose }: AttemptResul
     });
   };
 
-  const renderUserAnswer = (response: any) => {
+  const renderUserAnswer = (response: AttemptQuestionResponse) => {
     if (response.userAnswer.selectedOptions.length > 0) {
-      const selectedOptions = response.options.filter((opt: any) =>
+      const selectedOptions = response.options.filter((opt) =>
         response.userAnswer.selectedOptions.includes(opt.id)
       );
       return (
         <div className="space-y-1">
-          {selectedOptions.map((opt: any) => (
+          {selectedOptions.map((opt) => (
             <Badge key={opt.id} variant="outline" className="mr-1">
               {opt.optionText}
             </Badge>
@@ -82,18 +83,18 @@ export function AttemptResultsModal({ attemptId, isOpen, onClose }: AttemptResul
     return <p className="text-sm text-brand-light-accent-1 italic">No answer provided</p>;
   };
 
-  const renderCorrectAnswer = (response: any) => {
+  const renderCorrectAnswer = (response: AttemptQuestionResponse) => {
     if (!response.correctAnswer) return null;
 
     // Check for multiple choice answers
     if (response.correctAnswer.optionIds && response.correctAnswer.optionIds.length > 0) {
-      const correctOptions = response.options.filter((opt: any) =>
-        response.correctAnswer.optionIds.includes(opt.id)
+      const correctOptions = response.options.filter((opt) =>
+        response.correctAnswer?.optionIds.includes(opt.id)
       );
       if (correctOptions.length > 0) {
         return (
           <div className="space-y-1">
-            {correctOptions.map((opt: any) => (
+            {correctOptions.map((opt) => (
               <Badge key={opt.id} variant="default" className="mr-1 bg-green-600">
                 {opt.optionText}
               </Badge>
@@ -121,7 +122,7 @@ export function AttemptResultsModal({ attemptId, isOpen, onClose }: AttemptResul
     return null;
   };
 
-  const hasCorrectAnswer = (response: any) => {
+  const hasCorrectAnswer = (response: AttemptQuestionResponse) => {
     if (!response.correctAnswer) {
       return false;
     }
@@ -283,7 +284,15 @@ export function AttemptResultsModal({ attemptId, isOpen, onClose }: AttemptResul
                       <div className="flex-1">
                         <p className="font-medium text-brand-heading">{response.questionText}</p>
                         {response.imageUrl && (
-                          <img src={response.imageUrl} alt="Question" className="mt-2 max-w-md rounded" />
+                          <div className="relative mt-2 max-w-md h-48 rounded overflow-hidden">
+                            <Image
+                              src={response.imageUrl}
+                              alt="Question"
+                              fill
+                              sizes="(max-width: 768px) 100vw, 400px"
+                              className="object-contain"
+                            />
+                          </div>
                         )}
                       </div>
                     </div>

@@ -27,10 +27,10 @@ export function BookDetailPdfViewer({
               No Chapters Available
             </h3>
             <p className="text-sm text-brand-light-accent-1 mb-4">
-              This book doesn't have any chapters uploaded yet. Please add a chapter to start reading and chatting with the AI assistant.
+              This book doesn&apos;t have any chapters uploaded yet. Please add a chapter to start reading and chatting with the AI assistant.
             </p>
             <p className="text-xs text-brand-light-accent-1">
-              Use the "Add Chapter" button in the header to create your first chapter.
+              Use the &quot;Add Chapter&quot; button in the header to create your first chapter.
             </p>
           </div>
         </div>

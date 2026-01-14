@@ -14,7 +14,7 @@ import { AuthenticatedApiError } from "@/lib/api/authenticated";
 
 interface BookDetailErrorProps {
   error: Error | AuthenticatedApiError;
-  onRetry: () => void;
+  onRetry?: () => void;
 }
 
 export function BookDetailError({ error, onRetry }: BookDetailErrorProps) {
@@ -55,10 +55,12 @@ export function BookDetailError({ error, onRetry }: BookDetailErrorProps) {
               >
                 Go Back
               </Button>
-              <Button onClick={onRetry} className="flex-1">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Retry
-              </Button>
+              {onRetry && (
+                <Button onClick={onRetry} className="flex-1">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Retry
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>

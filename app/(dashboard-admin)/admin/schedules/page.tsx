@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, AlertCircle, RefreshCw, Clock } from "lucide-react";
+import { Plus, AlertCircle, RefreshCw } from "lucide-react";
 import TimetableGrid from "@/components/teacher/schedules/TimetableGrid";
 import AddPeriodDialog from "@/components/teacher/schedules/AddPeriodDialog";
 import TimeSlotManagement from "@/components/teacher/schedules/TimeSlotManagement";
@@ -19,6 +19,8 @@ import {
   useTimetableOptions,
   useCreateTimetableEntry,
   type TimetableSchedulePeriod,
+  type TimetableOptions,
+  type TimetableSchedule,
 } from "@/hooks/schedules/use-schedules";
 import { useToast } from "@/hooks/use-toast";
 
@@ -99,13 +101,13 @@ const AdminSchedulesPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<Period | null>(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage] = useState<string | null>(null);
 
   // Fetch timetable options (classes, teachers, subjects, timeSlots)
   const { data: timetableOptions, isLoading: isLoadingOptions } = useTimetableOptions();
 
   // Get classes from options
-  const classes = timetableOptions?.classes || [];
+  const classes = useMemo(() => (timetableOptions as TimetableOptions | undefined)?.classes || [], [timetableOptions]);
 
   // Get selected class name (API expects class name, not ID)
   const selectedClassName = classes.find((c) => c.id === selectedClass)?.name || null;
@@ -134,7 +136,7 @@ const AdminSchedulesPage = () => {
 
   // Convert API data to grid format
   const convertApiDataToGridFormat = useCallback(
-    (apiData: typeof scheduleData): Period[] => {
+    (apiData: TimetableSchedule | undefined): Period[] => {
       if (!apiData || !apiData.schedule) return [];
 
       const periods: Period[] = [];
@@ -217,13 +219,14 @@ const AdminSchedulesPage = () => {
     setIsAddDialogOpen(true);
   };
 
+  // Format time slots for display - include labels for TimetableGrid
+  const typedScheduleData = scheduleData as TimetableSchedule | undefined;
+
   // Get current class data and schedule
   const selectedClassData = classes.find((c) => c.id === selectedClass);
-  const classSchedule = convertApiDataToGridFormat(scheduleData);
-
-  // Format time slots for display - include labels for TimetableGrid
-  const timeSlots = scheduleData?.timeSlots
-    ? scheduleData.timeSlots
+  const classSchedule = convertApiDataToGridFormat(typedScheduleData);
+  const timeSlots = typedScheduleData?.timeSlots
+    ? typedScheduleData.timeSlots
         .sort((a, b) => a.order - b.order)
         .map((slot) => ({
           id: slot.id,
@@ -239,9 +242,9 @@ const AdminSchedulesPage = () => {
   const subjectsFromSchedule = new Map<string, { id: string; name: string; color: string }>();
   const teachersFromSchedule = new Map<string, { id: string; name: string }>();
 
-  if (scheduleData?.schedule) {
-    Object.values(scheduleData.schedule).forEach((dayPeriods) => {
-      dayPeriods.forEach((period) => {
+  if (typedScheduleData?.schedule) {
+    Object.values(typedScheduleData.schedule).forEach((dayPeriods: TimetableSchedulePeriod[]) => {
+      dayPeriods.forEach((period: TimetableSchedulePeriod) => {
         if (period.subject) {
           subjectsFromSchedule.set(period.subject.id, {
             id: period.subject.id,
@@ -260,9 +263,10 @@ const AdminSchedulesPage = () => {
   }
 
   // Combine schedule data with options to ensure we have all subjects/teachers
+  const typedTimetableOptions = timetableOptions as TimetableOptions | undefined;
   const subjects = Array.from(subjectsFromSchedule.values()).length > 0
     ? Array.from(subjectsFromSchedule.values())
-    : (timetableOptions?.subjects.map((s) => ({
+    : (typedTimetableOptions?.subjects.map((s) => ({
         id: s.id,
         name: s.name,
         color: s.color || "#3B82F6",
@@ -270,7 +274,7 @@ const AdminSchedulesPage = () => {
 
   const teachers = Array.from(teachersFromSchedule.values()).length > 0
     ? Array.from(teachersFromSchedule.values())
-    : (timetableOptions?.teachers || []);
+    : (typedTimetableOptions?.teachers || []);
 
   return (
     <div className="min-h-screen py-6 space-y-6 bg-brand-bg">
@@ -358,7 +362,7 @@ const AdminSchedulesPage = () => {
                 </CardHeader>
                 <CardContent>
                   {isLoadingSchedule ? (
-                    <TimetableSkeleton timeSlots={timeSlots} />
+                    <TimetableSkeleton timeSlots={timeSlots.map(slot => slot.timeSlot)} />
                   ) : scheduleError ? (
                     <div className="text-center py-8 text-red-600">
                       {scheduleError.message || "Failed to load schedule"}
@@ -404,9 +408,8 @@ const AdminSchedulesPage = () => {
           }}
           onSubmit={handleAddPeriod}
           editingPeriod={editingPeriod ?? undefined}
-          selectedClass={selectedClass}
           selectedClassId={selectedClass}
-          selectedClassName={selectedClassName}
+          selectedClassName={selectedClassName || undefined}
         />
 
         {/* Error Modal */}

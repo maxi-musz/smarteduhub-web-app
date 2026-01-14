@@ -2,10 +2,17 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAssessmentDetails, useAssessmentQuestions, useSubmitAssessment, QuestionResponse } from "@/hooks/explore/use-assessment";
-import { useAntiMalpractice } from "@/hooks/explore/use-anti-malpractice";
+import {
+  useAssessmentDetails,
+  useAssessmentQuestions,
+  useSubmitAssessment,
+  QuestionResponse,
+  AssessmentSubmissionResponse,
+} from "@/hooks/explore/use-assessment";
+import { useAntiMalpractice, MalpracticeViolation } from "@/hooks/explore/use-anti-malpractice";
 import { AssessmentRulesModal } from "@/components/explore/assessment/AssessmentRulesModal";
 import { ViolationWarningModal } from "@/components/explore/assessment/ViolationWarningModal";
 import { Button } from "@/components/ui/button";
@@ -25,6 +32,8 @@ interface AssessmentPageProps {
   basePath: string; // e.g., "/admin", "/teacher", "/student"
 }
 
+type AnswerValue = string | string[] | number | null | undefined;
+
 export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -33,13 +42,13 @@ export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) 
   const [hasAcceptedRules, setHasAcceptedRules] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [showViolationModal, setShowViolationModal] = useState(false);
-  const [lastViolation, setLastViolation] = useState<any>(null);
+  const [lastViolation, setLastViolation] = useState<MalpracticeViolation | null>(null);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [questionStartTimes, setQuestionStartTimes] = useState<Record<string, Date>>({});
-  const [submissionResult, setSubmissionResult] = useState<any>(null);
+  const [submissionResult, setSubmissionResult] = useState<AssessmentSubmissionResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<Date | null>(null);
@@ -59,7 +68,6 @@ export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) 
   const submitAssessmentMutation = useSubmitAssessment();
 
   const {
-    violations,
     totalViolations,
     hasExceededMax,
     isFullscreen,
@@ -97,6 +105,22 @@ export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) 
       requestFullscreen();
     }
   }, [hasStarted, isFullscreen, requestFullscreen]);
+
+  const handleTimeUp = () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+    // Auto-submit or show time up message
+    alert("Time is up! Your assessment will be submitted automatically.");
+  };
+
+  const handleDisqualification = useCallback(() => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+    alert("You have been disqualified due to multiple violations. Your assessment has been terminated.");
+    router.push(`${basePath}/explore`);
+  }, [router, basePath]);
 
   // Timer setup
   useEffect(() => {
@@ -139,23 +163,7 @@ export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) 
     if (hasExceededMax && hasStarted) {
       handleDisqualification();
     }
-  }, [hasExceededMax, hasStarted]);
-
-  const handleTimeUp = () => {
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-    }
-    // Auto-submit or show time up message
-    alert("Time is up! Your assessment will be submitted automatically.");
-  };
-
-  const handleDisqualification = () => {
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-    }
-    alert("You have been disqualified due to multiple violations. Your assessment has been terminated.");
-    router.push(`${basePath}/explore`);
-  };
+  }, [hasExceededMax, hasStarted, handleDisqualification]);
 
   const handleAcceptRules = () => {
     setHasAcceptedRules(true);
@@ -382,7 +390,7 @@ export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) 
 
   // Show submission results
   if (submissionResult) {
-    const { results, attempt, feedback } = submissionResult;
+    const { results, feedback } = submissionResult;
     return (
       <div className="min-h-screen bg-brand-bg flex items-center justify-center p-6">
         <Card className="max-w-2xl w-full">
@@ -493,7 +501,7 @@ export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) 
   const currentQuestion = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
 
-  const handleAnswerChange = (questionId: string, answer: any) => {
+  const handleAnswerChange = (questionId: string, answer: AnswerValue) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
 
@@ -537,12 +545,12 @@ export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) 
         switch (question.questionType) {
           case "MULTIPLE_CHOICE_SINGLE":
             if (answer) {
-              response.selectedOptions = [answer];
+              response.selectedOptions = [answer as string];
             }
             break;
           case "MULTIPLE_CHOICE_MULTIPLE":
             if (Array.isArray(answer)) {
-              response.selectedOptions = answer;
+              response.selectedOptions = answer as string[];
             }
             break;
           case "SHORT_ANSWER":
@@ -564,12 +572,12 @@ export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) 
             break;
           case "DATE":
             if (answer) {
-              response.dateAnswer = answer;
+              response.dateAnswer = answer as string;
             }
             break;
           case "FILE_UPLOAD":
             if (Array.isArray(answer)) {
-              response.fileUrls = answer;
+              response.fileUrls = answer as string[];
             }
             break;
         }
@@ -679,11 +687,13 @@ export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) 
 
               {/* Question Image/Media */}
               {currentQuestion.imageUrl && (
-                <div className="mb-4">
-                  <img
+                <div className="mb-4 relative w-full h-64 rounded-lg border overflow-hidden">
+                  <Image
                     src={currentQuestion.imageUrl}
                     alt="Question"
-                    className="max-w-full rounded-lg border"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 800px"
+                    className="object-contain"
                   />
                 </div>
               )}
@@ -717,15 +727,20 @@ export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) 
                     >
                       <input
                         type="checkbox"
-                        checked={(answers[currentQuestion.id] || []).includes(option.id)}
+                        checked={
+                          ((answers[currentQuestion.id] as string[] | undefined) || []).includes(
+                            option.id
+                          )
+                        }
                         onChange={(e) => {
-                          const currentAnswers = answers[currentQuestion.id] || [];
+                          const currentAnswers =
+                            (answers[currentQuestion.id] as string[] | undefined) || [];
                           if (e.target.checked) {
                             handleAnswerChange(currentQuestion.id, [...currentAnswers, option.id]);
                           } else {
                             handleAnswerChange(
                               currentQuestion.id,
-                              currentAnswers.filter((id: string) => id !== option.id)
+                              currentAnswers.filter((id) => id !== option.id)
                             );
                           }
                         }}

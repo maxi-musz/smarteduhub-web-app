@@ -161,7 +161,7 @@ export function useAntiMalpractice(options: UseAntiMalpracticeOptions = {}) {
   useEffect(() => {
     if (!enablePrint) return;
 
-    const handleBeforePrint = (e: BeforePrintEvent) => {
+    const handleBeforePrint = (e: Event) => {
       e.preventDefault();
       trackViolation("print");
       return false;

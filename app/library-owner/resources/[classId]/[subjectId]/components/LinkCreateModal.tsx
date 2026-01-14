@@ -22,7 +22,7 @@ import {
 import { useCreateLink } from "@/hooks/content/use-create-link";
 import { Loader2, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
-import { formatTopicTitle, formatDescription } from "@/lib/text-formatter";
+import { formatTopicTitle } from "@/lib/text-formatter";
 
 interface LinkCreateModalProps {
   isOpen: boolean;
@@ -120,9 +120,10 @@ export const LinkCreateModal = ({
 
       toast.success("Link created successfully");
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message?: string };
       toast.error(
-        error?.message || "Failed to create link. Please try again."
+        err.message || "Failed to create link. Please try again."
       );
     }
   };

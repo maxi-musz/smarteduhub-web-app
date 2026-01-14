@@ -2,13 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authenticatedApi, AuthenticatedApiError } from "@/lib/api/authenticated";
 import { logger } from "@/lib/logger";
 
+// Inner data type for the authenticated API response
 export interface DeleteLinkApiResponse {
-  success: boolean;
-  message: string;
-  data: {
-    id: string;
-    title: string;
-  };
+  id: string;
+  title: string;
 }
 
 export function useDeleteLink() {
@@ -27,7 +24,7 @@ export function useDeleteLink() {
           linkId: response.data.id,
           title: response.data.title,
         });
-        return response;
+        return response.data;
       }
 
       throw new AuthenticatedApiError(

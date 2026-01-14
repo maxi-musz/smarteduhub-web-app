@@ -85,8 +85,16 @@ const TeacherSchedulesPage = () => {
     }
   }, [selectedClass]);
 
-  const handleAddPeriod = (periodData: Period) => {
-    console.log("Adding period:", periodData);
+  const handleAddPeriod = (data: {
+    class_id: string;
+    subject_id: string;
+    teacher_id: string;
+    timeSlotId: string;
+    day_of_week: string;
+    room?: string;
+    notes?: string;
+  }) => {
+    console.log("Adding period:", data);
     // Here you would make an API call to save the period
     setIsAddDialogOpen(false);
   };
@@ -194,10 +202,9 @@ const TeacherSchedulesPage = () => {
             setEditingPeriod(null);
           }}
           onSubmit={handleAddPeriod}
-          subjects={subjects}
-          teachers={teachers}
           editingPeriod={editingPeriod ?? undefined}
-          selectedClass={selectedClass}
+          selectedClassId={selectedClass}
+          selectedClassName={selectedClassData?.name}
         />
       </div>
     </div>

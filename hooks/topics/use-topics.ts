@@ -46,11 +46,8 @@ export interface UpdateTopicDto {
   is_active?: boolean;
 }
 
-export interface TopicApiResponse {
-  success: boolean;
-  message: string;
-  data: TopicData;
-}
+// Inner data type for the authenticated API response
+export type TopicApiResponse = TopicData;
 
 // Create Topic Mutation
 export function useCreateTopic() {
@@ -69,7 +66,7 @@ export function useCreateTopic() {
         logger.info("[useCreateTopic] Topic created successfully", {
           topicId: response.data.id,
         });
-        return response;
+        return response.data;
       }
 
       throw new AuthenticatedApiError(
@@ -112,7 +109,7 @@ export function useUpdateTopic() {
         logger.info("[useUpdateTopic] Topic updated successfully", {
           topicId: response.data.id,
         });
-        return response;
+        return response.data;
       }
 
       throw new AuthenticatedApiError(

@@ -33,11 +33,9 @@ export interface MaterialChapter {
   files: MaterialChapterFile[];
 }
 
-export interface MaterialChaptersApiResponse {
-  success: boolean;
-  message: string;
-  data: MaterialChapter[];
-}
+// We only need the inner data type here; the authenticated API already
+// wraps this in its own ApiResponse<T> envelope.
+export type MaterialChaptersApiResponse = MaterialChapter[];
 
 export function useMaterialChapters(materialId: string | null) {
   return useQuery<MaterialChapter[], AuthenticatedApiError>({

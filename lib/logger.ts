@@ -31,9 +31,10 @@ async function sendLog(level: LogLevel, message: string, data?: LogData) {
       // Silently fail - don't break the app if logging fails
       // This can happen if the API route is not available
     });
-  } catch (error) {
+  } catch (error: unknown) {
     // Silently fail - don't break the app if logging fails
     // In production, you might want to use a service like Sentry
+    console.log("Error logging message:", error);
   }
 }
 
