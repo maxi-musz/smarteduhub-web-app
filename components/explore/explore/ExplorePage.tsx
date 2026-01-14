@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Compass, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { useExplore, useExploreSubjects, useExploreVideos } from "@/hooks/explore/use-explore";
-import { ClassCard } from "@/components/explore/ClassCard";
-import { SubjectCard } from "@/components/explore/SubjectCard";
-import { VideoCard } from "@/components/explore/VideoCard";
-import { SearchBar } from "@/components/explore/SearchBar";
-import { Pagination } from "@/components/explore/Pagination";
+import { ClassCard } from "@/components/explore/explore/ClassCard";
+import { SubjectCard } from "@/components/explore/explore/SubjectCard";
+import { VideoCard } from "@/components/explore/explore/VideoCard";
+import { SearchBar } from "@/components/explore/explore/SearchBar";
+import { Pagination } from "@/components/explore/explore/Pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {

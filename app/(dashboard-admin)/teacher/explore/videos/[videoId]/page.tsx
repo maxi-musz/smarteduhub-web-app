@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { VideoPlayerPage } from "@/components/explore/VideoPlayerPage";
+import { VideoPlayerPage } from "@/components/explore/video/VideoPlayerPage";
 
 export default function TeacherExploreVideoPlayerPage() {
   const params = useParams();

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { publicApi, PublicApiError } from "@/lib/api/public";
+import { AuthenticatedApiError } from "@/lib/api/authenticated";
 
 // Types
 export interface LibraryClass {
@@ -121,6 +122,22 @@ export interface LibraryAssessment {
   updatedAt: string;
 }
 
+export interface AssessmentSubmission {
+  id: string; // Attempt ID
+  assessmentId: string;
+  assessmentTitle: string;
+  attemptNumber: number;
+  status: string; // "SUBMITTED", "GRADED", etc.
+  dateTaken: string; // "Wed, Jan 15 2025" format
+  totalQuestions: number;
+  maxScore: number;
+  userScore: number;
+  percentage: number;
+  passed: boolean;
+  timeSpent: number; // Time in seconds
+  passingScore: number; // Percentage threshold
+}
+
 export interface TopicStatistics {
   videosCount: number;
   materialsCount: number;
@@ -144,6 +161,7 @@ export interface LibraryTopic {
   videos: LibraryVideo[];
   materials: LibraryMaterial[];
   assessments: LibraryAssessment[];
+  submissions: AssessmentSubmission[]; // User's assessment submissions (only if authenticated)
   statistics: TopicStatistics;
 }
 
@@ -344,14 +362,45 @@ export function useExploreVideos(params?: VideosParams) {
 }
 
 // Subject Resources Hook (New API - returns chapters, topics, and all resources)
+// Uses authenticated API if available to include user submissions
 export function useExploreTopics(subjectId: string | null) {
-  return useQuery<SubjectResourcesResponse, PublicApiError>({
+  return useQuery<SubjectResourcesResponse, PublicApiError | AuthenticatedApiError>({
     queryKey: ["explore", "topics", subjectId],
     queryFn: async () => {
       if (!subjectId) {
         throw new PublicApiError("Subject ID is required", 400);
       }
 
+      // Try authenticated API first (includes submissions if user is logged in)
+      // Falls back to public API only if 401 (unauthorized)
+      try {
+        const { authenticatedApi } = await import("@/lib/api/authenticated");
+        const response = await authenticatedApi.get<SubjectResourcesResponse>(
+          `/explore/topics/${subjectId}`
+        );
+
+        if (response.success && response.data) {
+          return response.data;
+        }
+      } catch (error) {
+        // Only fall back to public API if it's a 401 (unauthorized)
+        // This means user is not logged in, so use public API
+        if (error instanceof AuthenticatedApiError && error.statusCode === 401) {
+          // User not authenticated, use public API (no submissions will be included)
+          const response = await publicApi.get<SubjectResourcesResponse>(
+            `/explore/topics/${subjectId}`
+          );
+
+          if (response.success && response.data) {
+            return response.data;
+          }
+        } else {
+          // Re-throw other errors (network errors, etc.)
+          throw error;
+        }
+      }
+
+      // Fallback to public API if authenticated API didn't return data
       const response = await publicApi.get<SubjectResourcesResponse>(
         `/explore/topics/${subjectId}`
       );

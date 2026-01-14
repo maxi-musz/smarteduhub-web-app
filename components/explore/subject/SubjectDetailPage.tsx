@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2, AlertCircle, RefreshCw, BookOpen, Layers, Video, FileText } from "lucide-react";
 import { useExploreTopics, useExploreVideos } from "@/hooks/explore/use-explore";
-import { ExploreChapterCard } from "@/components/explore/ExploreChapterCard";
-import { VideoCard } from "@/components/explore/VideoCard";
-import { Pagination } from "@/components/explore/Pagination";
+import { ExploreChapterCard } from "@/components/explore/subject/ExploreChapterCard";
+import { VideoCard } from "@/components/explore/explore/VideoCard";
+import { Pagination } from "@/components/explore/explore/Pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -25,9 +25,12 @@ interface SubjectDetailPageProps {
 
 export function SubjectDetailPage({ subjectId, basePath }: SubjectDetailPageProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [videoPage, setVideoPage] = useState(1);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
+  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
 
   // Fetch complete subject resources (chapters, topics, videos, materials, assessments)
   const {
@@ -36,6 +39,49 @@ export function SubjectDetailPage({ subjectId, basePath }: SubjectDetailPageProp
     error: resourcesError,
     refetch: refetchResources,
   } = useExploreTopics(subjectId);
+
+  // Restore expanded state from URL on mount
+  useEffect(() => {
+    const chaptersParam = searchParams.get("chapters");
+    const topicsParam = searchParams.get("topics");
+    
+    if (chaptersParam) {
+      setExpandedChapters(new Set(chaptersParam.split(",").filter(Boolean)));
+    }
+    if (topicsParam) {
+      setExpandedTopics(new Set(topicsParam.split(",").filter(Boolean)));
+    }
+  }, [searchParams]);
+
+  // Refetch data when page regains focus (e.g., returning from assessment)
+  useEffect(() => {
+    const handleFocus = () => {
+      refetchResources();
+    };
+    
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [refetchResources]);
+
+  // Update URL when expanded state changes
+  const updateExpandedState = (chapters: Set<string>, topics: Set<string>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (chapters.size > 0) {
+      params.set("chapters", Array.from(chapters).join(","));
+    } else {
+      params.delete("chapters");
+    }
+    
+    if (topics.size > 0) {
+      params.set("topics", Array.from(topics).join(","));
+    } else {
+      params.delete("topics");
+    }
+    
+    const newUrl = `${basePath}/explore/subjects/${subjectId}${params.toString() ? `?${params.toString()}` : ""}`;
+    router.replace(newUrl, { scroll: false });
+  };
 
   // Fetch all videos for "All Videos" section
   const {
@@ -286,13 +332,35 @@ export function SubjectDetailPage({ subjectId, basePath }: SubjectDetailPageProp
 
           {sortedChapters.length > 0 ? (
             <div className="space-y-4">
-              {sortedChapters.map((chapter) => (
-                <ExploreChapterCard
-                  key={chapter.id}
-                  chapter={chapter}
-                  basePath={basePath}
-                />
-              ))}
+            {sortedChapters.map((chapter) => (
+              <ExploreChapterCard
+                key={chapter.id}
+                chapter={chapter}
+                basePath={basePath}
+                isExpanded={expandedChapters.has(chapter.id)}
+                onToggleExpanded={(expanded) => {
+                  const newChapters = new Set(expandedChapters);
+                  if (expanded) {
+                    newChapters.add(chapter.id);
+                  } else {
+                    newChapters.delete(chapter.id);
+                  }
+                  setExpandedChapters(newChapters);
+                  updateExpandedState(newChapters, expandedTopics);
+                }}
+                expandedTopics={expandedTopics}
+                onTopicToggle={(topicId, expanded) => {
+                  const newTopics = new Set(expandedTopics);
+                  if (expanded) {
+                    newTopics.add(topicId);
+                  } else {
+                    newTopics.delete(topicId);
+                  }
+                  setExpandedTopics(newTopics);
+                  updateExpandedState(expandedChapters, newTopics);
+                }}
+              />
+            ))}
             </div>
           ) : (
             <Card className="shadow-sm bg-white border border-brand-border">

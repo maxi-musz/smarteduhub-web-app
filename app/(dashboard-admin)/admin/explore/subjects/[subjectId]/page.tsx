@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { SubjectDetailPage } from "@/components/explore/SubjectDetailPage";
+import { SubjectDetailPage } from "@/components/explore/subject/SubjectDetailPage";
 
 export default function AdminSubjectDetailPage() {
   const params = useParams();

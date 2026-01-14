@@ -36,18 +36,39 @@ const getOrderBadgeColors = (order: number) => {
 interface ExploreChapterCardProps {
   chapter: LibraryChapter;
   basePath: string;
+  isExpanded?: boolean;
+  onToggleExpanded?: (expanded: boolean) => void;
+  expandedTopics?: Set<string>;
+  onTopicToggle?: (topicId: string, expanded: boolean) => void;
 }
 
-export function ExploreChapterCard({ chapter, basePath }: ExploreChapterCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+export function ExploreChapterCard({ 
+  chapter, 
+  basePath,
+  isExpanded: controlledExpanded,
+  onToggleExpanded,
+  expandedTopics,
+  onTopicToggle,
+}: ExploreChapterCardProps) {
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
   const orderColors = getOrderBadgeColors(chapter.order);
   const topicsToDisplay = chapter.topics || [];
+
+  const handleToggle = () => {
+    const newExpanded = !isExpanded;
+    if (onToggleExpanded) {
+      onToggleExpanded(newExpanded);
+    } else {
+      setInternalExpanded(newExpanded);
+    }
+  };
 
   return (
     <Card className="shadow-md bg-white border-2 border-brand-primary/20 hover:border-brand-primary/40 transition-all">
       <CardHeader 
         className="pb-3 cursor-pointer hover:bg-brand-primary/5 transition-colors"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={handleToggle}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3 flex-1">
@@ -121,6 +142,10 @@ export function ExploreChapterCard({ chapter, basePath }: ExploreChapterCardProp
                       key={topic.id}
                       topic={topic}
                       basePath={basePath}
+                      isExpanded={expandedTopics?.has(topic.id) || false}
+                      onToggleExpanded={(expanded) => {
+                        onTopicToggle?.(topic.id, expanded);
+                      }}
                     />
                   ))}
               </div>

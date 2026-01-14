@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
-import { LibraryTopic, LibraryVideo, LibraryMaterial, LibraryAssessment } from "@/hooks/explore/use-explore";
-import { Video, FileText, ChevronDown, ChevronRight, Clock, ClipboardList, GripVertical, Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { LibraryTopic, LibraryVideo, LibraryMaterial, LibraryAssessment, AssessmentSubmission } from "@/hooks/explore/use-explore";
+import { Video, FileText, ChevronDown, ChevronRight, Clock, ClipboardList, GripVertical, Play, CheckCircle2, XCircle, History, RefreshCw } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Image from "next/image";
 import { formatDuration, formatFileSize } from "@/lib/utils/explore";
+import { AttemptResultsModal } from "@/components/explore/assessment/AttemptResultsModal";
 
 // Color palette for order badges - cycles through appealing colors
 const getOrderBadgeColors = (order: number | null | undefined) => {
@@ -32,17 +36,56 @@ const getOrderBadgeColors = (order: number | null | undefined) => {
 interface ExploreTopicCardProps {
   topic: LibraryTopic;
   basePath: string;
+  isExpanded?: boolean;
+  onToggleExpanded?: (expanded: boolean) => void;
 }
 
-export function ExploreTopicCard({ topic, basePath }: ExploreTopicCardProps) {
+export function ExploreTopicCard({ 
+  topic, 
+  basePath,
+  isExpanded: controlledExpanded,
+  onToggleExpanded,
+}: ExploreTopicCardProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { data: session, status } = useSession();
   const orderColors = getOrderBadgeColors(topic.order);
   const [activeTab, setActiveTab] = useState("videos");
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
+  const isAuthenticated = status === "authenticated" && session?.user;
 
   const videos = topic.videos || [];
   const materials = topic.materials || [];
   const assessments = topic.assessments || [];
+  const submissions = topic.submissions || [];
+  const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
+  const [showResultsModal, setShowResultsModal] = useState(false);
+
+  // Refetch submissions when submissions tab is active and page is visible
+  useEffect(() => {
+    if (activeTab === "submissions" && isExpanded && isAuthenticated) {
+      // Get subjectId from topic's parent (we need to find it from the query cache)
+      // For now, invalidate all explore topics queries
+      queryClient.invalidateQueries({
+        queryKey: ["explore", "topics"],
+      });
+    }
+  }, [activeTab, isExpanded, isAuthenticated, queryClient]);
+
+  const handleSubmissionClick = (attemptId: string) => {
+    setSelectedAttemptId(attemptId);
+    setShowResultsModal(true);
+  };
+
+  const handleToggle = () => {
+    const newExpanded = !isExpanded;
+    if (onToggleExpanded) {
+      onToggleExpanded(newExpanded);
+    } else {
+      setInternalExpanded(newExpanded);
+    }
+  };
 
   const handleVideoClick = (videoId: string) => {
     router.push(`${basePath}/explore/videos/${videoId}`);
@@ -53,7 +96,7 @@ export function ExploreTopicCard({ topic, basePath }: ExploreTopicCardProps) {
   };
 
   const handleAssessmentClick = (assessmentId: string) => {
-    router.push(`${basePath}/assessments/${assessmentId}`);
+    router.push(`${basePath}/explore/assessments/${assessmentId}`);
   };
 
   const renderVideoItem = (video: LibraryVideo) => {
@@ -230,12 +273,76 @@ export function ExploreTopicCard({ topic, basePath }: ExploreTopicCardProps) {
       </div>
     );
   };
+
+  const renderSubmissionItem = (submission: AssessmentSubmission) => {
+    const formatTimeSpent = (seconds: number): string => {
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes} min`;
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+    };
+
+    return (
+      <div
+        key={submission.id}
+        className="flex-shrink-0 w-72 bg-white rounded-lg border border-brand-border p-4 hover:shadow-md transition-shadow cursor-pointer"
+        onClick={() => handleSubmissionClick(submission.id)}
+      >
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex-1 min-w-0">
+            <h6 className="font-medium text-sm text-brand-heading line-clamp-2 mb-1">
+              {submission.assessmentTitle}
+            </h6>
+            <p className="text-xs text-brand-light-accent-1">
+              Attempt #{submission.attemptNumber} • {submission.dateTaken}
+            </p>
+          </div>
+          <div className={`flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 ${
+            submission.passed ? "bg-green-100" : "bg-red-100"
+          }`}>
+            {submission.passed ? (
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+            ) : (
+              <XCircle className="h-5 w-5 text-red-600" />
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-brand-light-accent-1">Score</span>
+            <span className="text-sm font-semibold text-brand-heading">
+              {submission.userScore}/{submission.maxScore} ({submission.percentage}%)
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-brand-light-accent-1">Status</span>
+            <Badge
+              variant={submission.passed ? "default" : "destructive"}
+              className="text-[10px] h-5 px-2"
+            >
+              {submission.passed ? "Passed" : "Failed"}
+            </Badge>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-brand-light-accent-1">Time Spent</span>
+            <span className="text-xs text-brand-heading">{formatTimeSpent(submission.timeSpent)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-brand-light-accent-1">Passing Score</span>
+            <span className="text-xs text-brand-heading">{submission.passingScore}%</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
   
   return (
     <div className="bg-white rounded-lg border border-brand-border/60 hover:border-brand-border shadow-sm hover:shadow transition-all">
       <div 
         className="p-3 cursor-pointer hover:bg-gray-50/50 transition-colors"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={handleToggle}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2 flex-1 min-w-0">
@@ -300,6 +407,12 @@ export function ExploreTopicCard({ topic, basePath }: ExploreTopicCardProps) {
                 <ClipboardList className="h-3 w-3 mr-1.5" />
                 Assessments ({assessments.length})
               </TabsTrigger>
+              {isAuthenticated && (
+                <TabsTrigger value="submissions" className="text-xs px-3">
+                  <History className="h-3 w-3 mr-1.5" />
+                  Submissions ({submissions.length})
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="videos" className="mt-3">
@@ -344,9 +457,54 @@ export function ExploreTopicCard({ topic, basePath }: ExploreTopicCardProps) {
                 </div>
               )}
             </TabsContent>
+
+            {isAuthenticated && (
+              <TabsContent value="submissions" className="mt-3">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs text-brand-light-accent-1">
+                    Your assessment attempts for this topic
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      // Invalidate and refetch topics query
+                      queryClient.invalidateQueries({
+                        queryKey: ["explore", "topics"],
+                      });
+                    }}
+                    className="h-6 px-2 text-xs"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Refresh
+                  </Button>
+                </div>
+                {submissions.length > 0 ? (
+                  <div className="flex gap-3 overflow-x-auto pb-2 -mx-3 px-3" style={{ scrollbarWidth: 'thin' }}>
+                    {submissions.map(renderSubmissionItem)}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-sm text-brand-light-accent-1">
+                    <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No submissions yet</p>
+                    <p className="text-xs mt-1">Complete assessments to see your results here</p>
+                  </div>
+                )}
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       )}
+
+      {/* Attempt Results Modal */}
+      <AttemptResultsModal
+        attemptId={selectedAttemptId}
+        isOpen={showResultsModal}
+        onClose={() => {
+          setShowResultsModal(false);
+          setSelectedAttemptId(null);
+        }}
+      />
     </div>
   );
 }
