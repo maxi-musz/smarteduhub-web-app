@@ -19,10 +19,13 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, RefreshCw, ArrowLeft, Plus } from "lucide-react";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import { logger } from "@/lib/logger";
+import { useQueryClient } from "@tanstack/react-query";
+import { signOut } from "next-auth/react";
 
 const ClassResourcesPage = () => {
   const params = useParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const classId = params.classId as string;
   const [isCreateSubjectModalOpen, setIsCreateSubjectModalOpen] = useState(false);
   const [isEditSubjectModalOpen, setIsEditSubjectModalOpen] = useState(false);
@@ -89,6 +92,24 @@ const ClassResourcesPage = () => {
       }
     }
 
+    const isSessionExpired =
+      classResourcesError instanceof AuthenticatedApiError &&
+      classResourcesError.statusCode === 401;
+
+    const handleSessionExpired = async () => {
+      // Clear React Query cache
+      queryClient.clear();
+      // Clear any session/local storage
+      if (typeof window !== "undefined") {
+        sessionStorage.clear();
+        localStorage.clear();
+      }
+      // Sign out without automatic redirect, then manually redirect
+      await signOut({ redirect: false });
+      router.push("/");
+      router.refresh();
+    };
+
     return (
       <div className="py-6 space-y-6 bg-brand-bg">
         <div className="px-6">
@@ -105,12 +126,16 @@ const ClassResourcesPage = () => {
                 <div className="flex gap-2">
                   <Button
                     onClick={() => {
-                      refetchClassResources();
+                      if (isSessionExpired) {
+                        void handleSessionExpired();
+                      } else {
+                        refetchClassResources();
+                      }
                     }}
                     className="flex-1"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    Retry
+                    {isSessionExpired ? "Continue" : "Retry"}
                   </Button>
                 </div>
               </div>

@@ -24,16 +24,22 @@ const CreatePassword = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [shouldRestartReset, setShouldRestartReset] = useState(false);
 
-  // Check if user came from OTP verification
+  // Check if user came from OTP verification and we have the OTP stored
   useEffect(() => {
-    const verifiedEmail = sessionStorage.getItem("passwordResetVerified");
-    if (verifiedEmail) {
-      setEmail(verifiedEmail);
-    } else {
+    const storedEmail = sessionStorage.getItem("passwordResetEmail");
+    const storedOtp = sessionStorage.getItem("passwordResetOtp");
+
+    if (!storedEmail || !storedOtp) {
       // Redirect to forgot password if no verified session
       router.push("/forgot-password");
+      return;
     }
+
+    setEmail(storedEmail);
+    setOtp(storedOtp);
   }, [router]);
 
   const handleInputChange = (field: string, value: string) => {
@@ -69,19 +75,68 @@ const CreatePassword = () => {
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual password reset API call
-      // For now, just show success modal
-      console.log("Creating new password for:", email);
-      console.log("New password:", formData.password);
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL
+        }/auth/verify-otp-and-reset-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            otp,
+            new_password: formData.password,
+          }),
+        }
+      );
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const data = await response.json().catch(() => null);
 
-      setShowSuccessModal(true);
+      if (response.ok && data?.success) {
+        setShowSuccessModal(true);
+      } else {
+        const backendMessage =
+          data && typeof data.message === "string" ? data.message : "";
+
+        // Normalize technical errors into a friendly message
+        const lower = backendMessage.toLowerCase();
+        const isInvalidOrExpiredOtp =
+          lower.includes("invalid otp") ||
+          lower.includes("expired otp") ||
+          response.status === 400;
+
+        if (isInvalidOrExpiredOtp) {
+          setErrorMessage(
+            "Invalid or expired code. Please restart the reset process."
+          );
+          setShouldRestartReset(true);
+        } else if (
+          lower.includes("cannot get") ||
+          lower.includes("cannot post") ||
+          lower.includes("internal server error") ||
+          lower.includes("not found")
+        ) {
+          setErrorMessage(
+            "Error resetting password. Please try again later."
+          );
+        } else {
+          setErrorMessage(
+            backendMessage ||
+              "Error resetting password. Please try again later."
+          );
+        }
+
+        setShowErrorModal(true);
+      }
     } catch (error) {
       console.error("Create password error:", error);
-      setErrorMessage("Failed to create new password. Please try again.");
+      setErrorMessage(
+        "Unable to connect to the server. Please check your internet and try again."
+      );
       setShowErrorModal(true);
+      setShouldRestartReset(false);
     } finally {
       setIsLoading(false);
     }
@@ -90,8 +145,62 @@ const CreatePassword = () => {
   const handleSuccessModalContinue = () => {
     setShowSuccessModal(false);
     // Clear all session data
-    sessionStorage.removeItem("passwordResetVerified");
+    sessionStorage.removeItem("passwordResetEmail");
+    sessionStorage.removeItem("passwordResetOtp");
     router.push("/login");
+  };
+
+  const handleRestartResetFlow = async () => {
+    if (!email) {
+      router.push("/forgot-password");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage("");
+
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL
+        }/auth/request-password-reset-otp`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const backendMessage =
+          data && typeof data.message === "string" ? data.message : "";
+        setErrorMessage(
+          backendMessage ||
+            "Failed to request a new code. Please try again later."
+        );
+        setShowErrorModal(true);
+        setShouldRestartReset(false);
+        return;
+      }
+
+      // New OTP sent successfully: prepare verify-otp flow
+      sessionStorage.setItem("passwordResetEmail", email);
+      sessionStorage.removeItem("passwordResetOtp");
+      router.push("/verify-otp");
+    } catch (error) {
+      console.error("Restart reset flow error:", error);
+      setErrorMessage(
+        "Failed to request a new code. Please check your internet and try again."
+      );
+      setShowErrorModal(true);
+      setShouldRestartReset(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -275,7 +384,11 @@ const CreatePassword = () => {
         message={errorMessage}
         onRetry={() => {
           setShowErrorModal(false);
-          handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+          if (shouldRestartReset) {
+            void handleRestartResetFlow();
+          } else {
+            handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+          }
         }}
       />
 

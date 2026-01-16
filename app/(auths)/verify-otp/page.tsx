@@ -109,41 +109,12 @@ const VerifyOtp = () => {
           window.location.href = "/admin/dashboard"; // Force page reload to avoid cache issues
         }
       } else if (flowType === "password_reset") {
-        // Handle password reset OTP verification (new flow)
-        const response = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL
-          }/auth/verify-password-reset-otp`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email,
-              otp: otpCode,
-            }),
-          }
-        );
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          // Clear password reset email and redirect to create password
-          sessionStorage.removeItem("passwordResetEmail");
-          sessionStorage.setItem("passwordResetVerified", email); // Store for create password page
-          router.push("/create-password");
-        } else {
-          if (response.status === 400) {
-            setError(
-              "Invalid or expired OTP. Please try again or request a new code."
-            );
-          } else {
-            setError(
-              data.message || "OTP verification failed. Please try again."
-            );
-          }
-        }
+        // New flow: don't call a separate OTP verify endpoint.
+        // Store email + OTP and move user to the create-password page,
+        // which will call the combined verify+reset endpoint.
+        sessionStorage.setItem("passwordResetEmail", email);
+        sessionStorage.setItem("passwordResetOtp", otpCode);
+        router.push("/create-password");
       }
     } catch (err) {
       console.error("OTP verification error:", err);
