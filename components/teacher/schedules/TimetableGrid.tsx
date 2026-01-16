@@ -53,7 +53,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
 }) => {
   const isMobile = useIsMobile();
 
-  // Use dynamic timeSlots from props, fallback to hardcoded ones
+  // Use dynamic timeSlots from props only - no hardcoded fallback
   // Normalize timeSlots to TimeSlotInfo format
   const timeSlots: TimeSlotInfo[] =
     propTimeSlots && propTimeSlots.length > 0
@@ -63,16 +63,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
           }
           return slot as TimeSlotInfo;
         }).filter((slot) => slot.timeSlot && slot.timeSlot !== "[object Object]")
-      : [
-          "08:00-09:00",
-          "09:00-10:00",
-          "10:00-11:00",
-          "11:00-12:00",
-          "12:00-13:00",
-          "13:00-14:00",
-          "14:00-15:00",
-          "15:00-16:00",
-        ].map((ts) => ({ timeSlot: ts }));
+      : [];
 
   const getPeriodForSlot = (day: string, timeSlot: string) => {
     return periods.find(
@@ -87,6 +78,15 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
   const getTeacherById = (id: string) => {
     return teachers.find((teacher) => teacher.id === id);
   };
+
+  // If no time slots, return empty state
+  if (timeSlots.length === 0) {
+    return (
+      <div className="text-center py-8 text-brand-light-accent-1">
+        No time slots available. Please create time slots first.
+      </div>
+    );
+  }
 
   // Mobile layout - stacked by day
   if (isMobile) {

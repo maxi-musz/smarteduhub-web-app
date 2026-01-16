@@ -24,11 +24,11 @@ const adminTabs = [
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
   { href: "/admin/teachers", label: "Teachers", icon: Users },
   { href: "/admin/students", label: "Students", icon: User },
-  { href: "/onboarding-classes", label: "Onboarding", icon: UserPlus },
-  { href: "/admin/finance", label: "Finance", icon: FileText },
   { href: "/admin/subjects", label: "Subjects", icon: Book },
   { href: "/admin/schedules", label: "Schedules", icon: Calendar },
-  { href: "/admin/messages", label: "Messages", icon: MessageSquare },
+  // { href: "/onboarding-classes", label: "Onboarding", icon: UserPlus },
+  // { href: "/admin/finance", label: "Finance", icon: FileText },
+  // { href: "/admin/messages", label: "Messages", icon: MessageSquare },
   // { href: "/admin/settings", label: "Settings", icon: Settings },
   // { href: "/admin/profile", label: "Profile", icon: User },
 ];
@@ -73,9 +73,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
           <nav className="p-4 flex flex-col gap-1 flex-grow overflow-y-auto">
             {adminTabs.map(({ href, label, icon: Icon }) => {
               const isActive = 
-                href === "/onboarding-classes" 
-                  ? pathname.startsWith("/onboarding")
-                  : href === "/admin/explore"
+                href === "/admin/explore"
                   ? pathname.startsWith("/admin/explore")
                   : pathname === href;
               
@@ -129,9 +127,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
         <div className="grid grid-cols-5 h-16">
           {adminTabs.slice(0, 5).map(({ href, label, icon: Icon }) => {
             const isActive = 
-              href === "/onboarding-classes" 
-                ? pathname.startsWith("/onboarding")
-                : href === "/admin/explore"
+              href === "/admin/explore"
                 ? pathname.startsWith("/admin/explore")
                 : pathname === href;
             

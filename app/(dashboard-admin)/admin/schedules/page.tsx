@@ -1,17 +1,7 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, AlertCircle, RefreshCw } from "lucide-react";
-import TimetableGrid from "@/components/teacher/schedules/TimetableGrid";
 import AddPeriodDialog from "@/components/teacher/schedules/AddPeriodDialog";
 import TimeSlotManagement from "@/components/teacher/schedules/TimeSlotManagement";
 import {
@@ -23,6 +13,13 @@ import {
   type TimetableSchedule,
 } from "@/hooks/schedules/use-schedules";
 import { useToast } from "@/hooks/use-toast";
+import {
+  ScheduleHeader,
+  ClassSelector,
+  TimetableView,
+  AddPeriodButton,
+  ErrorModal,
+} from "./schedule-components";
 
 // Define a type for a period (for grid display)
 type Period = {
@@ -34,80 +31,22 @@ type Period = {
   teacherId: string;
 };
 
-// Skeleton component for loading state
-const TimetableSkeleton = ({ timeSlots }: { timeSlots: string[] }) => {
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-  const displayTimeSlots =
-    timeSlots.length > 0
-      ? timeSlots
-      : Array.from({ length: 8 }, (_, i) => `${8 + i}:00-${9 + i}:00`);
-
-  return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[800px] lg:min-w-full">
-        <div
-          className={`grid gap-1 mb-2`}
-          style={{
-            gridTemplateColumns: `1fr repeat(${displayTimeSlots.length}, 1fr)`,
-          }}
-        >
-          <div className="p-2 lg:p-3 font-semibold text-center bg-brand-border rounded-lg">
-            <div className="w-4 h-4 mx-auto mb-1 bg-gray-300 rounded animate-pulse"></div>
-            <span className="text-xs lg:text-sm">Time</span>
-          </div>
-          {displayTimeSlots.map((timeSlot, index) => (
-            <div
-              key={`skeleton-${index}-${timeSlot}`}
-              className="p-2 lg:p-3 font-medium text-center bg-brand-border rounded-lg"
-            >
-              <span className="text-xs lg:text-sm">
-                {String(timeSlot).replace("-", " - ")}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {days.map((day) => (
-          <div
-            key={day}
-            className={`grid gap-1 mb-2`}
-            style={{
-              gridTemplateColumns: `1fr repeat(${displayTimeSlots.length}, 1fr)`,
-            }}
-          >
-            <div className="p-3 lg:p-4 font-semibold text-center bg-brand-primary text-white rounded-lg flex items-center justify-center">
-              <span className="text-sm lg:text-base">{day}</span>
-            </div>
-            {displayTimeSlots.map((timeSlot, index) => (
-              <div
-                key={`${day}-skeleton-${index}-${timeSlot}`}
-                className="min-h-[60px] lg:min-h-[80px] border-2 border-dashed border-brand-border rounded-lg relative"
-              >
-                <div className="h-full p-1 lg:p-2 rounded-lg">
-                  <div className="h-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 animate-pulse rounded"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
 const AdminSchedulesPage = () => {
   const { toast } = useToast();
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<Period | null>(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
-  const [errorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Fetch timetable options (classes, teachers, subjects, timeSlots)
   const { data: timetableOptions, isLoading: isLoadingOptions } = useTimetableOptions();
 
   // Get classes from options
-  const classes = useMemo(() => (timetableOptions as TimetableOptions | undefined)?.classes || [], [timetableOptions]);
+  const classes = useMemo(
+    () => (timetableOptions as TimetableOptions | undefined)?.classes || [],
+    [timetableOptions]
+  );
 
   // Get selected class name (API expects class name, not ID)
   const selectedClassName = classes.find((c) => c.id === selectedClass)?.name || null;
@@ -123,16 +62,19 @@ const AdminSchedulesPage = () => {
   const createEntryMutation = useCreateTimetableEntry();
 
   // Set default selected class on mount
-  React.useEffect(() => {
+  useEffect(() => {
     if (!selectedClass && classes.length > 0) {
       setSelectedClass(classes[0].id);
     }
   }, [classes, selectedClass]);
 
   // Handle class selection change
-  const handleClassChange = useCallback((classId: string) => {
-    setSelectedClass(classId);
-  }, []);
+  const handleClassChange = useCallback(
+    (classId: string) => {
+      setSelectedClass(classId);
+    },
+    []
+  );
 
   // Convert API data to grid format
   const convertApiDataToGridFormat = useCallback(
@@ -201,7 +143,7 @@ const AdminSchedulesPage = () => {
           setEditingPeriod(null);
         },
         onError: (error) => {
-          // Don't close the dialog on error - keep the form data so user can fix and retry
+          // Don&apos;t close the dialog on error - keep the form data so user can fix and retry
           toast({
             title: "Error",
             description: error.message || "Failed to create timetable entry",
@@ -239,57 +181,62 @@ const AdminSchedulesPage = () => {
 
   // Get subjects and teachers - prefer from schedule data if available, fallback to options
   // This ensures we have all subjects/teachers that are actually in the schedule
-  const subjectsFromSchedule = new Map<string, { id: string; name: string; color: string }>();
+  const subjectsFromSchedule = new Map<
+    string,
+    { id: string; name: string; color: string }
+  >();
   const teachersFromSchedule = new Map<string, { id: string; name: string }>();
 
   if (typedScheduleData?.schedule) {
-    Object.values(typedScheduleData.schedule).forEach((dayPeriods: TimetableSchedulePeriod[]) => {
-      dayPeriods.forEach((period: TimetableSchedulePeriod) => {
-        if (period.subject) {
-          subjectsFromSchedule.set(period.subject.id, {
-            id: period.subject.id,
-            name: period.subject.name,
-            color: period.subject.color || "#3B82F6",
-          });
-        }
-        if (period.teacher) {
-          teachersFromSchedule.set(period.teacher.id, {
-            id: period.teacher.id,
-            name: period.teacher.name,
-          });
-        }
-      });
-    });
+    Object.values(typedScheduleData.schedule).forEach(
+      (dayPeriods: TimetableSchedulePeriod[]) => {
+        dayPeriods.forEach((period: TimetableSchedulePeriod) => {
+          if (period.subject) {
+            subjectsFromSchedule.set(period.subject.id, {
+              id: period.subject.id,
+              name: period.subject.name,
+              color: period.subject.color || "#3B82F6",
+            });
+          }
+          if (period.teacher) {
+            teachersFromSchedule.set(period.teacher.id, {
+              id: period.teacher.id,
+              name: period.teacher.name,
+            });
+          }
+        });
+      }
+    );
   }
 
   // Combine schedule data with options to ensure we have all subjects/teachers
   const typedTimetableOptions = timetableOptions as TimetableOptions | undefined;
-  const subjects = Array.from(subjectsFromSchedule.values()).length > 0
-    ? Array.from(subjectsFromSchedule.values())
-    : (typedTimetableOptions?.subjects.map((s) => ({
-        id: s.id,
-        name: s.name,
-        color: s.color || "#3B82F6",
-      })) || []);
+  const subjects =
+    Array.from(subjectsFromSchedule.values()).length > 0
+      ? Array.from(subjectsFromSchedule.values())
+      : typedTimetableOptions?.subjects.map((s) => ({
+          id: s.id,
+          name: s.name,
+          color: s.color || "#3B82F6",
+        })) || [];
 
-  const teachers = Array.from(teachersFromSchedule.values()).length > 0
-    ? Array.from(teachersFromSchedule.values())
-    : (typedTimetableOptions?.teachers || []);
+  const teachers =
+    Array.from(teachersFromSchedule.values()).length > 0
+      ? Array.from(teachersFromSchedule.values())
+      : typedTimetableOptions?.teachers || [];
+
+  // Handle error display
+  useEffect(() => {
+    if (scheduleError) {
+      setErrorMessage(scheduleError.message || "Failed to load schedule");
+      setShowErrorModal(true);
+    }
+  }, [scheduleError]);
 
   return (
     <div className="min-h-screen py-6 space-y-6 bg-brand-bg">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-brand-heading">
-              Class Schedules
-            </h1>
-            <p className="text-brand-light-accent-1 mt-1">
-              Manage and view class timetables
-            </p>
-          </div>
-        </div>
+        <ScheduleHeader />
 
         {/* Tabs for different views */}
         <Tabs defaultValue="timetable" className="space-y-4">
@@ -300,39 +247,13 @@ const AdminSchedulesPage = () => {
 
           {/* Timetable Tab */}
           <TabsContent value="timetable" className="space-y-4">
-            {/* Class Selection */}
-            <div className="flex items-center gap-2 mb-2">
-              {isLoadingOptions ? (
-                <div className="flex items-center gap-2 text-brand-light-accent-1">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  Loading classes...
-                </div>
-              ) : (
-                classes.map((cls) => (
-                  <button
-                    key={cls.id}
-                    type="button"
-                    disabled={isLoadingSchedule}
-                    className={`px-4 py-1 rounded-full text-sm font-medium transition-colors relative
-                      ${
-                        selectedClass === cls.id
-                          ? "bg-brand-primary text-white"
-                          : "border border-brand-border bg-white text-brand-light-accent-1 cursor-pointer hover:bg-gray-50"
-                      }
-                      ${isLoadingSchedule ? "opacity-50 cursor-not-allowed" : ""}
-                    `}
-                    onClick={() => handleClassChange(cls.id)}
-                  >
-                    {cls.name}
-                    {isLoadingSchedule && selectedClass === cls.id && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                    )}
-                  </button>
-                ))
-              )}
-            </div>
+            <ClassSelector
+              classes={classes}
+              selectedClass={selectedClass}
+              isLoading={isLoadingOptions}
+              isLoadingSchedule={isLoadingSchedule}
+              onClassChange={handleClassChange}
+            />
 
             {selectedClassData && (
               <div className="text-sm text-brand-light-accent-1 my-4">
@@ -340,57 +261,23 @@ const AdminSchedulesPage = () => {
               </div>
             )}
 
-            {/* Add Period Button */}
-            <div className="flex justify-end">
-              <Button
-                onClick={() => setIsAddDialogOpen(true)}
-                disabled={!selectedClass || isLoadingOptions}
-                className="flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Add Period
-              </Button>
-            </div>
+            <AddPeriodButton
+              onClick={() => setIsAddDialogOpen(true)}
+              disabled={!selectedClass || isLoadingOptions}
+            />
 
-            {/* Timetable Grid */}
-            {selectedClass && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    Weekly Timetable - {selectedClassData?.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingSchedule ? (
-                    <TimetableSkeleton timeSlots={timeSlots.map(slot => slot.timeSlot)} />
-                  ) : scheduleError ? (
-                    <div className="text-center py-8 text-red-600">
-                      {scheduleError.message || "Failed to load schedule"}
-                    </div>
-                  ) : (
-                    <TimetableGrid
-                      periods={classSchedule}
-                      subjects={subjects}
-                      teachers={teachers}
-                      timeSlots={timeSlots}
-                      onEdit={handleEditPeriod}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Show skeleton on initial load when no class selected yet */}
-            {!selectedClass && !isLoadingOptions && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Weekly Timetable</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TimetableSkeleton timeSlots={[]} />
-                </CardContent>
-              </Card>
-            )}
+            <TimetableView
+              selectedClass={selectedClass}
+              selectedClassName={selectedClassName}
+              scheduleData={typedScheduleData}
+              isLoadingSchedule={isLoadingSchedule}
+              scheduleError={scheduleError}
+              periods={classSchedule}
+              subjects={subjects}
+              teachers={teachers}
+              timeSlots={timeSlots}
+              onEditPeriod={handleEditPeriod}
+            />
           </TabsContent>
 
           {/* Time Slots Management Tab */}
@@ -413,28 +300,11 @@ const AdminSchedulesPage = () => {
         />
 
         {/* Error Modal */}
-        <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-red-600" />
-                Error
-              </DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <p className="text-muted-foreground mb-4">{errorMessage}</p>
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setShowErrorModal(false)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <ErrorModal
+          open={showErrorModal}
+          onOpenChange={setShowErrorModal}
+          error={errorMessage}
+        />
       </div>
     </div>
   );
