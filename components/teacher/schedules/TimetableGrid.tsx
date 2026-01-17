@@ -40,7 +40,7 @@ interface TimetableGridProps {
   periods: Period[];
   subjects: Subject[];
   teachers: Teacher[];
-  onEdit: (period: Period) => void;
+  onEdit?: (period: Period) => void; // Optional - teachers can't edit, only admins can
   timeSlots?: string[] | TimeSlotInfo[]; // Optional prop for dynamic time slots (can be strings or objects with labels)
 }
 
@@ -143,26 +143,28 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
                         </span>
                       )}
                     </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="p-2 h-8 w-8"
-                      onClick={() =>
-                        period
-                          ? onEdit(period)
-                          : onEdit({
-                              id: "",
-                              classId: "",
-                              subjectId: "",
-                              teacherId: "",
-                              day,
-                              timeSlot: timeSlotStr,
-                              isNew: true,
-                            })
-                      }
-                    >
-                      <Edit className="w-3 h-3" />
-                    </Button>
+                    {onEdit && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="p-2 h-8 w-8"
+                        onClick={() =>
+                          period
+                            ? onEdit(period)
+                            : onEdit({
+                                id: "",
+                                classId: "",
+                                subjectId: "",
+                                teacherId: "",
+                                day,
+                                timeSlot: timeSlotStr,
+                                isNew: true,
+                              })
+                        }
+                      >
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                    )}
                   </div>
                 );
               })}
@@ -232,12 +234,14 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
                 >
                   {period && subject && teacher ? (
                     <div
-                      className="h-full p-1 lg:p-2 rounded-lg cursor-pointer hover:shadow-md transition-shadow"
+                      className={`h-full p-1 lg:p-2 rounded-lg transition-shadow ${
+                        onEdit ? "cursor-pointer hover:shadow-md" : ""
+                      }`}
                       style={{
                         backgroundColor: `${subject.color}15`,
                         borderColor: subject.color,
                       }}
-                      onClick={() => onEdit(period)}
+                      onClick={onEdit ? () => onEdit(period) : undefined}
                     >
                       <div className="flex flex-col h-full justify-between">
                         <div>
@@ -254,39 +258,45 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
                             {teacher.name}
                           </p>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-5 w-5 lg:h-6 lg:w-6 self-end"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(period);
-                          }}
-                        >
-                          <Edit className="w-2 h-2 lg:w-3 lg:h-3" />
-                        </Button>
+                        {onEdit && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-5 w-5 lg:h-6 lg:w-6 self-end"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEdit(period);
+                            }}
+                          >
+                            <Edit className="w-2 h-2 lg:w-3 lg:h-3" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ) : (
-                    <div className="h-full flex items-center justify-center text-brand-light-accent-1 hover:text-brand-primary transition-colors">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] lg:text-xs p-1 h-auto"
-                        onClick={() =>
-                          onEdit({
-                            id: "",
-                            classId: "",
-                            subjectId: "",
-                            teacherId: "",
-                            day,
-                            timeSlot: timeSlotStr,
-                            isNew: true,
-                          })
-                        }
-                      >
-                        + Add Period
-                      </Button>
+                    <div className="h-full flex items-center justify-center text-brand-light-accent-1">
+                      {onEdit ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] lg:text-xs p-1 h-auto hover:text-brand-primary"
+                          onClick={() =>
+                            onEdit({
+                              id: "",
+                              classId: "",
+                              subjectId: "",
+                              teacherId: "",
+                              day,
+                              timeSlot: timeSlotStr,
+                              isNew: true,
+                            })
+                          }
+                        >
+                          + Add Period
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-gray-400">No class scheduled</span>
+                      )}
                     </div>
                   )}
                 </div>

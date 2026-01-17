@@ -3,10 +3,8 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { Button } from "@/components/ui/button";
-import { Plus, Edit3 } from "lucide-react";
+import { Edit3 } from "lucide-react";
 import TimetableGrid from "@/components/teacher/schedules/TimetableGrid";
-import AddPeriodDialog from "@/components/teacher/schedules/AddPeriodDialog";
 
 // Define a type for a period
 type Period = {
@@ -75,8 +73,6 @@ import { useEffect } from "react";
 
 const TeacherSchedulesPage = () => {
   const [selectedClass, setSelectedClass] = useState<string>("");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingPeriod, setEditingPeriod] = useState<Period | null>(null);
 
   // Set default selected class on mount
   useEffect(() => {
@@ -85,24 +81,6 @@ const TeacherSchedulesPage = () => {
     }
   }, [selectedClass]);
 
-  const handleAddPeriod = (data: {
-    class_id: string;
-    subject_id: string;
-    teacher_id: string;
-    timeSlotId: string;
-    day_of_week: string;
-    room?: string;
-    notes?: string;
-  }) => {
-    console.log("Adding period:", data);
-    // Here you would make an API call to save the period
-    setIsAddDialogOpen(false);
-  };
-
-  const handleEditPeriod = (period: Period) => {
-    setEditingPeriod(period);
-    setIsAddDialogOpen(true);
-  };
 
   const selectedClassData = classes.find((c) => c.id === selectedClass);
   const classSchedule = mockTimetableData.filter(
@@ -113,23 +91,13 @@ const TeacherSchedulesPage = () => {
     <div className="min-h-screen py-6 space-y-6 bg-brand-bg">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-brand-heading">
-              Class Schedules
-            </h1>
-            <p className="text-brand-light-accent-1 mt-1">
-              Manage and view class timetables
-            </p>
-          </div>
-          <Button
-            onClick={() => setIsAddDialogOpen(true)}
-            disabled={!selectedClass}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Period
-          </Button>
+        <div>
+          <h1 className="text-2xl font-bold text-brand-heading">
+            Class Schedules
+          </h1>
+          <p className="text-brand-light-accent-1 mt-1">
+            View class timetables
+          </p>
         </div>
 
         {/* Class Selection as Badges */}
@@ -174,7 +142,6 @@ const TeacherSchedulesPage = () => {
                 periods={classSchedule}
                 subjects={subjects}
                 teachers={teachers}
-                onEdit={handleEditPeriod}
               />
             </CardContent>
           </Card>
@@ -194,18 +161,6 @@ const TeacherSchedulesPage = () => {
           </Card>
         )}
 
-        {/* Add/Edit Period Dialog */}
-        <AddPeriodDialog
-          isOpen={isAddDialogOpen}
-          onClose={() => {
-            setIsAddDialogOpen(false);
-            setEditingPeriod(null);
-          }}
-          onSubmit={handleAddPeriod}
-          editingPeriod={editingPeriod ?? undefined}
-          selectedClassId={selectedClass}
-          selectedClassName={selectedClassData?.name}
-        />
       </div>
     </div>
   );

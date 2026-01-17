@@ -10,6 +10,9 @@ import {
   Bell,
   Settings,
   Compass,
+  ClipboardCheck,
+  ClipboardList,
+  Award,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -21,9 +24,11 @@ const teacherTabs = [
   { href: "/teacher/explore", label: "Explore", icon: Compass },
   { href: "/teacher/dashboard", label: "Dashboard", icon: Home },
   { href: "/teacher/students", label: "Students", icon: Users },
-  { href: "/teacher/schedules", label: "Schedules", icon: Calendar },
   { href: "/teacher/subjects", label: "Subjects", icon: Book },
-  { href: "/teacher/grading", label: "Grading", icon: FileText },
+  { href: "/teacher/schedules", label: "Schedules", icon: Calendar },
+  { href: "/teacher/attendance", label: "Attendance", icon: ClipboardCheck },
+  { href: "/teacher/assessments", label: "Assessments", icon: ClipboardList },
+  { href: "/teacher/result", label: "Result", icon: Award },
 ];
 
 const bottomTabs = [
@@ -66,6 +71,12 @@ export default function TeacherShell({ children }: { children: ReactNode }) {
               const isActive = 
                 href === "/teacher/explore"
                   ? pathname.startsWith("/teacher/explore")
+                  : href === "/teacher/attendance"
+                  ? pathname.startsWith("/teacher/attendance")
+                  : href === "/teacher/assessments"
+                  ? pathname.startsWith("/teacher/assessments")
+                  : href === "/teacher/result"
+                  ? pathname.startsWith("/teacher/result")
                   : pathname === href;
               
               return (

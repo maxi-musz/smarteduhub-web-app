@@ -1,109 +1,86 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { StudentsTable } from "@/components/teacher/students/StudentsTable";
-import { Plus, Search, Users } from "lucide-react";
-
-const classes = ["JSS1", "JSS2", "JSS3", "SS1", "SS2", "SS3"];
-const sortOptions = ["Performance", "Attendance"];
+import { useState, useEffect, useMemo } from "react";
+import { useStudentTab } from "@/hooks/use-teacher-data";
+import { AuthenticatedApiError } from "@/lib/api/authenticated";
+import {
+  StudentHeader,
+  StudentStatsCards,
+  StudentFilters,
+  StudentTable,
+  StudentPagination,
+} from "./student-components";
 
 export default function TeacherStudentsPage() {
-  const [selectedClass, setSelectedClass] = useState<string>("");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("Performance");
+  const [selectedClassId, setSelectedClassId] = useState<string>("");
+  const [sortBy] = useState<"name" | "createdAt">("createdAt");
+  const [sortOrder] = useState<"asc" | "desc">("desc");
+
+  const { data, isLoading, error } = useStudentTab({
+    page,
+    limit,
+    search: searchQuery || undefined,
+    class_id: selectedClassId || undefined,
+    sort_by: sortBy,
+    sort_order: sortOrder,
+  });
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, selectedClassId]);
+
+  const errorMessage = useMemo(() => {
+    if (!error) return null;
+
+    if (error instanceof AuthenticatedApiError) {
+      if (error.statusCode === 401) {
+        return "Your session has expired. Please login again.";
+      } else if (error.statusCode === 403) {
+        return "You don't have permission to access this data.";
+      } else {
+        return error.message;
+      }
+    }
+
+    return "An unexpected error occurred while loading students data.";
+  }, [error]);
 
   return (
-    <div className="py-6 space-y-6 min-h-screen bg-brand-bg ">
+    <div className="py-6 space-y-6 min-h-screen bg-brand-bg">
       <div className="container mx-auto max-w-7xl">
-        {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-brand-primary/10 rounded-lg">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-            <h1 className="text-2xl font-bold text-brand-heading">Students</h1>
+        <StudentHeader />
+
+        {errorMessage && (
+          <div className="text-center py-8 text-red-600">
+            {errorMessage}
           </div>
-          <p className="text-brand-light-accent-1 text-sm lg:text-lg">
-            Manage and monitor student performance and attendance.
-          </p>
-        </div>
+        )}
 
-        {/* Filters and Actions */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Filters & Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Class Filter */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Filter by Class
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <Badge
-                  variant={selectedClass === "" ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedClass("")}
-                >
-                  All Classes
-                </Badge>
-                {classes.map((className) => (
-                  <Badge
-                    key={className}
-                    variant={
-                      selectedClass === className ? "default" : "outline"
-                    }
-                    className="cursor-pointer"
-                    onClick={() => setSelectedClass(className)}
-                  >
-                    {className}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+        <StudentStatsCards data={data} isLoading={isLoading} />
 
-            {/* Search and Sort */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search students..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                {sortOptions.map((option) => (
-                  <Button
-                    key={option}
-                    variant={sortBy === option ? "default" : "outline"}
-                    onClick={() => setSortBy(option)}
-                    size="sm"
-                  >
-                    Best {option}
-                  </Button>
-                ))}
-              </div>
-
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add Student
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Students Table */}
-        <StudentsTable
-          selectedClass={selectedClass}
+        <StudentFilters
           searchQuery={searchQuery}
-          sortBy={sortBy}
+          selectedClassId={selectedClassId}
+          classes={data?.classes || []}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setPage(1);
+          }}
+          onClassChange={(classId) => {
+            setSelectedClassId(classId);
+            setPage(1);
+          }}
+        />
+
+        <StudentTable data={data} isLoading={isLoading} />
+
+        <StudentPagination
+          pagination={data?.students.pagination}
+          onPageChange={setPage}
         />
       </div>
     </div>
