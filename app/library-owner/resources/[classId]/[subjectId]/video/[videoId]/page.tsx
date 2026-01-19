@@ -92,7 +92,7 @@ export default function VideoPlayerPage() {
     <div className="min-h-screen bg-brand-bg">
       {/* Header */}
       <div className="bg-white border-b border-brand-border sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
           <Button
             variant="ghost"
             onClick={() => router.back()}
@@ -104,7 +104,7 @@ export default function VideoPlayerPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Video Player - Main Content */}
           <div className="lg:col-span-2 space-y-6">

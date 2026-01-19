@@ -7,7 +7,7 @@ interface SchoolsBreakdownProps {
 
 export const SchoolsBreakdown = ({ statistics }: SchoolsBreakdownProps) => {
   return (
-    <div className="px-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       {/* Schools by Status */}
       <Card className="shadow-sm bg-white">
         <CardHeader>

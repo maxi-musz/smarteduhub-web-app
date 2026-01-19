@@ -43,7 +43,19 @@ export const AttemptsView = ({
     );
   }
 
-  const { students, statistics, assessment } = attemptsData;
+  const { students = [], statistics, assessment } = attemptsData;
+
+  // Provide default values for statistics if undefined
+  const safeStatistics = statistics || {
+    total_students: 0,
+    attempted_count: 0,
+    not_attempted_count: 0,
+    passed_count: 0,
+    failed_count: 0,
+    average_score: 0,
+    highest_score: 0,
+    lowest_score: 0,
+  };
 
   return (
     <>
@@ -54,7 +66,7 @@ export const AttemptsView = ({
               <Users className="h-5 w-5 text-blue-600" />
               <div>
                 <p className="text-sm text-gray-500">Total Students</p>
-                <p className="text-2xl font-bold">{statistics.total_students}</p>
+                <p className="text-2xl font-bold">{safeStatistics.total_students}</p>
               </div>
             </div>
           </CardContent>
@@ -66,7 +78,7 @@ export const AttemptsView = ({
               <CheckCircle className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-sm text-gray-500">Attempted</p>
-                <p className="text-2xl font-bold">{statistics.attempted_count}</p>
+                <p className="text-2xl font-bold">{safeStatistics.attempted_count}</p>
               </div>
             </div>
           </CardContent>
@@ -78,7 +90,7 @@ export const AttemptsView = ({
               <TrendingUp className="h-5 w-5 text-purple-600" />
               <div>
                 <p className="text-sm text-gray-500">Average Score</p>
-                <p className="text-2xl font-bold">{statistics.average_score.toFixed(1)}%</p>
+                <p className="text-2xl font-bold">{safeStatistics.average_score.toFixed(1)}%</p>
               </div>
             </div>
           </CardContent>
@@ -90,7 +102,7 @@ export const AttemptsView = ({
               <CheckCircle className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-sm text-gray-500">Passed</p>
-                <p className="text-2xl font-bold">{statistics.passed_count}</p>
+                <p className="text-2xl font-bold">{safeStatistics.passed_count}</p>
               </div>
             </div>
           </CardContent>
@@ -103,7 +115,12 @@ export const AttemptsView = ({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {students.map((studentData) => {
+            {students.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No student attempts found
+              </div>
+            ) : (
+              students.map((studentData) => {
               const { student, attempts, best_score, attempts_count, has_passed } = studentData;
               const studentName = `${student.user.first_name} ${student.user.last_name}`;
 
@@ -188,7 +205,8 @@ export const AttemptsView = ({
                   )}
                 </div>
               );
-            })}
+            })
+            )}
           </div>
         </CardContent>
       </Card>

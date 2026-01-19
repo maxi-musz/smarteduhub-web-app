@@ -103,8 +103,8 @@ const LibraryOwnerResources = () => {
     }
 
     return (
-      <div className="py-6 space-y-6 bg-brand-bg">
-        <div className="px-6">
+      <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
+        <div className="px-4 sm:px-6">
           <Dialog open={true}>
             <DialogContent>
               <DialogHeader>
@@ -314,35 +314,39 @@ const LibraryOwnerResources = () => {
   const data = resourcesData as unknown as ResourcesDashboardResponse;
 
   return (
-    <div className="py-6 space-y-6 bg-brand-bg">
+    <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
       {/* Header */}
-      <div className="pl-0 pr-6">
-        <h1 className="text-2xl font-bold text-brand-heading">Resources</h1>
-        <p className="text-brand-light-accent-1 mt-1">
+      <div className="px-4 sm:px-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-brand-heading">Resources</h1>
+        <p className="text-sm sm:text-base text-brand-light-accent-1 mt-1">
           Manage and view all your library resources
         </p>
       </div>
 
       {/* Statistics Overview */}
-      <ResourcesStatistics statistics={data.statistics} />
+      <div className="px-4 sm:px-6">
+        <ResourcesStatistics statistics={data.statistics} />
+      </div>
 
       {/* Breakdown Statistics */}
-      <ResourcesBreakdown statistics={data.statistics} />
+      <div className="px-4 sm:px-6">
+        <ResourcesBreakdown statistics={data.statistics} />
+      </div>
 
       {/* Additional Content Sections */}
-      <div className="pl-0 pr-6 space-y-6">
+      <div className="px-4 sm:px-6 space-y-4 sm:space-y-6">
         {/* Collapsible Sections */}
         <Accordion type="multiple" defaultValue={[]} className="space-y-4">
           {/* Library Classes Summary - Collapsed by default */}
           <div className="bg-white rounded-lg shadow-sm border-l-4 border-l-blue-500 border border-brand-border overflow-hidden">
             <AccordionItem value="library-classes" className="border-0">
-              <AccordionTrigger className="hover:no-underline px-6">
-                <h2 className="text-xl font-semibold text-brand-heading">
+              <AccordionTrigger className="hover:no-underline px-4 sm:px-6">
+                <h2 className="text-lg sm:text-xl font-semibold text-brand-heading">
                   Library Classes ({data.libraryClasses.length})
                 </h2>
               </AccordionTrigger>
-              <AccordionContent className="px-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+              <AccordionContent className="px-4 sm:px-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
                   {data.libraryClasses.map((classItem) => (
                     <LibraryClassCard key={classItem.id} classItem={classItem} />
                   ))}
@@ -354,12 +358,12 @@ const LibraryOwnerResources = () => {
           {/* Recent Materials Summary - Collapsed by default */}
           <div className="bg-white rounded-lg shadow-sm border-l-4 border-l-green-500 border border-brand-border overflow-hidden">
             <AccordionItem value="recent-materials" className="border-0">
-              <AccordionTrigger className="hover:no-underline px-6">
-                <h2 className="text-xl font-semibold text-brand-heading">
+              <AccordionTrigger className="hover:no-underline px-4 sm:px-6">
+                <h2 className="text-lg sm:text-xl font-semibold text-brand-heading">
                   Recent Materials ({data.resources.materials.length})
                 </h2>
               </AccordionTrigger>
-              <AccordionContent className="px-6">
+              <AccordionContent className="px-4 sm:px-6">
                 <div className="pb-4">
                   {data.resources.materials.length > 0 ? (
                     <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
@@ -379,8 +383,8 @@ const LibraryOwnerResources = () => {
         </Accordion>
 
         {/* Recent Videos - Video-style cards with navigation */}
-        <div className="bg-white rounded-lg shadow-sm border-l-4 border-l-purple-500 border border-brand-border p-6">
-          <h2 className="text-xl font-semibold text-brand-heading mb-4">
+        <div className="bg-white rounded-lg shadow-sm border-l-4 border-l-purple-500 border border-brand-border p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-brand-heading mb-4">
             Recent Videos ({data.resources.videos.length})
           </h2>
           {data.resources.videos.length > 0 ? (

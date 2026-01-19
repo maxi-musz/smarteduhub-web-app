@@ -92,10 +92,10 @@ const SubjectDetailPage = () => {
   if (isClassResourcesLoading) {
     return (
       <div className="pt-4 pb-6 space-y-6 bg-brand-bg">
-        <div className="pl-0 pr-6">
+        <div className="px-4 sm:px-6">
           <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
         </div>
-        <div className="pl-0 pr-6">
+        <div className="px-4 sm:px-6">
           <div className="h-64 bg-gray-200 rounded animate-pulse" />
         </div>
       </div>
@@ -130,8 +130,8 @@ const SubjectDetailPage = () => {
     }
 
     return (
-      <div className="py-6 space-y-6 bg-brand-bg">
-        <div className="pl-0 pr-6">
+      <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
+        <div className="px-4 sm:px-6">
           <Dialog open={true}>
             <DialogContent>
               <DialogHeader>
@@ -165,7 +165,7 @@ const SubjectDetailPage = () => {
   if (!subject) {
     return (
       <div className="pt-4 pb-6 space-y-6 bg-brand-bg">
-        <div className="pl-0 pr-6">
+        <div className="px-4 sm:px-6">
           <Button
             variant="ghost"
             onClick={() => router.back()}
@@ -175,7 +175,7 @@ const SubjectDetailPage = () => {
             Back
           </Button>
         </div>
-        <div className="pl-0 pr-6 text-center py-12">
+        <div className="px-4 sm:px-6 text-center py-12">
           <AlertCircle className="h-12 w-12 text-brand-light-accent-1 mx-auto mb-4" />
           <p className="text-brand-light-accent-1">
             Subject not found
@@ -193,7 +193,7 @@ const SubjectDetailPage = () => {
   return (
     <div className="pt-4 pb-6 space-y-6 bg-brand-bg min-h-screen">
       {/* Back Button */}
-      <div className="pl-0 pr-6">
+      <div className="px-4 sm:px-6">
         <Button
           variant="ghost"
           onClick={() => router.back()}
@@ -205,27 +205,27 @@ const SubjectDetailPage = () => {
       </div>
 
       {/* Subject Header */}
-      <div className="pl-0 pr-6">
+      <div className="px-4 sm:px-6">
         <Card className="shadow-sm bg-white border border-brand-border">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-6">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
               {subject.thumbnailUrl ? (
-                <div className="relative w-32 h-40 rounded-lg overflow-hidden border-2 border-brand-border flex-shrink-0 shadow-md bg-gray-100">
+                <div className="relative w-24 h-32 sm:w-32 sm:h-40 rounded-lg overflow-hidden border-2 border-brand-border flex-shrink-0 shadow-md bg-gray-100">
                   <Image
                     src={subject.thumbnailUrl}
                     alt={subject.name}
                     fill
                     className="object-contain"
                     unoptimized={subject.thumbnailUrl.includes("s3.amazonaws.com")}
-                    sizes="128px"
+                    sizes="(max-width: 640px) 96px, 128px"
                   />
                 </div>
               ) : (
                 <div
-                  className="w-32 h-40 rounded-lg flex-shrink-0 flex flex-col items-center justify-center text-white font-semibold shadow-md border-2 border-brand-border"
+                  className="w-24 h-32 sm:w-32 sm:h-40 rounded-lg flex-shrink-0 flex flex-col items-center justify-center text-white font-semibold shadow-md border-2 border-brand-border"
                   style={{ backgroundColor: subject.color }}
                 >
-                  <span className="text-lg font-bold leading-tight text-center px-2">
+                  <span className="text-base sm:text-lg font-bold leading-tight text-center px-2">
                     {subject.code ||
                       subject.name
                         .split(" ")
@@ -235,14 +235,14 @@ const SubjectDetailPage = () => {
                   </span>
                 </div>
               )}
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-brand-heading mb-2">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl sm:text-3xl font-bold text-brand-heading mb-2">
                   {subject.name}
                 </h1>
-                <p className="text-brand-light-accent-1 mb-4">
+                <p className="text-sm sm:text-base text-brand-light-accent-1 mb-4">
                   {subject.code} • {subject.description || "No description"}
                 </p>
-                <div className="flex items-center gap-6 text-sm">
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm">
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-brand-primary" />
                     <span className="text-brand-light-accent-1">
@@ -287,10 +287,10 @@ const SubjectDetailPage = () => {
       </div>
 
       {/* Chapters Section */}
-      <div className="pl-0 pr-6 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="px-4 sm:px-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-brand-heading">
+            <h2 className="text-xl sm:text-2xl font-semibold text-brand-heading">
               Chapters
             </h2>
             <p className="text-sm text-brand-light-accent-1 mt-1">
@@ -299,7 +299,7 @@ const SubjectDetailPage = () => {
           </div>
           <Button
             onClick={() => setIsCreateChapterModalOpen(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Create Chapter

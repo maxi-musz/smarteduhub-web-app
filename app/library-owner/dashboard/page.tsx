@@ -64,8 +64,8 @@ const LibraryOwnerDashboard = () => {
     }
 
     return (
-      <div className="py-6 space-y-6 bg-brand-bg">
-        <div className="px-6">
+      <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
+        <div className="px-4 sm:px-6">
           <Dialog open={true}>
             <DialogContent>
               <DialogHeader>
@@ -101,13 +101,13 @@ const LibraryOwnerDashboard = () => {
   }
 
   return (
-    <div className="py-6 space-y-6 bg-brand-bg">
+    <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
       {/* Header */}
-      <div className="px-6">
-        <h1 className="text-2xl font-bold text-brand-heading">
+      <div className="px-4 sm:px-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-brand-heading">
           {dashboardData.library.name} Dashboard
         </h1>
-        <p className="text-brand-light-accent-1 mt-1">
+        <p className="text-brand-light-accent-1 mt-1 text-sm sm:text-base">
           Manage your library resources and content
         </p>
       </div>

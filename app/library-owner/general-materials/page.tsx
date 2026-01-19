@@ -31,8 +31,8 @@ const GeneralMaterialsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="py-6 space-y-6 bg-brand-bg">
-        <div className="px-6 space-y-4">
+      <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
+        <div className="px-4 sm:px-6 space-y-4">
           <div className="h-8 w-40 bg-gray-200 rounded animate-pulse" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="h-24 bg-gray-200 rounded-lg animate-pulse" />
@@ -72,8 +72,8 @@ const GeneralMaterialsPage = () => {
     }
 
     return (
-      <div className="py-6 space-y-6 bg-brand-bg">
-        <div className="px-6">
+      <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
+        <div className="px-4 sm:px-6">
           <Dialog open={true}>
             <DialogContent>
               <DialogHeader>
@@ -106,17 +106,17 @@ const GeneralMaterialsPage = () => {
   }
 
   return (
-    <div className="py-6 space-y-6 bg-brand-bg">
-      <div className="px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
+      <div className="px-4 sm:px-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-heading">AI Books</h1>
-          <p className="text-brand-light-accent-1 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-brand-heading">AI Books</h1>
+          <p className="text-sm sm:text-base text-brand-light-accent-1 mt-1">
             Manage ebooks and general learning materials across your platform.
           </p>
         </div>
         <Button
           onClick={() => setIsUploadModalOpen(true)}
-          className="flex items-center gap-2 self-start"
+          className="flex items-center gap-2 self-start w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           Upload AI Book
@@ -124,7 +124,7 @@ const GeneralMaterialsPage = () => {
       </div>
 
       {dashboard && (
-        <div className="px-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="bg-white rounded-lg border border-brand-border p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-brand-primary/10 flex items-center justify-center">
               <BookOpen className="h-5 w-5 text-brand-primary" />
@@ -168,13 +168,13 @@ const GeneralMaterialsPage = () => {
       )}
 
       {dashboard && (
-        <div className="px-6">
+        <div className="px-4 sm:px-6">
           <div className="bg-white rounded-lg border border-brand-border overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-brand-border">
-              <h2 className="text-lg font-semibold text-brand-heading">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-b border-brand-border">
+              <h2 className="text-base sm:text-lg font-semibold text-brand-heading">
                 Recent AI Books
               </h2>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <p className="text-xs text-brand-light-accent-1">
                   Showing {Math.min(dashboard.materials.length, 10)} of{" "}
                   {dashboard.statistics.overview.totalMaterials} materials
@@ -185,7 +185,7 @@ const GeneralMaterialsPage = () => {
                   onClick={() => {
                     window.location.href = "/library-owner/general-materials/all";
                   }}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 w-full sm:w-auto"
                 >
                   <FileText className="h-4 w-4" />
                   View All
@@ -193,7 +193,7 @@ const GeneralMaterialsPage = () => {
               </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-xs sm:text-sm">
                 <thead className="bg-brand-bg/60">
                   <tr className="text-left text-xs text-brand-light-accent-1">
                     <th className="px-4 py-2 font-medium">Book</th>

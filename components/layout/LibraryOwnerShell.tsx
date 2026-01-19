@@ -83,7 +83,7 @@ export default function LibraryOwnerShell({
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg">
+    <div className="min-h-screen bg-brand-bg flex">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-brand-border shadow-sm z-50">
         <div className="flex flex-col h-full">
@@ -167,7 +167,7 @@ export default function LibraryOwnerShell({
       </aside>
 
       {/* Main Content */}
-      <main className="ml-64">{children}</main>
+      <main className="ml-64 flex-1 min-w-0 w-full">{children}</main>
     </div>
   );
 }

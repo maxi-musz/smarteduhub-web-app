@@ -154,9 +154,9 @@ const ClassResourcesPage = () => {
   const data = classResourcesData as unknown as ClassResourcesResponse;
 
   return (
-    <div className="pt-4 pb-6 space-y-6 bg-brand-bg">
-      {/* Back Button - Close to sidebar */}
-      <div className="pl-0 pr-6">
+    <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg -ml-4 sm:-ml-6">
+      {/* Back Button */}
+      <div className="px-4 sm:px-6">
         <Button
           variant="ghost"
           onClick={() => router.back()}
@@ -168,27 +168,29 @@ const ClassResourcesPage = () => {
       </div>
 
       {/* Header */}
-      <div className="pl-0 pr-6">
-        <h1 className="text-2xl font-bold text-brand-heading">
+      <div className="px-4 sm:px-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-brand-heading">
           {data.class.name} - Resources
         </h1>
-        <p className="text-brand-light-accent-1 mt-1">
+        <p className="text-brand-light-accent-1 mt-1 text-sm sm:text-base">
           {data.platform.name} • View all subjects, chapters, topics, videos, and materials for this class
         </p>
       </div>
 
       {/* Statistics Overview */}
-      <ClassStatistics statistics={data.statistics} />
+      <div className="px-4 sm:px-6">
+        <ClassStatistics statistics={data.statistics} />
+      </div>
 
       {/* Subjects List */}
-      <div className="pl-0 pr-6 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="px-4 sm:px-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h2 className="text-xl font-semibold text-brand-heading">
             Subjects ({data.subjects.length})
           </h2>
           <Button
             onClick={() => setIsCreateSubjectModalOpen(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Create Subject
