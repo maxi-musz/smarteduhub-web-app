@@ -111,7 +111,8 @@ export const CreateQuestionDialog = ({
     e.preventDefault();
     // Remove order from data since backend handles it automatically
     // Also remove image_url and image_s3_key - they're not needed when uploading file
-    const { order, image_url, image_s3_key, ...dataToSubmit } = formData;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { order: _order, image_url: _image_url, image_s3_key: _image_s3_key, ...dataToSubmit } = formData;
     createMutation.mutate(
       { assessmentId, data: dataToSubmit, imageFile: imageFile || undefined },
       {

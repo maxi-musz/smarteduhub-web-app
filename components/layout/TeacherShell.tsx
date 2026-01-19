@@ -5,7 +5,6 @@ import {
   Users,
   Calendar,
   Book,
-  FileText,
   User,
   Bell,
   Settings,

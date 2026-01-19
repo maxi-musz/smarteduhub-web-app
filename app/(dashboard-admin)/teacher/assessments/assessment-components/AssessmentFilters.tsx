@@ -13,8 +13,10 @@ import { Button } from "@/components/ui/button";
 interface AssessmentFiltersProps {
   status?: string;
   type?: string;
+  topicId?: string;
   onStatusChange: (status: string | undefined) => void;
   onTypeChange: (type: string | undefined) => void;
+  onTopicChange: (topicId: string | undefined) => void;
 }
 
 const STATUS_OPTIONS: { label: string; value?: string }[] = [
@@ -29,8 +31,12 @@ const STATUS_OPTIONS: { label: string; value?: string }[] = [
 export const AssessmentFilters = ({
   status,
   type,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  topicId: _topicId,
   onStatusChange,
   onTypeChange,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onTopicChange: _onTopicChange,
 }: AssessmentFiltersProps) => {
   return (
     <div className="flex items-center gap-6">

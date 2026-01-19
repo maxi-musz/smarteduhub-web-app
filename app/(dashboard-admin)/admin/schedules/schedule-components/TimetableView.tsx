@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TimetableGrid from "@/components/teacher/schedules/TimetableGrid";
 import { TimetableSkeleton } from "./TimetableSkeleton";
-import { type TimetableSchedulePeriod, type TimetableSchedule } from "@/hooks/schedules/use-schedules";
+import { type TimetableSchedule } from "@/hooks/schedules/use-schedules";
 
 interface Period {
   id: string;
@@ -36,7 +36,8 @@ interface TimetableViewProps {
 export const TimetableView = ({
   selectedClass,
   selectedClassName,
-  scheduleData,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  scheduleData: _scheduleData,
   isLoadingSchedule,
   scheduleError,
   periods,

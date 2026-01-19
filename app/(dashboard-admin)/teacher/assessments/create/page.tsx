@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCreateAssessment } from "@/hooks/use-teacher-assessments";
 import { useSubjectsDashboard } from "@/hooks/use-teacher-data";
 import { CreateAssessmentForm } from "./CreateAssessmentForm";
 import { Loader2 } from "lucide-react";
 
-const CreateAssessmentPage = () => {
+const CreateAssessmentContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const subjectIdParam = searchParams.get("subject_id");
@@ -94,6 +94,20 @@ const CreateAssessmentPage = () => {
         />
       </div>
     </>
+  );
+};
+
+const CreateAssessmentPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="py-6 space-y-6 bg-brand-bg">
+        <div className="text-center py-8 text-gray-500">
+          Loading...
+        </div>
+      </div>
+    }>
+      <CreateAssessmentContent />
+    </Suspense>
   );
 };
 

@@ -78,7 +78,7 @@ export const SubjectCard = ({ subject, onAIClick }: SubjectCardProps) => {
                   <span className="text-sm">Videos</span>
                 </div>
                 <span className="font-medium">
-                  {subject.contentCounts.totalVideos}
+                  {subject.contentCounts?.totalVideos ?? 0}
                 </span>
               </div>
 
@@ -88,7 +88,7 @@ export const SubjectCard = ({ subject, onAIClick }: SubjectCardProps) => {
                   <span className="text-sm">Materials</span>
                 </div>
                 <span className="font-medium">
-                  {subject.contentCounts.totalMaterials}
+                  {subject.contentCounts?.totalMaterials ?? 0}
                 </span>
               </div>
 
@@ -98,20 +98,20 @@ export const SubjectCard = ({ subject, onAIClick }: SubjectCardProps) => {
                   <span className="text-sm">Assignments</span>
                 </div>
                 <span className="font-medium">
-                  {subject.contentCounts.totalAssignments}
+                  {subject.contentCounts?.totalAssignments ?? 0}
                 </span>
               </div>
             </div>
 
             {/* Classes Taking Subject */}
-            {subject.classesTakingSubject.length > 0 && (
+            {(subject.classesTakingSubject?.length ?? 0) > 0 && (
               <div className="pt-3 border-t">
                 <div className="flex items-center gap-2 mb-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">Classes</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {subject.classesTakingSubject.map((classItem) => (
+                  {subject.classesTakingSubject?.map((classItem) => (
                     <Badge key={classItem.id} variant="outline" className="text-xs">
                       {classItem.name}
                     </Badge>
@@ -131,8 +131,8 @@ export const SubjectCard = ({ subject, onAIClick }: SubjectCardProps) => {
           </TabsContent>
 
           <TabsContent value="schedule" className="space-y-3">
-            {subject.timetableEntries.length > 0 ? (
-              subject.timetableEntries.map((entry) => (
+            {(subject.timetableEntries?.length ?? 0) > 0 ? (
+              subject.timetableEntries?.map((entry) => (
                 <div
                   key={entry.id}
                   className="flex items-center justify-between p-2 border rounded-lg"

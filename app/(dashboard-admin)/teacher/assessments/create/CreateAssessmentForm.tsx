@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { CreateAssessmentRequest, AssessmentType, GradingType } from "@/hooks/use-teacher-assessments";
+import type { CreateAssessmentRequest, AssessmentType } from "@/hooks/use-teacher-assessments";
 import type { SubjectDashboardItem } from "@/hooks/use-teacher-data";
 
 interface CreateAssessmentFormProps {

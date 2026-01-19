@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useStudentSubmission, type AssessmentAttemptsResponse } from "@/hooks/use-teacher-assessments";
 import { useState } from "react";
-import { Users, Eye, CheckCircle, XCircle, TrendingUp } from "lucide-react";
+import { Users, Eye, CheckCircle, TrendingUp } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StudentSubmissionModal } from "./StudentSubmissionModal";
 
@@ -43,7 +43,8 @@ export const AttemptsView = ({
     );
   }
 
-  const { students = [], statistics, assessment } = attemptsData;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { students = [], statistics, assessment: _assessment } = attemptsData;
 
   // Provide default values for statistics if undefined
   const safeStatistics = statistics || {

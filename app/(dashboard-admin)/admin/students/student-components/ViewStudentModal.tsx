@@ -7,9 +7,12 @@ interface ViewStudentModalProps {
 }
 
 export const ViewStudentModal = ({
-  open,
-  onOpenChange,
-  studentId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  open: _open,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onOpenChange: _onOpenChange,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  studentId: _studentId,
 }: ViewStudentModalProps) => {
   // Placeholder - to be implemented
   return null;

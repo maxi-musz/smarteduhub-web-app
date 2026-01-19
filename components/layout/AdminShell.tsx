@@ -5,12 +5,9 @@ import {
   Users,
   Calendar,
   Book,
-  FileText,
   User,
   Bell,
   Settings,
-  MessageSquare,
-  UserPlus,
   Compass,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";

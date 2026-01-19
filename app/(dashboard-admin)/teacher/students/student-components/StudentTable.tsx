@@ -20,7 +20,7 @@ interface StudentTableProps {
 
 export const StudentTable = ({ data, isLoading }: StudentTableProps) => {
   const students = data?.students.data || [];
-  const pagination = data?.students.pagination;
+  // const pagination = data?.students.pagination;
 
   if (isLoading) {
     return (

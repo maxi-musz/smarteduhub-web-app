@@ -4,7 +4,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { useState } from "react";
-import { useAssessments } from "@/hooks/use-teacher-assessments";
 import type { GetAssessmentsParams } from "@/hooks/use-teacher-assessments";
 
 interface AssessmentHeaderProps {

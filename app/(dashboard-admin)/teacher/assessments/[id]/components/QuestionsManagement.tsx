@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, FileQuestion, Trash2, Edit, X } from "lucide-react";
-import { useCreateQuestion, useDeleteQuestion, useDeleteQuestionImage, type QuestionsResponse, type Assessment, type Question } from "@/hooks/use-teacher-assessments";
+import { useDeleteQuestion, useDeleteQuestionImage, type QuestionsResponse, type Assessment, type Question } from "@/hooks/use-teacher-assessments";
 import { useState } from "react";
 import { CreateQuestionDialog } from "./CreateQuestionDialog";
 import { EditQuestionDialog } from "./EditQuestionDialog";
@@ -88,18 +88,19 @@ export const QuestionsManagement = ({
         <div className="space-y-4">
           {questions.map((question, index) => {
             // Some API responses may use camelCase (imageUrl) instead of snake_case (image_url)
+            type QuestionWithImageUrl = Question & { imageUrl?: string | null };
+            const questionWithImage = question as QuestionWithImageUrl;
             const imageUrl =
-              (question as any).image_url ??
-              (question as any).imageUrl ??
+              question.image_url ??
+              questionWithImage.imageUrl ??
               null;
 
             // Temporary debug log so you can confirm what the backend sends
             if (process.env.NODE_ENV === "development") {
-              // eslint-disable-next-line no-console
               console.log("[QuestionsManagement] Question image URL:", {
                 id: question.id,
-                image_url: (question as any).image_url,
-                imageUrl: (question as any).imageUrl,
+                image_url: question.image_url,
+                imageUrl: questionWithImage.imageUrl,
               });
             }
 
