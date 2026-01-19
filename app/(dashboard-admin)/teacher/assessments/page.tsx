@@ -12,6 +12,7 @@ import {
   AssessmentPagination,
   CreateAssessmentButton,
 } from "./assessment-components";
+import type { GetAssessmentsParams } from "@/hooks/use-teacher-assessments";
 
 const TeacherAssessmentsPage = () => {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
@@ -28,14 +29,16 @@ const TeacherAssessmentsPage = () => {
   });
 
   // Get assessments for selected subject
-  const { data: assessmentsData, isLoading: isLoadingAssessments, error } = useAssessments({
+  const assessmentsParams: GetAssessmentsParams = {
     subject_id: selectedSubjectId || "",
     status: statusFilter as "DRAFT" | "PUBLISHED" | "ACTIVE" | "CLOSED" | "ARCHIVED" | undefined,
     assessment_type: typeFilter as "CBT" | "ASSIGNMENT" | "EXAM" | "QUIZ" | "TEST" | "FORMATIVE" | "SUMMATIVE" | "DIAGNOSTIC" | "BENCHMARK" | "PRACTICE" | "MOCK_EXAM" | "OTHER" | undefined,
     topic_id: topicFilter,
     page,
     limit,
-  });
+  };
+
+  const { data: assessmentsData, isLoading: isLoadingAssessments, error } = useAssessments(assessmentsParams);
 
   // Auto-select first subject if available
   useEffect(() => {
@@ -77,7 +80,7 @@ const TeacherAssessmentsPage = () => {
 
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
-      <AssessmentHeader />
+      <AssessmentHeader refreshParams={assessmentsParams} />
 
       {errorMessage && (
         <div className="text-center py-8 text-red-600">{errorMessage}</div>

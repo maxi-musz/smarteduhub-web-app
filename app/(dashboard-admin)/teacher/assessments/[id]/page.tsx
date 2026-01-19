@@ -1,8 +1,12 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useAssessmentById, useAssessmentQuestions, useAssessmentAttempts } from "@/hooks/use-teacher-assessments";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 import { AssessmentDetails } from "./components/AssessmentDetails";
 import { QuestionsManagement } from "./components/QuestionsManagement";
 import { AttemptsView } from "./components/AttemptsView";
@@ -10,11 +14,33 @@ import { AttemptsView } from "./components/AttemptsView";
 const AssessmentDetailPage = () => {
   const params = useParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const assessmentId = params.id as string;
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: assessment, isLoading: isLoadingAssessment } = useAssessmentById(assessmentId);
   const { data: questionsData, isLoading: isLoadingQuestions } = useAssessmentQuestions(assessmentId);
   const { data: attemptsData, isLoading: isLoadingAttempts } = useAssessmentAttempts(assessmentId);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Refetch all related queries for this assessment
+      await Promise.all([
+        queryClient.refetchQueries({
+          queryKey: ["teacher", "assessments", assessmentId],
+        }),
+        queryClient.refetchQueries({
+          queryKey: ["teacher", "assessments", assessmentId, "questions"],
+        }),
+        queryClient.refetchQueries({
+          queryKey: ["teacher", "assessments", assessmentId, "attempts"],
+        }),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (isLoadingAssessment) {
     return (
@@ -49,12 +75,23 @@ const AssessmentDetailPage = () => {
             Manage assessment details, questions, and view student attempts
           </p>
         </div>
-        <button
-          onClick={() => router.push("/teacher/assessments")}
-          className="text-sm text-gray-600 hover:text-gray-900"
-        >
-          Back to Assessments
-        </button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+            {isRefreshing ? "Refreshing..." : ""}
+          </Button>
+          <button
+            onClick={() => router.push("/teacher/assessments")}
+            className="text-sm text-gray-600 hover:text-gray-900"
+          >
+            Back to Assessments
+          </button>
+        </div>
       </div>
 
       <Tabs defaultValue="details" className="space-y-4">
@@ -64,12 +101,15 @@ const AssessmentDetailPage = () => {
             Questions ({questionsData?.total_questions || 0})
           </TabsTrigger>
           <TabsTrigger value="attempts">
-            Attempts ({attemptsData?.statistics.attempted_count || 0})
+            Attempts ({attemptsData?.statistics?.attempted_count || 0})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="details">
-          <AssessmentDetails assessment={assessment} />
+          <AssessmentDetails 
+            assessment={assessment} 
+            questionsCount={questionsData?.total_questions}
+          />
         </TabsContent>
 
         <TabsContent value="questions">

@@ -7,7 +7,6 @@ import { useCreateQuestion, useDeleteQuestion, useDeleteQuestionImage, type Ques
 import { useState } from "react";
 import { CreateQuestionDialog } from "./CreateQuestionDialog";
 import { EditQuestionDialog } from "./EditQuestionDialog";
-import Image from "next/image";
 
 interface QuestionsManagementProps {
   assessmentId: string;
@@ -87,7 +86,24 @@ export const QuestionsManagement = ({
         </Card>
       ) : (
         <div className="space-y-4">
-          {questions.map((question, index) => (
+          {questions.map((question, index) => {
+            // Some API responses may use camelCase (imageUrl) instead of snake_case (image_url)
+            const imageUrl =
+              (question as any).image_url ??
+              (question as any).imageUrl ??
+              null;
+
+            // Temporary debug log so you can confirm what the backend sends
+            if (process.env.NODE_ENV === "development") {
+              // eslint-disable-next-line no-console
+              console.log("[QuestionsManagement] Question image URL:", {
+                id: question.id,
+                image_url: (question as any).image_url,
+                imageUrl: (question as any).imageUrl,
+              });
+            }
+
+            return (
             <Card key={question.id}>
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -130,21 +146,25 @@ export const QuestionsManagement = ({
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {question.image_url && (
-                  <div className="relative">
-                    <div className="relative w-full max-w-md h-48 border rounded-md overflow-hidden">
-                      <Image
-                        src={question.image_url}
+                {imageUrl && (
+                  <div className="space-y-2">
+                    <div className="relative w-full max-w-md border rounded-md overflow-hidden bg-gray-50">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={imageUrl}
                         alt="Question image"
-                        fill
-                        className="object-contain"
+                        className="w-full h-auto max-h-96 object-contain"
+                        onError={(e) => {
+                          // Fallback if image fails to load
+                          console.error("Failed to load question image:", imageUrl);
+                          e.currentTarget.style.display = "none";
+                        }}
                       />
                     </div>
                     {canEdit && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="mt-2"
                         onClick={() => handleDeleteImage(question.id)}
                         disabled={deleteImageMutation.isPending}
                       >
@@ -186,7 +206,7 @@ export const QuestionsManagement = ({
                 )}
               </CardContent>
             </Card>
-          ))}
+          )})}
         </div>
       )}
 

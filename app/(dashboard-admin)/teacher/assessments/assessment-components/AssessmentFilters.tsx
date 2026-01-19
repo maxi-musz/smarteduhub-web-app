@@ -8,16 +8,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import type { AssessmentStatus, AssessmentType } from "@/hooks/use-teacher-assessments";
+import { Button } from "@/components/ui/button";
 
 interface AssessmentFiltersProps {
   status?: string;
   type?: string;
-  topicId?: string;
   onStatusChange: (status: string | undefined) => void;
   onTypeChange: (type: string | undefined) => void;
-  onTopicChange: (topicId: string | undefined) => void;
 }
+
+const STATUS_OPTIONS: { label: string; value?: string }[] = [
+  { label: "All", value: undefined },
+  { label: "Draft", value: "DRAFT" },
+  { label: "Published", value: "PUBLISHED" },
+  { label: "Active", value: "ACTIVE" },
+  { label: "Closed", value: "CLOSED" },
+  { label: "Archived", value: "ARCHIVED" },
+];
 
 export const AssessmentFilters = ({
   status,
@@ -26,27 +33,30 @@ export const AssessmentFilters = ({
   onTypeChange,
 }: AssessmentFiltersProps) => {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-6">
       <div className="space-y-2">
-        <Label htmlFor="status-filter" className="text-sm">
-          Status
-        </Label>
-        <Select
-          value={status || "all"}
-          onValueChange={(value) => onStatusChange(value === "all" ? undefined : value)}
-        >
-          <SelectTrigger id="status-filter" className="w-40">
-            <SelectValue placeholder="All Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="DRAFT">Draft</SelectItem>
-            <SelectItem value="PUBLISHED">Published</SelectItem>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="CLOSED">Closed</SelectItem>
-            <SelectItem value="ARCHIVED">Archived</SelectItem>
-          </SelectContent>
-        </Select>
+        <Label className="text-sm">Status</Label>
+        <div className="flex flex-wrap gap-2">
+          {STATUS_OPTIONS.map((option) => {
+            const isActive =
+              (option.value === undefined && !status) || option.value === status;
+            return (
+              <Button
+                key={option.label}
+                type="button"
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                className={
+                  "rounded-full px-4 py-1 text-xs font-medium " +
+                  (isActive ? "" : "bg-white")
+                }
+                onClick={() => onStatusChange(option.value)}
+              >
+                {option.label}
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="space-y-2">

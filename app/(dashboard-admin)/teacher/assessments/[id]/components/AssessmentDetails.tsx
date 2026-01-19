@@ -3,16 +3,31 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { usePublishAssessment, useUnpublishAssessment, useReleaseResults, type Assessment } from "@/hooks/use-teacher-assessments";
 import { Send, X, CheckCircle, Edit } from "lucide-react";
 import { useState } from "react";
 import { EditAssessmentDialog } from "./EditAssessmentDialog";
+import { FullScreenLoader } from "@/components/ui/full-screen-loader";
 
 interface AssessmentDetailsProps {
   assessment: Assessment;
+  questionsCount?: number;
 }
 
-export const AssessmentDetails = ({ assessment }: AssessmentDetailsProps) => {
+export const AssessmentDetails = ({ assessment, questionsCount }: AssessmentDetailsProps) => {
+  // Use questionsCount if provided, otherwise fall back to assessment._count?.questions
+  const actualQuestionsCount = questionsCount ?? assessment._count?.questions ?? 0;
   const publishMutation = usePublishAssessment();
   const unpublishMutation = useUnpublishAssessment();
   const releaseMutation = useReleaseResults();
@@ -47,8 +62,18 @@ export const AssessmentDetails = ({ assessment }: AssessmentDetailsProps) => {
     }
   };
 
+  const isPublishing = publishMutation.isPending;
+  const isUnpublishing = unpublishMutation.isPending;
+  const isLoading = isPublishing || isUnpublishing;
+  const loadingMessage = isPublishing 
+    ? "Publishing assessment..." 
+    : isUnpublishing 
+    ? "Unpublishing assessment..." 
+    : undefined;
+
   return (
     <>
+      <FullScreenLoader isLoading={isLoading} message={loadingMessage} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
@@ -170,14 +195,45 @@ export const AssessmentDetails = ({ assessment }: AssessmentDetailsProps) => {
             </CardHeader>
             <CardContent className="space-y-3">
               {assessment.status === "DRAFT" && (
-                <Button
-                  className="w-full"
-                  onClick={handlePublish}
-                  disabled={publishMutation.isPending || (assessment._count?.questions || 0) === 0}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Publish Assessment
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      className="w-full"
+                      disabled={
+                        publishMutation.isPending ||
+                        actualQuestionsCount < 5
+                      }
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Publish Assessment
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Publish this assessment?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Publishing will make this assessment visible and accessible to all eligible students. 
+                        After publishing:
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <ul className="list-disc list-inside text-sm text-gray-700 space-y-1 mt-2">
+                      <li>Students will be able to see and attempt this assessment according to its schedule.</li>
+                      <li>Any changes to questions after students start attempting may affect grading and reporting.</li>
+                      <li>You can still unpublish later if you need to temporarily hide it from students.</li>
+                    </ul>
+                    <AlertDialogFooter className="mt-4">
+                      <AlertDialogCancel disabled={publishMutation.isPending}>
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handlePublish}
+                        disabled={publishMutation.isPending}
+                      >
+                        {publishMutation.isPending ? "Publishing..." : "Confirm & Publish"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
 
               {assessment.status === "PUBLISHED" && (
@@ -210,9 +266,10 @@ export const AssessmentDetails = ({ assessment }: AssessmentDetailsProps) => {
                 </div>
               )}
 
-              {(assessment._count?.questions || 0) === 0 && assessment.status === "DRAFT" && (
+              {actualQuestionsCount < 5 &&
+                assessment.status === "DRAFT" && (
                 <p className="text-sm text-amber-600">
-                  Add questions before publishing
+                  Add at least 5 questions before publishing
                 </p>
               )}
             </CardContent>
@@ -225,7 +282,7 @@ export const AssessmentDetails = ({ assessment }: AssessmentDetailsProps) => {
             <CardContent className="space-y-3">
               <div>
                 <p className="text-sm text-gray-500">Questions</p>
-                <p className="text-2xl font-bold">{assessment._count?.questions || 0}</p>
+                <p className="text-2xl font-bold">{actualQuestionsCount}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Student Attempts</p>

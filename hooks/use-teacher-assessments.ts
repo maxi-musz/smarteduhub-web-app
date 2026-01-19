@@ -70,6 +70,14 @@ export interface AssessmentPagination {
   hasPrevious: boolean;
 }
 
+// Raw API response shape for GET /teachers/assessments
+export interface AssessmentsApiResponse {
+  assessments: Partial<Record<AssessmentType, Assessment[]>>;
+  counts: Partial<Record<AssessmentType, number>>;
+  total: number;
+}
+
+// Normalized shape used by the UI
 export interface AssessmentsResponse {
   assessments: Assessment[];
   pagination: AssessmentPagination;
@@ -411,11 +419,43 @@ export function useAssessments(params: GetAssessmentsParams) {
       if (params.limit) queryParams.append("limit", params.limit.toString());
 
       const endpoint = `/teachers/assessments?${queryParams.toString()}`;
-      const response = await authenticatedApi.get<ApiResponseData<AssessmentsResponse>>(endpoint);
+      const response = await authenticatedApi.get<ApiResponseData<AssessmentsApiResponse>>(endpoint);
 
       if (response.success && response.data) {
         logger.info("[useAssessments] Assessments fetched successfully");
-        return response.data;
+
+        const apiData = response.data;
+
+        // Flatten assessments based on optional type filter
+        let flatAssessments: Assessment[] = [];
+
+        if (params.assessment_type) {
+          const list = apiData.assessments[params.assessment_type];
+          flatAssessments = Array.isArray(list) ? list : [];
+        } else {
+          flatAssessments = Object.values(apiData.assessments).flatMap((group) =>
+            Array.isArray(group) ? group : []
+          );
+        }
+
+        const page = params.page ?? 1;
+        const limit = params.limit ?? (flatAssessments.length || 10);
+        const total = apiData.total ?? flatAssessments.length;
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+
+        const normalized: AssessmentsResponse = {
+          assessments: flatAssessments,
+          pagination: {
+            total,
+            page,
+            limit,
+            totalPages,
+            hasNext: page < totalPages,
+            hasPrevious: page > 1,
+          },
+        };
+
+        return normalized;
       }
 
       throw new AuthenticatedApiError(
@@ -425,10 +465,12 @@ export function useAssessments(params: GetAssessmentsParams) {
       );
     },
     enabled: !!params.subject_id,
-    staleTime: 2 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes - data stays fresh for 10 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache for 15 minutes
     retry: 1,
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch on mount if data is still fresh
+    refetchOnReconnect: false, // Don't refetch on reconnect if data is still fresh
   });
 }
 
@@ -457,10 +499,12 @@ export function useAssessmentById(assessmentId: string | null) {
       );
     },
     enabled: !!assessmentId,
-    staleTime: 2 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes - data stays fresh for 10 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache for 15 minutes
     retry: 1,
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch on mount if data is still fresh
+    refetchOnReconnect: false, // Don't refetch on reconnect if data is still fresh
   });
 }
 
@@ -571,8 +615,25 @@ export function usePublishAssessment() {
       );
     },
     onSuccess: (data) => {
+      // Invalidate all assessment queries
       queryClient.invalidateQueries({ queryKey: ["teacher", "assessments"] });
+      // Invalidate specific assessment
       queryClient.invalidateQueries({ queryKey: ["teacher", "assessments", data.id] });
+      // Invalidate assessments list for this subject
+      if (data.subject_id) {
+        queryClient.invalidateQueries({ 
+          queryKey: ["teacher", "assessments"], 
+          predicate: (query) => {
+            const queryKey = query.queryKey;
+            // Match queries with params that include this subject_id
+            if (queryKey.length >= 3 && typeof queryKey[2] === 'object' && queryKey[2] !== null) {
+              const params = queryKey[2] as GetAssessmentsParams;
+              return params.subject_id === data.subject_id;
+            }
+            return false;
+          }
+        });
+      }
       toast({
         title: "Assessment published successfully",
         description: "Students can now access this assessment",
@@ -612,8 +673,25 @@ export function useUnpublishAssessment() {
       );
     },
     onSuccess: (data) => {
+      // Invalidate all assessment queries
       queryClient.invalidateQueries({ queryKey: ["teacher", "assessments"] });
+      // Invalidate specific assessment
       queryClient.invalidateQueries({ queryKey: ["teacher", "assessments", data.id] });
+      // Invalidate assessments list for this subject
+      if (data.subject_id) {
+        queryClient.invalidateQueries({ 
+          queryKey: ["teacher", "assessments"], 
+          predicate: (query) => {
+            const queryKey = query.queryKey;
+            // Match queries with params that include this subject_id
+            if (queryKey.length >= 3 && typeof queryKey[2] === 'object' && queryKey[2] !== null) {
+              const params = queryKey[2] as GetAssessmentsParams;
+              return params.subject_id === data.subject_id;
+            }
+            return false;
+          }
+        });
+      }
       toast({
         title: "Assessment unpublished successfully",
         description: "Students can no longer access this assessment",
@@ -728,10 +806,12 @@ export function useAssessmentQuestions(assessmentId: string | null) {
       );
     },
     enabled: !!assessmentId,
-    staleTime: 1 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes - data stays fresh for 10 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache for 15 minutes
     retry: 1,
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch on mount if data is still fresh
+    refetchOnReconnect: false, // Don't refetch on reconnect if data is still fresh
   });
 }
 
@@ -781,24 +861,56 @@ export function useCreateQuestion() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  return useMutation<Question, AuthenticatedApiError, { assessmentId: string; data: CreateQuestionRequest }>({
-    mutationFn: async ({ assessmentId, data }) => {
-      logger.info("[useCreateQuestion] Creating question", { assessmentId });
-      const response = await authenticatedApi.post<ApiResponseData<Question>>(
-        `/teachers/assessments/${assessmentId}/questions`,
-        data
-      );
+  return useMutation<Question, AuthenticatedApiError, { assessmentId: string; data: CreateQuestionRequest; imageFile?: File }>({
+    mutationFn: async ({ assessmentId, data, imageFile }) => {
+      logger.info("[useCreateQuestion] Creating question", { assessmentId, hasImage: !!imageFile });
 
-      if (response.success && response.data) {
-        logger.info("[useCreateQuestion] Question created successfully");
-        return response.data;
+      // If image is provided, use atomic endpoint (recommended)
+      if (imageFile) {
+        const formData = new FormData();
+        
+        // Remove image_url and image_s3_key from data - not needed when uploading file
+        const { image_url, image_s3_key, ...questionData } = data;
+        
+        // Append question data as JSON string
+        formData.append('questionData', JSON.stringify(questionData));
+        
+        // Append image file
+        formData.append('image', imageFile);
+
+        const response = await authenticatedApi.post<ApiResponseData<Question>>(
+          `/teachers/assessments/${assessmentId}/questions/with-image`,
+          formData
+        );
+
+        if (response.success && response.data) {
+          logger.info("[useCreateQuestion] Question created successfully with image");
+          return response.data;
+        }
+
+        throw new AuthenticatedApiError(
+          response.message || "Failed to create question",
+          response.statusCode || 400,
+          response
+        );
+      } else {
+        // No image - use regular JSON endpoint
+        const response = await authenticatedApi.post<ApiResponseData<Question>>(
+          `/teachers/assessments/${assessmentId}/questions`,
+          data
+        );
+
+        if (response.success && response.data) {
+          logger.info("[useCreateQuestion] Question created successfully");
+          return response.data;
+        }
+
+        throw new AuthenticatedApiError(
+          response.message || "Failed to create question",
+          response.statusCode || 400,
+          response
+        );
       }
-
-      throw new AuthenticatedApiError(
-        response.message || "Failed to create question",
-        response.statusCode || 400,
-        response
-      );
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["teacher", "assessments", variables.assessmentId, "questions"] });
@@ -986,10 +1098,12 @@ export function useAssessmentAttempts(assessmentId: string | null) {
       );
     },
     enabled: !!assessmentId,
-    staleTime: 1 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes - data stays fresh for 10 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache for 15 minutes
     retry: 1,
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch on mount if data is still fresh
+    refetchOnReconnect: false, // Don't refetch on reconnect if data is still fresh
   });
 }
 

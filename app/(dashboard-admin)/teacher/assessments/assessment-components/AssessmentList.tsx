@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { ClipboardList, Eye, Edit, Trash2, Users, FileQuestion } from "lucide-react";
+import { ClipboardList, Eye, Edit, Trash2, Users, FileQuestion, Send, X } from "lucide-react";
 import type { Assessment } from "@/hooks/use-teacher-assessments";
 import { useDeleteAssessment, usePublishAssessment, useUnpublishAssessment } from "@/hooks/use-teacher-assessments";
 import {
@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { FullScreenLoader } from "@/components/ui/full-screen-loader";
 
 interface AssessmentListProps {
   assessments: Assessment[];
@@ -37,6 +38,10 @@ export const AssessmentList = ({
   const unpublishMutation = useUnpublishAssessment();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [assessmentToDelete, setAssessmentToDelete] = useState<string | null>(null);
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+  const [assessmentToPublish, setAssessmentToPublish] = useState<string | null>(null);
+  const [unpublishDialogOpen, setUnpublishDialogOpen] = useState(false);
+  const [assessmentToUnpublish, setAssessmentToUnpublish] = useState<string | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -84,11 +89,29 @@ export const AssessmentList = ({
   };
 
   const handlePublish = (id: string) => {
-    publishMutation.mutate(id);
+    setAssessmentToPublish(id);
+    setPublishDialogOpen(true);
+  };
+
+  const confirmPublish = () => {
+    if (assessmentToPublish) {
+      publishMutation.mutate(assessmentToPublish);
+      setPublishDialogOpen(false);
+      setAssessmentToPublish(null);
+    }
   };
 
   const handleUnpublish = (id: string) => {
-    unpublishMutation.mutate(id);
+    setAssessmentToUnpublish(id);
+    setUnpublishDialogOpen(true);
+  };
+
+  const confirmUnpublish = () => {
+    if (assessmentToUnpublish) {
+      unpublishMutation.mutate(assessmentToUnpublish);
+      setUnpublishDialogOpen(false);
+      setAssessmentToUnpublish(null);
+    }
   };
 
   if (isLoading) {
@@ -123,8 +146,18 @@ export const AssessmentList = ({
     );
   }
 
+  const isPublishing = publishMutation.isPending;
+  const isUnpublishing = unpublishMutation.isPending;
+  const showLoader = isPublishing || isUnpublishing;
+  const loadingMessage = isPublishing 
+    ? "Publishing assessment..." 
+    : isUnpublishing 
+    ? "Unpublishing assessment..." 
+    : undefined;
+
   return (
     <>
+      <FullScreenLoader isLoading={showLoader} message={loadingMessage} />
       <div className="space-y-4">
         {safeAssessments.map((assessment) => (
           <Card key={assessment.id} className="hover:shadow-md transition-shadow">
@@ -172,19 +205,20 @@ export const AssessmentList = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => router.push(`/teacher/assessments/${assessment.id}/edit`)}
+                      onClick={() => router.push(`/teacher/assessments/${assessment.id}`)}
                     >
                       <Edit className="h-4 w-4 mr-1" />
                       Edit
                     </Button>
                   )}
-                  {assessment.status === "PUBLISHED" && (
+                  {(assessment.status === "PUBLISHED" || assessment.status === "ACTIVE") && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleUnpublish(assessment.id)}
                       disabled={unpublishMutation.isPending}
                     >
+                      <X className="h-4 w-4 mr-1" />
                       Unpublish
                     </Button>
                   )}
@@ -193,8 +227,12 @@ export const AssessmentList = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => handlePublish(assessment.id)}
-                      disabled={publishMutation.isPending}
+                      disabled={
+                        publishMutation.isPending ||
+                        (assessment._count?.questions || 0) < 5
+                      }
                     >
+                      <Send className="h-4 w-4 mr-1" />
                       Publish
                     </Button>
                   )}
@@ -254,6 +292,64 @@ export const AssessmentList = ({
               className="bg-red-600 hover:bg-red-700"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
+        <AlertDialogContent className="max-w-lg w-full">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Publish this assessment?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Once published, this assessment will be visible to all students and they will be able to attempt it.
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 mt-3">
+                <li>Students will be able to see and access this assessment</li>
+                <li>You can still make changes, but they will affect all students</li>
+                <li>You can unpublish the assessment later if needed</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4 flex-row justify-end gap-2">
+            <AlertDialogCancel disabled={publishMutation.isPending} className="mt-0">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmPublish}
+              disabled={publishMutation.isPending}
+            >
+              {publishMutation.isPending ? "Publishing..." : "Confirm & Publish"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={unpublishDialogOpen} onOpenChange={setUnpublishDialogOpen}>
+        <AlertDialogContent className="max-w-lg w-full">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unpublish this assessment?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Unpublishing this assessment will hide it from students. They will no longer be able to access or attempt it.
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 mt-3">
+                <li>Students will no longer see this assessment</li>
+                <li>Existing attempts and results will be preserved</li>
+                <li>You can publish it again later</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4 flex-row justify-end gap-2">
+            <AlertDialogCancel disabled={unpublishMutation.isPending} className="mt-0">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmUnpublish}
+              disabled={unpublishMutation.isPending}
+            >
+              {unpublishMutation.isPending ? "Unpublishing..." : "Confirm & Unpublish"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

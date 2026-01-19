@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCreateAssessment } from "@/hooks/use-teacher-assessments";
 import { useSubjectsDashboard } from "@/hooks/use-teacher-data";
 import { CreateAssessmentForm } from "./CreateAssessmentForm";
+import { Loader2 } from "lucide-react";
 
 const CreateAssessmentPage = () => {
   const router = useRouter();
@@ -58,29 +59,41 @@ const CreateAssessmentPage = () => {
   }
 
   return (
-    <div className="py-6 space-y-6 bg-brand-bg">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-heading">Create Assessment</h1>
-          <p className="text-brand-light-accent-1 text-sm">
-            Create a new assessment, quiz, or exam
-          </p>
+    <>
+      {createMutation.isPending && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-8 shadow-lg flex flex-col items-center gap-4">
+            <Loader2 className="h-12 w-12 animate-spin text-brand-primary" />
+            <p className="text-lg font-medium text-gray-900">Creating Assessment...</p>
+            <p className="text-sm text-gray-500">Please wait while we create your assessment</p>
+          </div>
         </div>
-        <button
-          onClick={() => router.back()}
-          className="text-sm text-gray-600 hover:text-gray-900"
-        >
-          Cancel
-        </button>
-      </div>
+      )}
+      <div className="py-6 space-y-6 bg-brand-bg">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-brand-heading">Create Assessment</h1>
+            <p className="text-brand-light-accent-1 text-sm">
+              Create a new assessment, quiz, or exam
+            </p>
+          </div>
+          <button
+            onClick={() => router.back()}
+            className="text-sm text-gray-600 hover:text-gray-900"
+            disabled={createMutation.isPending}
+          >
+            Cancel
+          </button>
+        </div>
 
-      <CreateAssessmentForm
-        subjectId={selectedSubjectId}
-        subjects={subjectsData?.subjects.data || []}
-        onSubmit={handleSubmit}
-        isLoading={createMutation.isPending}
-      />
-    </div>
+        <CreateAssessmentForm
+          subjectId={selectedSubjectId}
+          subjects={subjectsData?.subjects.data || []}
+          onSubmit={handleSubmit}
+          isLoading={createMutation.isPending}
+        />
+      </div>
+    </>
   );
 };
 

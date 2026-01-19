@@ -45,7 +45,8 @@ export const CreateAssessmentForm = ({
     show_feedback: true,
     allow_review: true,
     grading_type: "AUTOMATIC",
-    auto_submit: false,
+    // Auto submit should always be enabled by default
+    auto_submit: true,
     assessment_type: "CBT",
     tags: [],
   });
@@ -116,12 +117,12 @@ export const CreateAssessmentForm = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="CBT">CBT</SelectItem>
-                  <SelectItem value="QUIZ">Quiz</SelectItem>
+                  {/* <SelectItem value="QUIZ">Quiz</SelectItem> */}
                   <SelectItem value="EXAM">Exam</SelectItem>
-                  <SelectItem value="ASSIGNMENT">Assignment</SelectItem>
+                  {/* <SelectItem value="ASSIGNMENT">Assignment</SelectItem>
                   <SelectItem value="TEST">Test</SelectItem>
                   <SelectItem value="FORMATIVE">Formative</SelectItem>
-                  <SelectItem value="SUMMATIVE">Summative</SelectItem>
+                  <SelectItem value="SUMMATIVE">Summative</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>
@@ -130,15 +131,17 @@ export const CreateAssessmentForm = ({
               <Label htmlFor="grading_type">Grading Type</Label>
               <Select
                 value={formData.grading_type}
-                onValueChange={(value) => updateField("grading_type", value as GradingType)}
+                // Only automatic grading is supported for now
+                disabled
               >
                 <SelectTrigger id="grading_type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="AUTOMATIC">Automatic</SelectItem>
-                  <SelectItem value="MANUAL">Manual</SelectItem>
-                  <SelectItem value="MIXED">Mixed</SelectItem>
+                  {/* Manual and Mixed grading types are not available for teachers */}
+                  {/* <SelectItem value="MANUAL" disabled>Manual</SelectItem>
+                  <SelectItem value="MIXED" disabled>Mixed</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>
@@ -269,7 +272,8 @@ export const CreateAssessmentForm = ({
               <Checkbox
                 id="auto_submit"
                 checked={formData.auto_submit}
-                onCheckedChange={(checked) => updateField("auto_submit", checked === true)}
+                // Always auto-submit on time expiry; this is not configurable for teachers
+                disabled
               />
               <Label htmlFor="auto_submit" className="cursor-pointer">
                 Auto Submit on Time Expiry
