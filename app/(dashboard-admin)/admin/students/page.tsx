@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Download, Upload, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
-import { useStudentsDashboard, type ApiStudent } from "@/hooks/use-students-data";
+import { useStudentsDashboard, type ApiStudent } from "@/hooks/student/use-students-data";
 import {
   StudentStatsCards,
   StudentFilters,

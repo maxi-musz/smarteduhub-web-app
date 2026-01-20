@@ -2,7 +2,7 @@
 
 import { Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { DirectorCurrentSession } from "@/hooks/use-director-profile";
+import { DirectorCurrentSession } from "@/hooks/director/use-director-profile";
 import { DetailField } from "./DetailField";
 import { formatDate } from "./utils";
 

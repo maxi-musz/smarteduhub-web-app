@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar, ArrowRight, User } from "lucide-react";
-import type { DaySchedule } from "@/hooks/use-student-dashboard";
+import type { DaySchedule } from "@/hooks/student/use-student-dashboard";
 
 interface ClassScheduleSummaryProps {
   schedule: {

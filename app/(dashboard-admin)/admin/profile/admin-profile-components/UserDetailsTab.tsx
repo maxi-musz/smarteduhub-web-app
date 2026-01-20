@@ -2,7 +2,7 @@
 
 import { CheckCircle2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { DirectorUser } from "@/hooks/use-director-profile";
+import { DirectorUser } from "@/hooks/director/use-director-profile";
 import { DetailField } from "./DetailField";
 import { formatDate } from "./utils";
 

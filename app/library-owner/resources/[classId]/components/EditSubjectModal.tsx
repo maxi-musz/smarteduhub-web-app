@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateSubject, useUpdateSubjectThumbnail } from "@/hooks/subjects/use-update-subject";
-import { Subject } from "@/hooks/use-library-class-resources";
+import { Subject } from "@/hooks/library-owner/use-library-class-resources";
 import { Loader2, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";

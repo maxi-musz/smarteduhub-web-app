@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Subject } from "@/hooks/use-library-class-resources";
+import { Subject } from "@/hooks/library-owner/use-library-class-resources";
 import { Layers, Video, FileText, ChevronDown, ChevronRight, BookOpen, Pencil, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { ChapterCard } from "./ChapterCard";

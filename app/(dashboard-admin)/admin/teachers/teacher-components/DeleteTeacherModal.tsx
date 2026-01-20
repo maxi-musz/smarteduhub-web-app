@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { useDeleteTeacher } from "@/hooks/use-teachers-data";
+import { useDeleteTeacher } from "@/hooks/teacher/use-teachers-data";
 
 interface DeleteTeacherModalProps {
   open: boolean;

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { TrendingUp } from "lucide-react";
-import { type ApiStudent } from "@/hooks/use-students-data";
+import { type ApiStudent } from "@/hooks/student/use-students-data";
 
 interface ViewPerformanceModalProps {
   open: boolean;

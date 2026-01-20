@@ -5,7 +5,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DirectorProfile } from "@/hooks/use-director-profile";
+import { DirectorProfile } from "@/hooks/director/use-director-profile";
 import { EditProfileModal } from "./EditProfileModal";
 
 interface ProfileHeaderProps {

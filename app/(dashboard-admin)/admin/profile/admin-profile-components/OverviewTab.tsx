@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarDays, Mail, MapPin, Phone } from "lucide-react";
-import { DirectorUser, DirectorSchool, DirectorStats } from "@/hooks/use-director-profile";
+import { DirectorUser, DirectorSchool, DirectorStats } from "@/hooks/director/use-director-profile";
 import { InfoField } from "./InfoField";
 import { StatCard } from "./StatCard";
 import { formatDate } from "./utils";

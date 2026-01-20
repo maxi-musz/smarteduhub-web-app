@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Topic } from "@/hooks/use-library-class-resources";
+import { Topic } from "@/hooks/library-owner/use-library-class-resources";
 import { Video, FileText, User } from "lucide-react";
 
 interface TopicCardProps {

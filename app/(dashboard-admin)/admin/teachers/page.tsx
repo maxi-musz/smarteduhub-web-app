@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Download, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
-import { useTeachersDashboard } from "@/hooks/use-teachers-data";
+import { useTeachersDashboard } from "@/hooks/teacher/use-teachers-data";
 import {
   TeacherStatsCards,
   TeacherFilters,

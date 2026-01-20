@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Check, X } from "lucide-react";
-import { DirectorProfile } from "@/hooks/use-director-profile";
-import { useDirectorProfileUpdate } from "@/hooks/use-director-profile-update";
+import { DirectorProfile } from "@/hooks/director/use-director-profile";
+import { useDirectorProfileUpdate } from "@/hooks/director/use-director-profile-update";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/lib/logger";
 

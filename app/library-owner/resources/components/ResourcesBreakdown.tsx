@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResourcesStatistics } from "@/hooks/use-library-owner-resources";
+import { ResourcesStatistics } from "@/hooks/library-owner/use-library-owner-resources";
 
 interface ResourcesBreakdownProps {
   statistics: ResourcesStatistics;

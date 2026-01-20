@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useLibraryOwnerResources } from "@/hooks/use-library-owner-resources";
+import { useLibraryOwnerResources } from "@/hooks/library-owner/use-library-owner-resources";
 import { useCBTs } from "@/hooks/assessment/use-cbt";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

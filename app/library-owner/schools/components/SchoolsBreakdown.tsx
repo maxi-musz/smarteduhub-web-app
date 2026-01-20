@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SchoolsStatistics } from "@/hooks/use-library-owner-schools";
+import { SchoolsStatistics } from "@/hooks/library-owner/use-library-owner-schools";
 
 interface SchoolsBreakdownProps {
   statistics: SchoolsStatistics;

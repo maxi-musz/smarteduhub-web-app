@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { useLibraryOwnerDashboard } from "@/hooks/use-library-owner-dashboard";
-import { useLibraryOwnerProfile } from "@/hooks/use-library-owner-profile";
+import { useLibraryOwnerDashboard } from "@/hooks/library-owner/use-library-owner-dashboard";
+import { useLibraryOwnerProfile } from "@/hooks/library-owner/use-library-owner-profile";
 import { DashboardSkeleton } from "./components/DashboardSkeleton";
 import { StatsCards } from "./components/StatsCards";
 import { LibraryInfo } from "./components/LibraryInfo";

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Pencil } from "lucide-react";
-import { useTeacherById } from "@/hooks/use-teachers-data";
+import { useTeacherById } from "@/hooks/teacher/use-teachers-data";
 
 interface ViewTeacherModalProps {
   open: boolean;

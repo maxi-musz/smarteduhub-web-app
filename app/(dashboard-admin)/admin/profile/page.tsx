@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useDirectorProfile } from "@/hooks/use-director-profile";
+import { useDirectorProfile } from "@/hooks/director/use-director-profile";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   LoadingState,

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { type ApiTeacher } from "@/hooks/use-teachers-data";
+import { type ApiTeacher } from "@/hooks/teacher/use-teachers-data";
 
 interface TeacherAvatarProps {
   teacher: ApiTeacher;

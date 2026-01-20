@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useLibraryClassResources, ClassResourcesResponse } from "@/hooks/use-library-class-resources";
+import { useLibraryClassResources, ClassResourcesResponse } from "@/hooks/library-owner/use-library-class-resources";
 import { ClassResourcesSkeleton } from "./components/ClassResourcesSkeleton";
 import { ClassStatistics } from "./components/ClassStatistics";
 import { SubjectCard } from "./components/SubjectCard";
 import { CreateSubjectModal } from "./components/CreateSubjectModal";
 import { EditSubjectModal } from "./components/EditSubjectModal";
-import { Subject } from "@/hooks/use-library-class-resources";
+import { Subject } from "@/hooks/library-owner/use-library-class-resources";
 import {
   Dialog,
   DialogContent,

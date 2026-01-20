@@ -8,7 +8,7 @@ import {
   ResourcesDashboardResponse,
   Video,
   Material,
-} from "@/hooks/use-library-owner-resources";
+} from "@/hooks/library-owner/use-library-owner-resources";
 import { ResourcesSkeleton } from "./components/ResourcesSkeleton";
 import { ResourcesStatistics } from "./components/ResourcesStatistics";
 import { ResourcesBreakdown } from "./components/ResourcesBreakdown";

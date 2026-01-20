@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Chapter, Topic } from "@/hooks/use-library-class-resources";
+import { Chapter, Topic } from "@/hooks/library-owner/use-library-class-resources";
 import {
   Layers,
   Video,

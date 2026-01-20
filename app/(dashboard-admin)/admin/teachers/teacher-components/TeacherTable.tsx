@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Mail, Phone, MoreVertical, Eye, Pencil, Trash2 } from "lucide-react";
-import { type ApiTeacher } from "@/hooks/use-teachers-data";
+import { type ApiTeacher } from "@/hooks/teacher/use-teachers-data";
 import { TeacherAvatar } from "./TeacherAvatar";
 
 interface TeacherTableProps {

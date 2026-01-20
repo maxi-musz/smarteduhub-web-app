@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useUpdateTopic } from "@/hooks/topics/use-topics";
-import { Topic } from "@/hooks/use-library-class-resources";
+import { Topic } from "@/hooks/library-owner/use-library-class-resources";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { formatTopicTitle, formatDescription } from "@/lib/text-formatter";

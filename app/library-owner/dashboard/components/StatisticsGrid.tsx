@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LibraryOwnerDashboardResponse } from "@/hooks/use-library-owner-dashboard";
+import { LibraryOwnerDashboardResponse } from "@/hooks/library-owner/use-library-owner-dashboard";
 import { Video, FileText, Users } from "lucide-react";
 
 interface StatisticsGridProps {

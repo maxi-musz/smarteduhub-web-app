@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, ArrowRight } from "lucide-react";
-import type { Notification } from "@/hooks/use-student-dashboard";
+import type { Notification } from "@/hooks/student/use-student-dashboard";
 
 interface WeeklyEventsProps {
   notifications: Notification[];

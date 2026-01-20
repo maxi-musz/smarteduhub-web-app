@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { LibraryClass } from "@/hooks/use-library-owner-resources";
+import { LibraryClass } from "@/hooks/library-owner/use-library-owner-resources";
 import { BookOpen, Video, FileText, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 

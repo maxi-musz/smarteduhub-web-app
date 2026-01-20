@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { DirectorSchool } from "@/hooks/use-director-profile";
+import { DirectorSchool } from "@/hooks/director/use-director-profile";
 import { DetailField } from "./DetailField";
 import { formatDate } from "./utils";
 

@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Mail, Phone, MoreVertical, Pencil, Trash2, TrendingUp, FileText, Calendar, Copy } from "lucide-react";
-import { type ApiStudent } from "@/hooks/use-students-data";
+import { type ApiStudent } from "@/hooks/student/use-students-data";
 import { StudentAvatar } from "./StudentAvatar";
 import { useToast } from "@/hooks/use-toast";
 

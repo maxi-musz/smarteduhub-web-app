@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LibraryOwnerDashboardResponse } from "@/hooks/use-library-owner-dashboard";
+import { LibraryOwnerDashboardResponse } from "@/hooks/library-owner/use-library-owner-dashboard";
 import { Building2, BookOpen, Tag } from "lucide-react";
 
 interface LibraryInfoProps {

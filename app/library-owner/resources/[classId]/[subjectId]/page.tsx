@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useLibraryClassResources } from "@/hooks/use-library-class-resources";
-import { Subject, Chapter, Topic } from "@/hooks/use-library-class-resources";
+import { useLibraryClassResources } from "@/hooks/library-owner/use-library-class-resources";
+import { Subject, Chapter, Topic } from "@/hooks/library-owner/use-library-class-resources";
 import { TopicVideo, TopicMaterial, TopicLink } from "@/hooks/topics/use-topic-materials";
 import { EnhancedChapterCard } from "./components/EnhancedChapterCard";
 import { CreateChapterModal } from "./components/CreateChapterModal";

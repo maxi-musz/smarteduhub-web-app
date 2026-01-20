@@ -24,7 +24,7 @@ import {
   useCreateDirectorClass,
   useEditDirectorClass,
   type DirectorClass,
-} from "@/hooks/use-director-classes";
+} from "@/hooks/director/use-director-classes";
 
 const AdminClassesPage = () => {
   const { data, isLoading, error } = useDirectorClasses();

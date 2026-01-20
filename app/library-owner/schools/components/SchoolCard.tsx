@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { School } from "@/hooks/use-library-owner-schools";
+import { School } from "@/hooks/library-owner/use-library-owner-schools";
 import { Building2, Mail, Phone, MapPin, Eye } from "lucide-react";
 import Image from "next/image";
 

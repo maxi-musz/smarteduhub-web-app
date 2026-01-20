@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LibraryOwnerDashboardResponse } from "@/hooks/use-library-owner-dashboard";
+import { LibraryOwnerDashboardResponse } from "@/hooks/library-owner/use-library-owner-dashboard";
 import { Video, FileText, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 

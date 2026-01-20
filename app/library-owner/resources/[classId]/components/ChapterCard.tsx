@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Chapter } from "@/hooks/use-library-class-resources";
+import { Chapter } from "@/hooks/library-owner/use-library-class-resources";
 import { Layers, Video, FileText, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { TopicCard } from "./TopicCard";

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Upload, FileText, Video } from "lucide-react";
-import { LibraryOwnerDashboardResponse } from "@/hooks/use-library-owner-dashboard";
+import { LibraryOwnerDashboardResponse } from "@/hooks/library-owner/use-library-owner-dashboard";
 
 interface StatsCardsProps {
   statistics: LibraryOwnerDashboardResponse["statistics"];

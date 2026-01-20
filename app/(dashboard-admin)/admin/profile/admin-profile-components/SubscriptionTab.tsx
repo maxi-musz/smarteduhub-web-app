@@ -2,7 +2,7 @@
 
 import { Info } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { SubscriptionPlan, AvailablePlan } from "@/hooks/use-director-profile";
+import { SubscriptionPlan, AvailablePlan } from "@/hooks/director/use-director-profile";
 import { CurrentPlan } from "./CurrentPlan";
 import { PlanCard } from "./PlanCard";
 

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useLibraryOwnerSchools, AllSchoolsResponse } from "@/hooks/use-library-owner-schools";
-import { useLibraryOwnerSchool, SingleSchoolResponse } from "@/hooks/use-library-owner-school";
+import { useLibraryOwnerSchools, AllSchoolsResponse } from "@/hooks/library-owner/use-library-owner-schools";
+import { useLibraryOwnerSchool, SingleSchoolResponse } from "@/hooks/library-owner/use-library-owner-school";
 import { SchoolsSkeleton } from "./components/SchoolsSkeleton";
 import { SchoolsStatistics } from "./components/SchoolsStatistics";
 import { SchoolsBreakdown } from "./components/SchoolsBreakdown";

@@ -26,7 +26,7 @@ import {
   useTeacherById,
   useClassesSubjects,
   type UpdateTeacherRequest,
-} from "@/hooks/use-teachers-data";
+} from "@/hooks/teacher/use-teachers-data";
 
 interface EditTeacherModalProps {
   open: boolean;

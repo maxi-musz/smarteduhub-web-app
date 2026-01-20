@@ -7,7 +7,7 @@ import {
   UserCheck,
   Building2,
 } from "lucide-react";
-import { SchoolsStatistics as SchoolsStatisticsType } from "@/hooks/use-library-owner-schools";
+import { SchoolsStatistics as SchoolsStatisticsType } from "@/hooks/library-owner/use-library-owner-schools";
 
 interface SchoolsStatisticsProps {
   statistics: SchoolsStatisticsType;

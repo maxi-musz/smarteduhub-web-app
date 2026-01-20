@@ -1,6 +1,6 @@
 "use client";
 
-import { DirectorSettings } from "@/hooks/use-director-profile";
+import { DirectorSettings } from "@/hooks/director/use-director-profile";
 import { SettingItem } from "./SettingItem";
 
 interface SettingsTabProps {

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { type ApiStudent } from "@/hooks/use-students-data";
+import { type ApiStudent } from "@/hooks/student/use-students-data";
 
 interface StudentAvatarProps {
   student: ApiStudent;

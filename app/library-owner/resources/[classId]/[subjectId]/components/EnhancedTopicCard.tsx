@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Topic } from "@/hooks/use-library-class-resources";
+import { Topic } from "@/hooks/library-owner/use-library-class-resources";
 import { TopicVideo, TopicMaterial, TopicLink, TopicCBT } from "@/hooks/topics/use-topic-materials";
 import { Video, FileText, Pencil, GripVertical, Link as LinkIcon, Plus, Play, ExternalLink, ChevronDown, ChevronRight, Clock, Trash2, ClipboardList } from "lucide-react";
 import { formatTopicTitle } from "@/lib/text-formatter";

@@ -24,7 +24,7 @@ import {
   useEnrollNewStudent,
   useAvailableClasses,
   type EnrollNewStudentRequest,
-} from "@/hooks/use-students-data";
+} from "@/hooks/student/use-students-data";
 
 interface AddStudentModalProps {
   open: boolean;

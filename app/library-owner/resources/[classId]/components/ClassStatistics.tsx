@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Layers, Video, FileText } from "lucide-react";
-import { ClassResourcesStatistics } from "@/hooks/use-library-class-resources";
+import { ClassResourcesStatistics } from "@/hooks/library-owner/use-library-class-resources";
 
 interface ClassStatisticsProps {
   statistics: ClassResourcesStatistics;

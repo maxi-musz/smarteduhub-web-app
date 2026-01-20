@@ -7,7 +7,7 @@ import {
   Users,
   Layers,
 } from "lucide-react";
-import { ResourcesStatistics as ResourcesStatisticsType } from "@/hooks/use-library-owner-resources";
+import { ResourcesStatistics as ResourcesStatisticsType } from "@/hooks/library-owner/use-library-owner-resources";
 
 interface ResourcesStatisticsProps {
   statistics: ResourcesStatisticsType;

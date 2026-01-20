@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AvailablePlan } from "@/hooks/use-director-profile";
+import { AvailablePlan } from "@/hooks/director/use-director-profile";
 import { formatCurrency } from "./utils";
 
 interface PlanCardProps {
