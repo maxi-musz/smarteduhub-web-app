@@ -7,7 +7,6 @@ import {
   Book,
   User,
   Bell,
-  Settings,
   Compass,
   ClipboardCheck,
   ClipboardList,
@@ -33,7 +32,7 @@ const teacherTabs = [
 const bottomTabs = [
   { href: "/teacher/notifications", label: "Notifications", icon: Bell },
   { href: "/teacher/profile", label: "Profile", icon: User },
-  { href: "/teacher/settings", label: "Settings", icon: Settings },
+  // { href: "/teacher/settings", label: "Settings", icon: Settings },
 ];
 
 export default function TeacherShell({ children }: { children: ReactNode }) {

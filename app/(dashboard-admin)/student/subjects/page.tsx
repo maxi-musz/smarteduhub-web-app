@@ -1,157 +1,267 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Book, FileText, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Book, FileText, Video, Calendar, Clock, Loader2 } from "lucide-react";
 import StudentHeader from "@/components/ui/student-header";
 import { AIAgentLogo } from "@/components/AIAgentLogo";
 import { AIAgentModal } from "@/components/AIAgentModal";
-
-const subjects = [
-  {
-    id: 1,
-    name: "Mathematics",
-    teacher: "Mr. Adewale",
-    progress: 75,
-    nextClass: "Tomorrow, 10:00 AM",
-  },
-  {
-    id: 2,
-    name: "English Language",
-    teacher: "Mrs. Okafor",
-    progress: 82,
-    nextClass: "Wednesday, 2:00 PM",
-  },
-  {
-    id: 3,
-    name: "Civic Education",
-    teacher: "Mr. Chukwu",
-    progress: 90,
-    nextClass: "Thursday, 11:30 AM",
-  },
-  {
-    id: 4,
-    name: "Physics",
-    teacher: "Mrs. Balogun",
-    progress: 68,
-    nextClass: "Friday, 9:00 AM",
-  },
-  {
-    id: 5,
-    name: "Biology",
-    teacher: "Mr. Eze",
-    progress: 77,
-    nextClass: "Monday, 8:30 AM",
-  },
-  {
-    id: 6,
-    name: "Chemistry",
-    teacher: "Mrs. Ogunleye",
-    progress: 54,
-    nextClass: "Tuesday, 1:00 PM",
-  },
-  {
-    id: 7,
-    name: "Further Mathematics",
-    teacher: "Mr. Musa",
-    progress: 80,
-    nextClass: "Thursday, 12:00 PM",
-  },
-  {
-    id: 8,
-    name: "Geography",
-    teacher: "Mrs. Danjuma",
-    progress: 62,
-    nextClass: "Wednesday, 10:30 AM",
-  },
-  {
-    id: 9,
-    name: "Computer Science",
-    teacher: "Mr. Adebayo",
-    progress: 71,
-    nextClass: "Friday, 2:30 PM",
-  },
-];
+import { useStudentSubjects, type StudentSubjectsData, type StudentSubject } from "@/hooks/use-student-subjects";
+import { useStudentDashboard, type StudentDashboardData } from "@/hooks/use-student-dashboard";
+import Link from "next/link";
 
 const StudentSubjectsPage = () => {
-  const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState("");
+  const [aiModalOpen, setAiModalOpen] = React.useState(false);
+  const [selectedSubject, setSelectedSubject] = React.useState("");
+  const page = 1;
+  const limit = 20;
+
+  const { data: subjectsData, isLoading, error } = useStudentSubjects({ page, limit });
+  const { data: dashboardData } = useStudentDashboard();
 
   const handleAIClick = (subjectName: string) => {
     setSelectedSubject(subjectName);
     setAiModalOpen(true);
   };
 
+  const formatDay = (day: string) => {
+    const dayMap: Record<string, string> = {
+      MONDAY: "Monday",
+      TUESDAY: "Tuesday",
+      WEDNESDAY: "Wednesday",
+      THURSDAY: "Thursday",
+      FRIDAY: "Friday",
+      SATURDAY: "Saturday",
+      SUNDAY: "Sunday",
+    };
+    return dayMap[day] || day;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="py-6 space-y-6 bg-brand-bg">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-brand-primary mx-auto mb-4" />
+            <p className="text-brand-light-accent-1">Loading subjects...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !subjectsData) {
+    return (
+      <div className="py-6 space-y-6 bg-brand-bg">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Failed to load subjects</p>
+            {error && (
+              <p className="text-sm text-gray-600 mb-4">
+                {error instanceof Error ? error.message : "Unknown error"}
+              </p>
+            )}
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { subjects, stats } = subjectsData as StudentSubjectsData;
+
   return (
     <>
       <div className="py-6 space-y-6 bg-brand-bg">
         {/* Header */}
         <StudentHeader
-          studentName="Oluwajuwon Kayode"
-          studentClass="SS3A"
-          // avatarUrl="https://via.placeholder.com/150"
+          studentName={(dashboardData as StudentDashboardData)?.general_info?.student?.name || "Student"}
+          studentClass={(dashboardData as StudentDashboardData)?.general_info?.student_class?.name || ""}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {subjects.map((subject) => (
-            <Card
-              key={subject.id}
-              className="hover:shadow-lg transition-shadow"
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>{subject.name}</span>
-                  <button
-                    onClick={() => {
-                      // Handle AI Assistant click
-                      handleAIClick(subject.name);
-                    }}
-                    className="p-1 rounded-full hover:bg-accent transition-colors"
-                    aria-label="AI Assistant"
-                  >
-                    <AIAgentLogo size="sm" />
-                  </button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center text-sm text-brand-light-accent-1">
-                    <Users className="h-4 w-4 mr-2" />
-                    <span>{subject.teacher}</span>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between mb-1 text-sm">
-                      <span>Course Progress</span>
-                      <span>{subject.progress}%</span>
-                    </div>
-                    <Progress value={subject.progress} className="h-2" />
-                  </div>
-
-                  <div className="text-sm">
-                    <p className="font-medium">Next Class:</p>
-                    <p className="text-brand-light-accent-1">
-                      {subject.nextClass}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col lg:flex-row space-y-2 space-x-2 pt-2">
-                    <Button variant="outline" className="w-full">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Materials
-                    </Button>
-                    <Button className="w-full">
-                      <Book className="h-4 w-4 mr-2" />
-                      View Course
-                    </Button>
-                  </div>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Book className="h-5 w-5 text-blue-600" />
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+                <div>
+                  <p className="text-sm text-gray-600">Total Subjects</p>
+                  <p className="text-2xl font-bold">{stats.totalSubjects}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Video className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Total Videos</p>
+                  <p className="text-2xl font-bold">{stats.totalVideos}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <FileText className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Total Materials</p>
+                  <p className="text-2xl font-bold">{stats.totalMaterials}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <Book className="h-5 w-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Assignments</p>
+                  <p className="text-2xl font-bold">{stats.totalAssignments}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Subjects Grid */}
+        {subjects.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Book className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600">No subjects found</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {subjects.map((subject: StudentSubject) => {
+              const nextClass = subject.timetableEntries[0];
+              
+              return (
+                <Link key={subject.id} href={`/student/subjects/${subject.id}`}>
+                  <Card className="hover:shadow-lg transition-shadow overflow-hidden cursor-pointer">
+                    <div
+                      className="h-2"
+                      style={{ backgroundColor: subject.color || "#6B7280" }}
+                    />
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <div>
+                          <span className="capitalize">{subject.name}</span>
+                          {subject.code && (
+                            <p className="text-sm font-normal text-gray-600 mt-1">
+                              {subject.code}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleAIClick(subject.name);
+                          }}
+                          className="p-1 rounded-full hover:bg-accent transition-colors"
+                          style={{ color: subject.color || "#6B7280" }}
+                          aria-label="AI Assistant"
+                        >
+                          <AIAgentLogo size="sm" />
+                        </button>
+                      </CardTitle>
+                    </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {/* Content Counts */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="text-center p-2 bg-gray-50 rounded">
+                          <Video className="h-4 w-4 mx-auto text-purple-600 mb-1" />
+                          <p className="text-xs text-gray-600">Videos</p>
+                          <p className="font-semibold">{subject.contentCounts.totalVideos}</p>
+                        </div>
+                        <div className="text-center p-2 bg-gray-50 rounded">
+                          <FileText className="h-4 w-4 mx-auto text-green-600 mb-1" />
+                          <p className="text-xs text-gray-600">Materials</p>
+                          <p className="font-semibold">{subject.contentCounts.totalMaterials}</p>
+                        </div>
+                        <div className="text-center p-2 bg-gray-50 rounded">
+                          <Book className="h-4 w-4 mx-auto text-orange-600 mb-1" />
+                          <p className="text-xs text-gray-600">Tasks</p>
+                          <p className="font-semibold">{subject.contentCounts.totalAssignments}</p>
+                        </div>
+                      </div>
+
+                      {/* Next Class */}
+                      {nextClass && (
+                        <div className="p-3 bg-blue-50 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Calendar className="h-4 w-4 text-blue-600" />
+                            <p className="text-sm font-medium text-blue-900">Next Class</p>
+                          </div>
+                          <div className="space-y-1 text-sm text-blue-800">
+                            <p className="flex items-center gap-2">
+                              <Clock className="h-3 w-3" />
+                              {formatDay(nextClass.day_of_week)} • {nextClass.startTime} - {nextClass.endTime}
+                            </p>
+                            {nextClass.room && (
+                              <p className="text-xs text-blue-700">Room: {nextClass.room}</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Classes */}
+                      {subject.classesTakingSubject.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {subject.classesTakingSubject.map((cls) => (
+                            <Badge key={cls.id} variant="outline" className="text-xs">
+                              {cls.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex gap-2 pt-2">
+                        <Button 
+                          variant="outline" 
+                          className="flex-1" 
+                          size="sm"
+                          onClick={(e) => e.preventDefault()}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Materials
+                        </Button>
+                        <Button 
+                          className="flex-1" 
+                          size="sm"
+                          onClick={(e) => e.preventDefault()}
+                        >
+                          <Book className="h-4 w-4 mr-2" />
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <AIAgentModal

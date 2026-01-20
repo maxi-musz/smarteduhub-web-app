@@ -54,13 +54,8 @@ export const StudentFilters = ({
           <SelectValue placeholder="Class" />
         </SelectTrigger>
         <SelectContent>
+          {/* TODO: Replace with real classes from backend when available */}
           <SelectItem value="all">All Classes</SelectItem>
-          <SelectItem value="jss1">JSS1</SelectItem>
-          <SelectItem value="jss2">JSS2</SelectItem>
-          <SelectItem value="jss3">JSS3</SelectItem>
-          <SelectItem value="ss1">SS1</SelectItem>
-          <SelectItem value="ss2">SS2</SelectItem>
-          <SelectItem value="ss3">SS3</SelectItem>
         </SelectContent>
       </Select>
     </div>

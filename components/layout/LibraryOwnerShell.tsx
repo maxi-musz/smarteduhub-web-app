@@ -5,7 +5,6 @@ import {
   BookOpen,
   FileText,
   BarChart3,
-  Settings,
   User,
   LogOut,
   School,
@@ -33,7 +32,7 @@ const libraryOwnerTabs = [
 
 const bottomTabs = [
   { href: "/library-owner/profile", label: "Profile", icon: User },
-  { href: "/library-owner/settings", label: "Settings", icon: Settings },
+  // { href: "/library-owner/settings", label: "Settings", icon: Settings },
 ];
 
 export default function LibraryOwnerShell({

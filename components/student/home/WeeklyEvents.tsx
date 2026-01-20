@@ -3,90 +3,62 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, ArrowRight, MapPin } from "lucide-react";
+import { Calendar, ArrowRight } from "lucide-react";
+import type { Notification } from "@/hooks/use-student-dashboard";
 
-interface WeeklyEvent {
-  id: string;
-  title: string;
-  type: "social" | "religious" | "sport" | "debate" | "academic";
-  date: string;
-  time: string;
-  location: string;
-  status: "upcoming" | "today" | "completed";
+interface WeeklyEventsProps {
+  notifications: Notification[];
 }
 
-const weeklyEvents: WeeklyEvent[] = [
-  {
-    id: "1",
-    title: "Football Match vs. Central High",
-    type: "sport",
-    date: "Jun 12",
-    time: "15:00",
-    location: "Main Field",
-    status: "upcoming",
-  },
-  {
-    id: "2",
-    title: "Science Club Meeting",
-    type: "academic",
-    date: "Jun 11",
-    time: "14:00",
-    location: "Lab B-102",
-    status: "today",
-  },
-  {
-    id: "3",
-    title: "Morning Prayer Assembly",
-    type: "religious",
-    date: "Jun 10",
-    time: "08:00",
-    location: "Main Hall",
-    status: "completed",
-  },
-  {
-    id: "4",
-    title: "Debate Competition Finals",
-    type: "debate",
-    date: "Jun 14",
-    time: "10:00",
-    location: "Auditorium",
-    status: "upcoming",
-  },
-];
+const getStatusBadge = (comingUpOn: string) => {
+  const eventDate = new Date(comingUpOn);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-const getStatusBadge = (status: WeeklyEvent["status"]) => {
-  switch (status) {
-    case "upcoming":
-      return (
-        <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs">
-          Upcoming
-        </Badge>
-      );
-    case "today":
-      return (
-        <Badge className="bg-green-100 text-green-700 hover:bg-green-200 text-xs">
-          Today
-        </Badge>
-      );
-    case "completed":
-      return (
-        <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-200 text-xs">
-          Completed
-        </Badge>
-      );
+  // Reset time parts for comparison
+  eventDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  tomorrow.setHours(0, 0, 0, 0);
+
+  if (eventDate.getTime() === today.getTime()) {
+    return (
+      <Badge className="bg-green-100 text-green-700 hover:bg-green-200 text-xs">
+        Today
+      </Badge>
+    );
+  } else if (eventDate.getTime() === tomorrow.getTime()) {
+    return (
+      <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs">
+        Tomorrow
+      </Badge>
+    );
+  } else if (eventDate > today) {
+    return (
+      <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs">
+        Upcoming
+      </Badge>
+    );
+  } else {
+    return (
+      <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-200 text-xs">
+        Completed
+      </Badge>
+    );
   }
 };
 
-const getTypeBadge = (type: WeeklyEvent["type"]) => {
-  const colors = {
+const getTypeBadge = (type: string) => {
+  const colors: Record<string, string> = {
     social: "bg-pink-100 text-pink-700",
     religious: "bg-purple-100 text-purple-700",
     sport: "bg-orange-100 text-orange-700",
     debate: "bg-yellow-100 text-yellow-700",
     academic: "bg-cyan-100 text-cyan-700",
+    students: "bg-blue-100 text-blue-700",
   };
 
-  const colorClass = colors[type];
+  const colorClass = colors[type.toLowerCase()] || "bg-gray-100 text-gray-700";
 
   return (
     <Badge variant="secondary" className={`${colorClass} text-xs capitalize`}>
@@ -95,7 +67,17 @@ const getTypeBadge = (type: WeeklyEvent["type"]) => {
   );
 };
 
-export function WeeklyEvents() {
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+const formatTime = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+};
+
+export function WeeklyEvents({ notifications }: WeeklyEventsProps) {
   return (
     <Card className="shadow-lg h-full flex flex-col">
       <CardHeader className="pb-4">
@@ -106,29 +88,36 @@ export function WeeklyEvents() {
       </CardHeader>
       <CardContent className="space-y-4 flex-1 flex flex-col">
         <div className="space-y-3 flex-1">
-          {weeklyEvents.map((event) => (
-            <div
-              key={event.id}
-              className="p-3 rounded-lg border border-brand-border bg-brand-bg space-y-2"
-            >
-              <div className="flex items-start justify-between">
-                <div className="space-y-1 flex-1">
-                  <div className="font-medium text-sm">{event.title}</div>
-                  <div className="flex items-center gap-2">
-                    {getTypeBadge(event.type)}
-                    <span className="text-xs text-brand-light-accent-1">
-                      {event.date} • {event.time}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-brand-light-accent-1">
-                    <MapPin className="h-3 w-3" />
-                    <span>{event.location}</span>
-                  </div>
-                </div>
-                {getStatusBadge(event.status)}
-              </div>
+          {notifications.length === 0 ? (
+            <div className="text-center py-8 text-brand-light-accent-1">
+              No upcoming events
             </div>
-          ))}
+          ) : (
+            notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className="p-3 rounded-lg border border-brand-border bg-brand-bg space-y-2"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1 flex-1">
+                    <div className="font-medium text-sm">{notification.title}</div>
+                    <div className="flex items-center gap-2">
+                      {getTypeBadge(notification.type)}
+                      <span className="text-xs text-brand-light-accent-1">
+                        {formatDate(notification.comingUpOn)} • {formatTime(notification.comingUpOn)}
+                      </span>
+                    </div>
+                    {notification.description && (
+                      <div className="text-xs text-brand-light-accent-1 mt-1">
+                        {notification.description}
+                      </div>
+                    )}
+                  </div>
+                  {getStatusBadge(notification.comingUpOn)}
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         <Button

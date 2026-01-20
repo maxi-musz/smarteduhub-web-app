@@ -8,7 +8,6 @@ import {
   Award,
   Bell,
   User,
-  Settings,
   Compass,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -29,7 +28,7 @@ const studentTabs = [
 const bottomTabs = [
   { href: "/student/notifications", label: "Notifications", icon: Bell },
   { href: "/student/profile", label: "Profile", icon: User },
-  { href: "/student/settings", label: "Settings", icon: Settings },
+  // { href: "/student/settings", label: "Settings", icon: Settings },
 ];
 
 export default function StudentShell({ children }: { children: ReactNode }) {

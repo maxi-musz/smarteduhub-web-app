@@ -1,131 +1,88 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Mail, MapPin, Phone } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { useDirectorProfile } from "@/hooks/use-director-profile";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  LoadingState,
+  ErrorState,
+  ProfileHeader,
+  OverviewTab,
+  UserDetailsTab,
+  SchoolDetailsTab,
+  CurrentSessionTab,
+  SettingsTab,
+  SubscriptionTab,
+} from "./admin-profile-components";
 
 const AdminProfile = () => {
-  const adminData = {
-    name: "Mayowa Bernard",
-    role: "System Administrator",
-    email: "mayowa.bernard@smartedu.com",
-    phone: "+2348146694787",
-    location: "Ibadan, Oyo State",
-    joinDate: "January 2023",
-    status: "Active",
-    avatar: "/admins/mayowa.png",
-    stats: {
-      teachersManaged: 45,
-      studentsOverview: 520,
-      activeCourses: 32,
-      totalAnnouncements: 128,
-    },
-  };
+  const { data, isLoading, error } = useDirectorProfile();
+  const [activeTab, setActiveTab] = useState("overview");
+
+  if (isLoading) {
+    return <LoadingState />;
+  }
+
+  if (error || !data) {
+    return <ErrorState error={error} />;
+  }
+
+  const {
+    user,
+    school,
+    stats,
+    current_session,
+    settings,
+    subscription_plan,
+    available_plans,
+  } = data;
 
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
-      <Card className="bg-white shadow-md hover:shadow-lg transition-shadow duration-200">
-        <CardHeader className="pb-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-4">
-              <Avatar className="w-20 h-20">
-                <AvatarImage src={adminData.avatar} alt={adminData.name} />
-                <AvatarFallback>
-                  {adminData.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h2 className="text-2xl font-bold">{adminData.name}</h2>
-                <p className="text-gray-500">{adminData.role}</p>
-                <Badge variant="default" className="mt-2">
-                  {adminData.status}
-                </Badge>
-              </div>
-            </div>
-            <Button>Edit Profile</Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-gray-500" />
-                <span>{adminData.email}</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-gray-500" />
-                <span>{adminData.phone}</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <MapPin className="w-5 h-5 text-gray-500" />
-                <span>{adminData.location}</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <CalendarDays className="w-5 h-5 text-gray-500" />
-                <span>Joined {adminData.joinDate}</span>
-              </div>
-            </div>
-          </div>
+      <ProfileHeader profile={data} />
+
+      <Card className="bg-white shadow-md">
+        <CardContent className="pt-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="w-full justify-start overflow-x-auto">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="user">User Details</TabsTrigger>
+              <TabsTrigger value="school">School Details</TabsTrigger>
+              <TabsTrigger value="session">Current Session</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="subscription">Subscription</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview">
+              <OverviewTab user={user} school={school} stats={stats} />
+            </TabsContent>
+
+            <TabsContent value="user">
+              <UserDetailsTab user={user} />
+            </TabsContent>
+
+            <TabsContent value="school">
+              <SchoolDetailsTab school={school} />
+            </TabsContent>
+
+            <TabsContent value="session">
+              <CurrentSessionTab currentSession={current_session} />
+            </TabsContent>
+
+            <TabsContent value="settings">
+              <SettingsTab settings={settings} />
+            </TabsContent>
+
+            <TabsContent value="subscription">
+              <SubscriptionTab
+                subscriptionPlan={subscription_plan}
+                availablePlans={available_plans}
+              />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white shadow-md hover:shadow-lg transition-shadow duration-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Teachers Managed
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {adminData.stats.teachersManaged}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white shadow-md hover:shadow-lg transition-shadow duration-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Students Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {adminData.stats.studentsOverview}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white shadow-md hover:shadow-lg transition-shadow duration-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Active Courses
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {adminData.stats.activeCourses}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white shadow-md hover:shadow-lg transition-shadow duration-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Total Announcements
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {adminData.stats.totalAnnouncements}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };

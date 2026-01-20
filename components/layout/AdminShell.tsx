@@ -7,7 +7,6 @@ import {
   Book,
   User,
   Bell,
-  Settings,
   Compass,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,6 +20,7 @@ const adminTabs = [
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
   { href: "/admin/teachers", label: "Teachers", icon: Users },
   { href: "/admin/students", label: "Students", icon: User },
+  { href: "/admin/classes", label: "Classes", icon: Users },
   { href: "/admin/subjects", label: "Subjects", icon: Book },
   { href: "/admin/schedules", label: "Schedules", icon: Calendar },
   // { href: "/onboarding-classes", label: "Onboarding", icon: UserPlus },
@@ -33,7 +33,7 @@ const adminTabs = [
 const bottomTabs = [
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/profile", label: "Profile", icon: User },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  // { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export default function AdminShell({ children }: { children: ReactNode }) {

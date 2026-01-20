@@ -117,16 +117,72 @@ export const authOptions: NextAuthOptions = {
           console.log("Status:", response.status, response.statusText);
           console.log("Headers:", Object.fromEntries(response.headers.entries()));
 
-          const data = await response.json();
-          console.log("Response Body:", JSON.stringify(data, null, 2));
+          const contentType = response.headers.get("content-type") ?? "";
+          let data: unknown;
+
+          if (contentType.includes("application/json")) {
+            data = await response.json();
+            console.log("Response Body:", JSON.stringify(data, null, 2));
+          } else {
+            const textBody = await response.text();
+            console.error(
+              "[auth] Expected JSON response but received non-JSON. Status:",
+              response.status,
+              "Body preview:",
+              textBody.slice(0, 200)
+            );
+
+            // Surface a clean error to the user instead of a JSON parse error
+            throw new Error(
+              response.status === 404
+                ? "Authentication service not found. Please contact support."
+                : "Unexpected response from authentication service. Please try again."
+            );
+          }
+
           console.log("==========================");
 
-          if (response.ok && data.success) {
+          if (
+            response.ok &&
+            typeof data === "object" &&
+            data !== null &&
+            "success" in data &&
+            (data as { success: boolean }).success &&
+            "data" in data
+          ) {
+            const typedData = data as unknown as {
+              data: {
+                user?: {
+                  id: string;
+                  email: string;
+                  first_name: string;
+                  last_name: string;
+                  role: string;
+                  school_id?: string;
+                  phone_number?: string;
+                  is_email_verified?: boolean;
+                  platformId?: string;
+                  userType?: string;
+                };
+                access_token?: string;
+              };
+              access_token?: string;
+            };
             // Handle library owner response structure
             if (isLibraryOwner) {
               // Extract user data from nested structure (same as school users now)
-              const userData = data.data.user || data.data;
-              const accessToken = data.data.access_token || data.access_token || "";
+              const userData = typedData.data.user || (typedData.data as unknown as {
+                id: string;
+                email: string;
+                first_name: string;
+                last_name: string;
+                role: string;
+                platformId?: string;
+                phone_number?: string;
+                userType?: string;
+              });
+              const accessToken =
+                typedData.data.access_token || typedData.access_token || "";
               
               console.log("✅ Logging in library owner with userType:", userData.userType);
               console.log("Access Token Check:", accessToken ? "✅ Present" : "⚠️ Not provided (may not be required for library owners)");
@@ -147,8 +203,18 @@ export const authOptions: NextAuthOptions = {
             }
 
             // Handle school user response structure
-            const userData = data.data.user || data.data;
-            const accessToken = data.data.access_token || data.access_token;
+            const userData = typedData.data.user || (typedData.data as unknown as {
+              id: string;
+              email: string;
+              first_name: string;
+              last_name: string;
+              role: string;
+              school_id?: string;
+              phone_number?: string;
+              is_email_verified?: boolean;
+            });
+            const accessToken =
+              typedData.data.access_token || typedData.access_token;
             
             console.log("Access Token Check:", accessToken ? "✅ Present - Logging in directly" : "❌ Missing - OTP required");
             
@@ -173,7 +239,16 @@ export const authOptions: NextAuthOptions = {
             };
           }
 
-          throw new Error(data.message || "Invalid credentials");
+          if (
+            typeof data === "object" &&
+            data !== null &&
+            "message" in data &&
+            typeof (data as { message: unknown }).message === "string"
+          ) {
+            throw new Error((data as { message: string }).message);
+          }
+
+          throw new Error("Invalid credentials");
         } catch (error: unknown) {
           // Don't log OTP_REQUIRED as an error - it's expected behavior
           const errorMessage =

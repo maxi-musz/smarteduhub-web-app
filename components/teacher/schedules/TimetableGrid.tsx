@@ -213,7 +213,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
         {days.map((day) => (
           <div
             key={day}
-            className={`grid gap-1 mb-2`}
+            className="grid gap-1 mb-2"
             style={{
               gridTemplateColumns: `1fr repeat(${timeSlots.length}, 1fr)`,
             }}
@@ -222,7 +222,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
               <span className="text-sm lg:text-base">{day}</span>
             </div>
             {timeSlots.map((timeSlot, slotIndex) => {
-              const timeSlotStr = String(timeSlot);
+              const timeSlotStr = timeSlot.timeSlot;
               const period = getPeriodForSlot(day, timeSlotStr);
               const subject = period ? getSubjectById(period.subjectId) : null;
               const teacher = period ? getTeacherById(period.teacherId) : null;
@@ -262,13 +262,14 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-5 w-5 lg:h-6 lg:w-6 self-end"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity px-1 py-0.5 h-auto self-end text-[10px] lg:text-xs flex items-center gap-1"
                             onClick={(e) => {
                               e.stopPropagation();
                               onEdit(period);
                             }}
                           >
-                            <Edit className="w-2 h-2 lg:w-3 lg:h-3" />
+                            <Edit className="w-3 h-3" />
+                            <span>Edit</span>
                           </Button>
                         )}
                       </div>
@@ -279,7 +280,7 @@ const TimetableGrid: React.FC<TimetableGridProps> = ({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] lg:text-xs p-1 h-auto hover:text-brand-primary"
+                          className="text-[10px] lg:text-xs px-1 py-0.5 h-auto hover:text-brand-primary"
                           onClick={() =>
                             onEdit({
                               id: "",

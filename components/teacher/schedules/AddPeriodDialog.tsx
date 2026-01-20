@@ -42,6 +42,7 @@ interface Period {
   timeSlot: string;
   subjectId: string;
   teacherId: string;
+  isNew?: boolean;
 }
 
 const days = [
@@ -115,6 +116,7 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
 
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isCreatingTimeSlot, setIsCreatingTimeSlot] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Track if dialog was just opened to initialize form only once
   const [isInitialized, setIsInitialized] = useState(false);
@@ -143,7 +145,7 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
     // Initialize form only when dialog opens (not on every render)
     if (isOpen && !isInitialized) {
       if (editingPeriod) {
-        // Map editing period to new format
+        // Map editing period to API day format
         const dayMapping: { [key: string]: string } = {
           Monday: "MONDAY",
           Tuesday: "TUESDAY",
@@ -151,13 +153,35 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
           Thursday: "THURSDAY",
           Friday: "FRIDAY",
         };
+
+        const mappedDay =
+          dayMapping[editingPeriod.day] || editingPeriod.day || "";
+
+        // Try to find matching time slot by id, label or start-end string
+        let initialTimeSlotId = "";
+        if (typedTimetableOptions?.timeSlots && editingPeriod.timeSlot) {
+          const matchedSlot = typedTimetableOptions.timeSlots.find((slot) => {
+            const slotRange = `${slot.startTime}-${slot.endTime}`;
+            return (
+              slot.id === editingPeriod.timeSlot ||
+              slot.label === editingPeriod.timeSlot ||
+              slotRange === editingPeriod.timeSlot
+            );
+          });
+
+          if (matchedSlot) {
+            initialTimeSlotId = matchedSlot.id;
+          }
+        }
+
         setFormData({
-          day: dayMapping[editingPeriod.day] || editingPeriod.day || "",
-          timeSlotId: editingPeriod.timeSlot || "",
+          day: mappedDay,
+          timeSlotId: initialTimeSlotId,
           subjectId: editingPeriod.subjectId || "",
           teacherId: editingPeriod.teacherId || "",
           room: "",
           notes: "",
+          // When coming from the grid, we always use an existing time slot
           useCustomTime: false,
           startHour: "08",
           startMinute: "00",
@@ -168,7 +192,7 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
       setIsInitialized(true);
       setValidationError(null);
     }
-  }, [editingPeriod, isOpen, isInitialized]);
+  }, [editingPeriod, isOpen, isInitialized, typedTimetableOptions]);
 
   // Check for time conflicts
   const checkTimeConflict = useCallback((
@@ -240,6 +264,10 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
     e.preventDefault();
     setValidationError(null);
 
+    if (isSubmitting) {
+      return;
+    }
+
     if (!selectedClassId) {
       setValidationError("Class is required");
       return;
@@ -293,6 +321,7 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
     }
 
     try {
+      setIsSubmitting(true);
       // Call onSubmit and wait for it to complete
       await onSubmit({
         class_id: selectedClassId,
@@ -309,6 +338,8 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
     } catch {
       // Error handling is done in the parent component
       // Don't clear the form on error
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -316,6 +347,16 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
   const teachers = typedTimetableOptions?.teachers || [];
   const timeSlots = typedTimetableOptions?.timeSlots || [];
   const selectedSubject = subjects.find((s) => s.id === formData.subjectId);
+
+  const selectedTimeSlot = !formData.useCustomTime && formData.timeSlotId
+    ? timeSlots.find((slot) => slot.id === formData.timeSlotId)
+    : undefined;
+
+  const displayTimeSlotLabel =
+    selectedTimeSlot?.name ||
+    (selectedTimeSlot
+      ? `${selectedTimeSlot.startTime} - ${selectedTimeSlot.endTime}`
+      : editingPeriod?.timeSlot || "");
 
   // Update validation when time or day changes
   useEffect(() => {
@@ -348,6 +389,8 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
     );
   }
 
+  const isDayTimeReadOnly = !!editingPeriod;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -358,52 +401,72 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="day">Day</Label>
-              <Select
-                value={formData.day}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, day: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select day" />
-                </SelectTrigger>
-                <SelectContent>
-                  {days.map((day) => (
-                    <SelectItem key={day.value} value={day.value}>
-                      {day.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {isDayTimeReadOnly ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="day">Day</Label>
+                <div className="px-3 py-2 rounded-md border bg-muted text-sm">
+                  {days.find((day) => day.value === formData.day)?.label ||
+                    formData.day}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Time Slot</Label>
+                <div className="px-3 py-2 rounded-md border bg-muted text-sm">
+                  {displayTimeSlotLabel || "—"}
+                </div>
+              </div>
             </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="day">Day</Label>
+                  <Select
+                    value={formData.day}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, day: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select day" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {days.map((day) => (
+                        <SelectItem key={day.value} value={day.value}>
+                          {day.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="timeMode">Time Selection</Label>
-              <Select
-                value={formData.useCustomTime ? "custom" : "existing"}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    useCustomTime: value === "custom",
-                    timeSlotId: value === "custom" ? "" : prev.timeSlotId,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="existing">Select from existing</SelectItem>
-                  <SelectItem value="custom">Enter custom time</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                <div className="space-y-2">
+                  <Label htmlFor="timeMode">Time Selection</Label>
+                  <Select
+                    value={formData.useCustomTime ? "custom" : "existing"}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        useCustomTime: value === "custom",
+                        timeSlotId: value === "custom" ? "" : prev.timeSlotId,
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="existing">
+                        Select from existing
+                      </SelectItem>
+                      <SelectItem value="custom">Enter custom time</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-          {formData.useCustomTime ? (
+              {formData.useCustomTime ? (
             <div className="space-y-4 p-4 border border-brand-border rounded-lg bg-brand-bg/30">
               <Label>Custom Time</Label>
               <div className="grid grid-cols-2 gap-4">
@@ -521,7 +584,7 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
                 </div>
               </div>
             </div>
-          ) : (
+              ) : (
             <div className="space-y-2">
               <Label htmlFor="timeSlot">Time Slot</Label>
               <Select
@@ -574,6 +637,8 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
                 </p>
               )}
             </div>
+              )}
+            </>
           )}
 
           {validationError && (
@@ -674,7 +739,7 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
               variant="outline"
               onClick={onClose}
               className="flex-1"
-              disabled={isCreatingTimeSlot}
+              disabled={isCreatingTimeSlot || isSubmitting}
             >
               Cancel
             </Button>
@@ -688,13 +753,14 @@ const AddPeriodDialog: React.FC<AddPeriodDialogProps> = ({
                 !formData.teacherId ||
                 !selectedClassId ||
                 !!validationError ||
-                isCreatingTimeSlot
+                isCreatingTimeSlot ||
+                isSubmitting
               }
             >
-              {isCreatingTimeSlot ? (
+              {isCreatingTimeSlot || isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Time Slot...
+                  {isCreatingTimeSlot ? "Creating Time Slot..." : "Saving..."}
                 </>
               ) : editingPeriod?.id ? (
                 "Update Period"

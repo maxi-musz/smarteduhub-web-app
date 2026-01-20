@@ -5,48 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar, ArrowRight, User } from "lucide-react";
+import type { DaySchedule } from "@/hooks/use-student-dashboard";
 
-interface ClassScheduleItem {
-  id: string;
-  course: string;
-  code: string;
-  time: string;
-  day: string;
-  teacher: string;
-  isToday: boolean;
+interface ClassScheduleSummaryProps {
+  schedule: {
+    today: DaySchedule;
+    tomorrow: DaySchedule;
+    day_after_tomorrow: DaySchedule;
+  };
 }
 
-const todaySchedule: ClassScheduleItem[] = [
-  {
-    id: "1",
-    course: "Advanced Mathematics",
-    code: "MATH 301",
-    time: "09:00 - 10:30",
-    day: "Monday",
-    teacher: "Dr. Sarah Johnson",
-    isToday: true,
-  },
-  {
-    id: "2",
-    course: "Computer Science Fundamentals",
-    code: "CS 101",
-    time: "11:00 - 12:30",
-    day: "Monday",
-    teacher: "Prof. Michael Chen",
-    isToday: true,
-  },
-  {
-    id: "3",
-    course: "English Literature",
-    code: "ENG 205",
-    time: "14:00 - 15:30",
-    day: "Monday",
-    teacher: "Dr. Emily Roberts",
-    isToday: true,
-  },
-];
-
-export function ClassScheduleSummary() {
+export function ClassScheduleSummary({ schedule }: ClassScheduleSummaryProps) {
+  const todaySchedule = schedule.today.schedule;
   return (
     <Card className="shadow-lg bg-white h-full flex flex-col">
       <CardHeader className="pb-4">
@@ -57,29 +27,36 @@ export function ClassScheduleSummary() {
       </CardHeader>
       <CardContent className="space-y-4 flex-1 flex flex-col">
         <div className="space-y-3 flex-1">
-          {todaySchedule.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between p-3 rounded-lg bg-blue-50/50 border-l-4 border-l-brand-primary"
-            >
-              <div className="space-y-1 flex-1">
-                <div className="font-medium text-sm">{item.course}</div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge variant="secondary" className="text-xs">
-                    {item.code}
-                  </Badge>
+          {todaySchedule.length === 0 ? (
+            <div className="text-center py-8 text-brand-light-accent-1">
+              No classes scheduled for today
+            </div>
+          ) : (
+            todaySchedule.map((item, index) => (
+              <div
+                key={`${item.subject.id}-${index}`}
+                className="flex items-center justify-between p-3 rounded-lg bg-blue-50/50 border-l-4"
+                style={{ borderLeftColor: item.subject.color }}
+              >
+                <div className="space-y-1 flex-1">
+                  <div className="font-medium text-sm">{item.subject.name}</div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="secondary" className="text-xs">
+                      {item.subject.code}
+                    </Badge>
+                    <div className="flex items-center gap-1 text-xs text-brand-light-accent-1">
+                      <Clock className="h-3 w-3" />
+                      <span>{item.time.from} - {item.time.to}</span>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-1 text-xs text-brand-light-accent-1">
-                    <Clock className="h-3 w-3" />
-                    <span>{item.time}</span>
+                    <User className="h-3 w-3" />
+                    <span>{item.teacher.name}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-brand-light-accent-1">
-                  <User className="h-3 w-3" />
-                  <span>{item.teacher}</span>
-                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         <Button

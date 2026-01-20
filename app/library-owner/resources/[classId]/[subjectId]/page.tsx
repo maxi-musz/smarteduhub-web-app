@@ -92,10 +92,10 @@ const SubjectDetailPage = () => {
   if (isClassResourcesLoading) {
     return (
       <div className="pt-4 pb-6 space-y-6 bg-brand-bg">
-        <div className="px-4 sm:px-6">
+        <div className="pl-0 pr-6">
           <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
         </div>
-        <div className="px-4 sm:px-6">
+        <div className="pl-0 pr-6">
           <div className="h-64 bg-gray-200 rounded animate-pulse" />
         </div>
       </div>
@@ -131,7 +131,7 @@ const SubjectDetailPage = () => {
 
     return (
       <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
-        <div className="px-4 sm:px-6">
+        <div className="pl-0 pr-6">
           <Dialog open={true}>
             <DialogContent>
               <DialogHeader>
@@ -165,17 +165,16 @@ const SubjectDetailPage = () => {
   if (!subject) {
     return (
       <div className="pt-4 pb-6 space-y-6 bg-brand-bg">
-        <div className="px-4 sm:px-6">
+        <div className="pl-0 pr-6">
           <Button
             variant="ghost"
             onClick={() => router.back()}
-            className="-ml-2 -mt-1"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
         </div>
-        <div className="px-4 sm:px-6 text-center py-12">
+        <div className="pl-0 pr-6 text-center py-12">
           <AlertCircle className="h-12 w-12 text-brand-light-accent-1 mx-auto mb-4" />
           <p className="text-brand-light-accent-1">
             Subject not found
@@ -193,11 +192,10 @@ const SubjectDetailPage = () => {
   return (
     <div className="pt-4 pb-6 space-y-6 bg-brand-bg min-h-screen">
       {/* Back Button */}
-      <div className="px-4 sm:px-6">
+      <div className="pl-0 pr-6">
         <Button
           variant="ghost"
           onClick={() => router.back()}
-          className="-ml-2 -mt-1"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Class Resources
@@ -205,7 +203,7 @@ const SubjectDetailPage = () => {
       </div>
 
       {/* Subject Header */}
-      <div className="px-4 sm:px-6">
+      <div className="pl-0 pr-6">
         <Card className="shadow-sm bg-white border border-brand-border">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
@@ -287,7 +285,7 @@ const SubjectDetailPage = () => {
       </div>
 
       {/* Chapters Section */}
-      <div className="px-4 sm:px-6 space-y-4">
+      <div className="pl-0 pr-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-xl sm:text-2xl font-semibold text-brand-heading">

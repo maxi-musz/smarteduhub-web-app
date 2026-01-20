@@ -54,7 +54,7 @@ export const ResourcesStatistics = ({ statistics }: ResourcesStatisticsProps) =>
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+    <div className="pl-0 pr-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
       {overviewStats.map((stat, index) => {
         const Icon = stat.icon;
         return (

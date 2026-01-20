@@ -316,7 +316,7 @@ const LibraryOwnerResources = () => {
   return (
     <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
       {/* Header */}
-      <div className="px-4 sm:px-6">
+      <div className="pl-0 pr-6">
         <h1 className="text-xl sm:text-2xl font-bold text-brand-heading">Resources</h1>
         <p className="text-sm sm:text-base text-brand-light-accent-1 mt-1">
           Manage and view all your library resources
@@ -324,17 +324,13 @@ const LibraryOwnerResources = () => {
       </div>
 
       {/* Statistics Overview */}
-      <div className="px-4 sm:px-6">
-        <ResourcesStatistics statistics={data.statistics} />
-      </div>
+      <ResourcesStatistics statistics={data.statistics} />
 
       {/* Breakdown Statistics */}
-      <div className="px-4 sm:px-6">
-        <ResourcesBreakdown statistics={data.statistics} />
-      </div>
+      <ResourcesBreakdown statistics={data.statistics} />
 
       {/* Additional Content Sections */}
-      <div className="px-4 sm:px-6 space-y-4 sm:space-y-6">
+      <div className="pl-0 pr-6 space-y-4 sm:space-y-6">
         {/* Collapsible Sections */}
         <Accordion type="multiple" defaultValue={[]} className="space-y-4">
           {/* Library Classes Summary - Collapsed by default */}

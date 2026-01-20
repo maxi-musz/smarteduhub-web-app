@@ -89,6 +89,13 @@ const getStatusBadge = (status: RecentAttendance["status"]) => {
   }
 };
 
+// TODO: Backend Integration Required
+// This component uses mock data because the /students/dashboard endpoint
+// doesn't include attendance statistics. Need to either:
+// 1. Add attendance data to the dashboard endpoint
+// 2. Create a separate /students/attendance endpoint
+// 3. Pass attendance data as props from parent component
+
 export function AttendanceOverview() {
   return (
     <Card className="shadow-lg bg-white h-full flex flex-col">
@@ -96,6 +103,9 @@ export function AttendanceOverview() {
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <User className="h-4 w-4 text-sky-400" />
           Class Attendance
+          <Badge variant="outline" className="text-xs ml-auto">
+            Mock Data
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 flex-1 flex flex-col">

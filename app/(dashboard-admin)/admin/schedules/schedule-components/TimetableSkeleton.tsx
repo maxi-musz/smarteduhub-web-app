@@ -6,25 +6,31 @@ interface TimetableSkeletonProps {
 
 export const TimetableSkeleton = ({ timeSlots }: TimetableSkeletonProps) => {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-  const displayTimeSlots =
-    timeSlots.length > 0
-      ? timeSlots
-      : Array.from({ length: 8 }, (_, i) => `${8 + i}:00-${9 + i}:00`);
+
+  // When there are no time slots, do not show mock default time ranges.
+  // Instead, render a simple placeholder so the UI does not imply slots exist.
+  if (timeSlots.length === 0) {
+    return (
+      <div className="py-12 text-center text-brand-light-accent-1">
+        <p>No time slots configured yet.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
       <div className="min-w-[800px] lg:min-w-full">
         <div
-          className={`grid gap-1 mb-2`}
+          className="grid gap-1 mb-2"
           style={{
-            gridTemplateColumns: `1fr repeat(${displayTimeSlots.length}, 1fr)`,
+            gridTemplateColumns: `1fr repeat(${timeSlots.length}, 1fr)`,
           }}
         >
           <div className="p-2 lg:p-3 font-semibold text-center bg-brand-border rounded-lg">
             <div className="w-4 h-4 mx-auto mb-1 bg-gray-300 rounded animate-pulse"></div>
             <span className="text-xs lg:text-sm">Time</span>
           </div>
-          {displayTimeSlots.map((timeSlot, index) => (
+          {timeSlots.map((timeSlot, index) => (
             <div
               key={`skeleton-${index}-${timeSlot}`}
               className="p-2 lg:p-3 font-medium text-center bg-brand-border rounded-lg"
@@ -39,15 +45,15 @@ export const TimetableSkeleton = ({ timeSlots }: TimetableSkeletonProps) => {
         {days.map((day) => (
           <div
             key={day}
-            className={`grid gap-1 mb-2`}
+            className="grid gap-1 mb-2"
             style={{
-              gridTemplateColumns: `1fr repeat(${displayTimeSlots.length}, 1fr)`,
+              gridTemplateColumns: `1fr repeat(${timeSlots.length}, 1fr)`,
             }}
           >
             <div className="p-3 lg:p-4 font-semibold text-center bg-brand-primary text-white rounded-lg flex items-center justify-center">
               <span className="text-sm lg:text-base">{day}</span>
             </div>
-            {displayTimeSlots.map((timeSlot, index) => (
+            {timeSlots.map((timeSlot, index) => (
               <div
                 key={`${day}-skeleton-${index}-${timeSlot}`}
                 className="min-h-[60px] lg:min-h-[80px] border-2 border-dashed border-brand-border rounded-lg relative"

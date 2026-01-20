@@ -112,7 +112,7 @@ const ClassResourcesPage = () => {
 
     return (
       <div className="py-6 space-y-6 bg-brand-bg">
-        <div className="px-6">
+        <div className="pl-0 pr-6">
           <Dialog open={true}>
             <DialogContent>
               <DialogHeader>
@@ -153,14 +153,20 @@ const ClassResourcesPage = () => {
 
   const data = classResourcesData as unknown as ClassResourcesResponse;
 
+  // NOTE:
+  // This container used to have negative left margins (-ml-4 sm:-ml-6) to
+  // compensate for padding in a previous layout. With the current
+  // LibraryOwnerShell (fixed sidebar + main with ml-64), those negative
+  // margins pulled the content under the sidebar and created an awkward
+  // gap/misalignment between the sidebar and the main content. Removing
+  // them lets the main area fill the full width to the right of the sidebar.
   return (
-    <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg -ml-4 sm:-ml-6">
+    <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
       {/* Back Button */}
-      <div className="px-4 sm:px-6">
+      <div className="pl-0 pr-6">
         <Button
           variant="ghost"
           onClick={() => router.back()}
-          className="-ml-2 -mt-1"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Resources
@@ -168,7 +174,7 @@ const ClassResourcesPage = () => {
       </div>
 
       {/* Header */}
-      <div className="px-4 sm:px-6">
+      <div className="pl-0 pr-6">
         <h1 className="text-xl sm:text-2xl font-bold text-brand-heading">
           {data.class.name} - Resources
         </h1>
@@ -178,12 +184,10 @@ const ClassResourcesPage = () => {
       </div>
 
       {/* Statistics Overview */}
-      <div className="px-4 sm:px-6">
-        <ClassStatistics statistics={data.statistics} />
-      </div>
+      <ClassStatistics statistics={data.statistics} />
 
       {/* Subjects List */}
-      <div className="px-4 sm:px-6 space-y-4">
+      <div className="pl-0 pr-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h2 className="text-xl font-semibold text-brand-heading">
             Subjects ({data.subjects.length})
