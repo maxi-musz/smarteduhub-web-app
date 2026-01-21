@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useUpdateTopic } from "@/hooks/topics/use-topics";
+import { useUpdateLibraryTopic } from "@/hooks/library-owner/use-library-topics";
 import { Topic } from "@/hooks/library-owner/use-library-class-resources";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
@@ -37,7 +37,7 @@ export const EditTopicModal = ({
   const [order, setOrder] = useState(1);
   const [isActive, setIsActive] = useState(true);
 
-  const updateTopic = useUpdateTopic();
+  const updateTopic = useUpdateLibraryTopic();
 
   // Store original values for comparison
   const originalValues = useMemo(() => {
@@ -116,7 +116,7 @@ export const EditTopicModal = ({
         data: {
           title: title.trim() ? formatTopicTitle(title) : undefined,
           description: description.trim() ? formatDescription(description) : undefined,
-          order: order >= 1 ? order : undefined,
+          order: order >= 1 && order !== topic.order ? order : undefined,
           is_active: isActive,
         },
       });

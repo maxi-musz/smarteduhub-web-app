@@ -10,31 +10,31 @@ export const ClassStatistics = ({ statistics }: ClassStatisticsProps) => {
   const stats = [
     {
       label: "Total Subjects",
-      value: statistics.totalSubjects,
+      value: statistics?.totalSubjects ?? 0,
       icon: BookOpen,
       color: "text-blue-600",
     },
     {
       label: "Total Chapters",
-      value: statistics.totalChapters,
+      value: statistics?.totalChapters ?? 0,
       icon: Layers,
       color: "text-indigo-600",
     },
     {
       label: "Total Topics",
-      value: statistics.totalTopics,
+      value: statistics?.totalTopics ?? 0,
       icon: Layers,
       color: "text-purple-600",
     },
     {
       label: "Total Videos",
-      value: statistics.totalVideos,
+      value: statistics?.totalVideos ?? 0,
       icon: Video,
       color: "text-green-600",
     },
     {
       label: "Total Materials",
-      value: statistics.totalMaterials,
+      value: statistics?.totalMaterials ?? 0,
       icon: FileText,
       color: "text-orange-600",
     },
@@ -54,7 +54,7 @@ export const ClassStatistics = ({ statistics }: ClassStatisticsProps) => {
             </CardHeader>
             <CardContent className="p-3 sm:p-6 pt-0">
               <div className="text-xl sm:text-2xl font-bold text-brand-heading">
-                {stat.value.toLocaleString()}
+                {(stat.value ?? 0).toLocaleString()}
               </div>
             </CardContent>
           </Card>

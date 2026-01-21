@@ -29,7 +29,6 @@ interface LinkCreateModalProps {
   onClose: () => void;
   topicId: string;
   subjectId: string;
-  chapterId?: string;
   topicTitle?: string;
 }
 
@@ -46,7 +45,6 @@ export const LinkCreateModal = ({
   onClose,
   topicId,
   subjectId,
-  chapterId,
   topicTitle,
 }: LinkCreateModalProps) => {
   const [title, setTitle] = useState("");
@@ -111,7 +109,6 @@ export const LinkCreateModal = ({
       await createLink.mutateAsync({
         topicId,
         subjectId,
-        chapterId: chapterId || undefined,
         title: formatTopicTitle(title),
         url: url.trim(),
         description: description.trim() || undefined,

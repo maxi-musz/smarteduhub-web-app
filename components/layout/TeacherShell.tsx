@@ -19,7 +19,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 
 const teacherTabs = [
-  { href: "/teacher/explore", label: "Explore", icon: Compass },
+  { href: "/explore", label: "Explore", icon: Compass },
   { href: "/teacher/dashboard", label: "Dashboard", icon: Home },
   { href: "/teacher/students", label: "Students", icon: Users },
   { href: "/teacher/subjects", label: "Subjects", icon: Book },
@@ -67,8 +67,8 @@ export default function TeacherShell({ children }: { children: ReactNode }) {
           <nav className="p-4 flex flex-col gap-1 flex-grow">
             {teacherTabs.map(({ href, label, icon: Icon }) => {
               const isActive = 
-                href === "/teacher/explore"
-                  ? pathname.startsWith("/teacher/explore")
+                href === "/explore"
+                  ? pathname.startsWith("/explore")
                   : href === "/teacher/attendance"
                   ? pathname.startsWith("/teacher/attendance")
                   : href === "/teacher/assessments"

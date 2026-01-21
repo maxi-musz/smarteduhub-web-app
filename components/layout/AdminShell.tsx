@@ -18,7 +18,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 
 const adminTabs = [
-  { href: "/admin/explore", label: "Explore", icon: Compass },
+  { href: "/explore", label: "Explore", icon: Compass },
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
   { href: "/admin/teachers", label: "Teachers", icon: Users },
   { href: "/admin/students", label: "Students", icon: User },
@@ -132,8 +132,8 @@ export default function AdminShell({ children }: { children: ReactNode }) {
         <div className="grid grid-cols-5 h-16">
           {adminTabs.slice(0, 5).map(({ href, label, icon: Icon }) => {
             const isActive = 
-              href === "/admin/explore"
-                ? pathname.startsWith("/admin/explore")
+              href === "/explore"
+                ? pathname.startsWith("/explore")
                 : href === "/admin/assessments"
                 ? pathname.startsWith("/admin/assessments")
                 : href === "/admin/attendance"

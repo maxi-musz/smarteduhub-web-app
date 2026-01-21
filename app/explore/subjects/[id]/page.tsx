@@ -2,26 +2,24 @@
 
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useLibrarySubject } from "@/hooks/library-owner/use-library-subject";
+import { useExploreTopics } from "@/hooks/explore/use-explore";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { PublicApiError } from "@/lib/api/public";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 // Import shared components from general-pages
 import { SubjectHeader } from "@/app/general-pages/subjects/[id]/components/SubjectHeader";
 import { SubjectDescription } from "@/app/general-pages/subjects/[id]/components/SubjectDescription";
 import { SubjectStatsCards } from "@/app/general-pages/subjects/[id]/components/SubjectStatsCards";
-import { LibraryTopicsContentSection } from "./components/LibraryTopicsContentSection";
-import { LibraryCreateTopicModal } from "./components/LibraryCreateTopicModal";
+import { ExploreTopicsContentSection } from "@/app/explore/explore-components/ExploreTopicsContentSection";
 
-const LibraryOwnerSubjectDetailPage = () => {
+const ExploreSubjectDetailPage = () => {
   const params = useParams();
   const router = useRouter();
-  const classId = params.classId as string;
-  const subjectId = params.subjectId as string;
+  const subjectId = params.id as string;
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
-  const [isCreateTopicModalOpen, setIsCreateTopicModalOpen] = useState(false);
 
-  const { data, isLoading, error } = useLibrarySubject(classId, subjectId);
+  const { data, isLoading, error } = useExploreTopics(subjectId);
 
   if (isLoading) {
     return (
@@ -38,7 +36,7 @@ const LibraryOwnerSubjectDetailPage = () => {
 
   if (error) {
     let errorMessage = "Failed to load subject details";
-    if (error instanceof AuthenticatedApiError) {
+    if (error instanceof PublicApiError || error instanceof AuthenticatedApiError) {
       if (error.statusCode === 401) {
         errorMessage = "Your session has expired. Please login again.";
       } else if (error.statusCode === 404) {
@@ -73,14 +71,51 @@ const LibraryOwnerSubjectDetailPage = () => {
     );
   }
 
-  const { subject, topics, stats } = data;
+  const { subject, topics, statistics } = data;
+
+  // Transform LibraryTopic to ExploreTopic format
+  const flatTopics = (topics || []).map((topic) => ({
+    id: topic.id,
+    title: topic.title,
+    description: topic.description,
+    order: topic.order,
+    is_active: topic.is_active,
+    videos: topic.videos.map((video) => ({
+      id: video.id,
+      title: video.title,
+      description: video.description,
+      videoUrl: video.videoUrl,
+      thumbnailUrl: video.thumbnailUrl,
+      durationSeconds: video.durationSeconds,
+      sizeBytes: video.sizeBytes,
+      views: video.views,
+      order: video.order,
+      status: video.status || "published",
+      createdAt: video.createdAt,
+      updatedAt: video.updatedAt,
+      uploadedBy: video.uploadedBy,
+    })),
+    materials: topic.materials,
+    assessments: topic.assessments,
+    submissions: topic.submissions,
+    statistics: topic.statistics,
+  }));
+
+  // Calculate stats
+  const stats = {
+    totalTopics: statistics.topicsCount,
+    totalVideos: statistics.videosCount,
+    totalMaterials: statistics.materialsCount,
+    totalStudents: 0, // Not available in explore
+    progress: 0,
+  };
 
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
       <SubjectHeader
         name={subject.name}
         code={subject.code}
-        status={subject.status}
+        status="active"
         color={subject.color}
       />
 
@@ -91,24 +126,17 @@ const LibraryOwnerSubjectDetailPage = () => {
         totalVideos={stats.totalVideos}
         totalMaterials={stats.totalMaterials}
         totalStudents={stats.totalStudents}
-        progress={0}
+        progress={stats.progress}
       />
 
-      <LibraryTopicsContentSection
-        topics={topics}
+      <ExploreTopicsContentSection
+        topics={flatTopics}
         selectedTopicId={selectedTopicId}
         onTopicSelect={setSelectedTopicId}
-        onAddTopic={() => setIsCreateTopicModalOpen(true)}
-        subjectId={subjectId}
-      />
-
-      <LibraryCreateTopicModal
-        isOpen={isCreateTopicModalOpen}
-        onClose={() => setIsCreateTopicModalOpen(false)}
         subjectId={subjectId}
       />
     </div>
   );
 };
 
-export default LibraryOwnerSubjectDetailPage;
+export default ExploreSubjectDetailPage;

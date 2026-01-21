@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useLibrarySubject } from "@/hooks/library-owner/use-library-subject";
+import { useLibrarySubjectDetail } from "@/hooks/library-owner/use-library-subject-detail";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
@@ -10,18 +10,17 @@ import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import { SubjectHeader } from "@/app/general-pages/subjects/[id]/components/SubjectHeader";
 import { SubjectDescription } from "@/app/general-pages/subjects/[id]/components/SubjectDescription";
 import { SubjectStatsCards } from "@/app/general-pages/subjects/[id]/components/SubjectStatsCards";
-import { LibraryTopicsContentSection } from "./components/LibraryTopicsContentSection";
-import { LibraryCreateTopicModal } from "./components/LibraryCreateTopicModal";
+import { LibraryTopicsContentSection } from "@/app/library-owner/resources/[classId]/[subjectId]/components/LibraryTopicsContentSection";
+import { LibraryCreateTopicModal } from "@/app/library-owner/resources/[classId]/[subjectId]/components/LibraryCreateTopicModal";
 
 const LibraryOwnerSubjectDetailPage = () => {
   const params = useParams();
   const router = useRouter();
-  const classId = params.classId as string;
-  const subjectId = params.subjectId as string;
+  const subjectId = params.id as string;
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [isCreateTopicModalOpen, setIsCreateTopicModalOpen] = useState(false);
 
-  const { data, isLoading, error } = useLibrarySubject(classId, subjectId);
+  const { data, isLoading, error } = useLibrarySubjectDetail(subjectId);
 
   if (isLoading) {
     return (

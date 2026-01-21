@@ -13,7 +13,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
-import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { logger } from "@/lib/logger";
@@ -21,7 +20,8 @@ import { logger } from "@/lib/logger";
 const libraryOwnerTabs = [
   { href: "/library-owner/dashboard", label: "Dashboard", icon: Home },
   { href: "/library-owner/schools", label: "Schools", icon: School },
-  { href: "/library-owner/resources", label: "Resources", icon: BookOpen },
+  // { href: "/library-owner/resources", label: "Resources", icon: BookOpen },
+  { href: "/library-owner/subjects", label: "Subjects", icon: BookOpen },
   {
     href: "/general-pages/general-materials",
     label: "AI Books",
@@ -82,10 +82,10 @@ export default function LibraryOwnerShell({
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg flex">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-brand-border shadow-sm z-50">
-        <div className="flex flex-col h-full">
+    <div className="min-h-screen bg-brand-bg flex flex-col">
+      {/* Desktop Sidebar - Always visible on desktop */}
+      <aside className="hidden sm:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-brand-border shadow-sm z-50">
+        <div className="flex flex-col h-full w-full">
           {/* Logo */}
           <div className="p-6 border-b border-brand-border">
             <h1 className="text-xl font-bold text-brand-primary">
@@ -102,21 +102,20 @@ export default function LibraryOwnerShell({
               const Icon = tab.icon;
               // Check if active - use startsWith for routes with sub-pages
               const isActive =
-                tab.href === "/library-owner/resources"
-                  ? pathname.startsWith("/library-owner/resources")
+                // tab.href === "/library-owner/resources"
+                //   ? pathname.startsWith("/library-owner/resources") && !pathname.startsWith("/library-owner/subjects")
+                //   : 
+                tab.href === "/library-owner/subjects"
+                  ? pathname.startsWith("/library-owner/subjects")
                   : tab.href === "/general-pages/general-materials"
                   ? pathname.startsWith("/general-pages/general-materials")
                   : pathname === tab.href;
               return (
-                <Link
+                <button
                   key={tab.href}
-                  href={tab.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleTabClick(tab.href, tab.label);
-                  }}
+                  onClick={() => handleTabClick(tab.href, tab.label)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full text-left",
                     isActive
                       ? "bg-brand-primary text-white"
                       : "text-brand-heading hover:bg-gray-50"
@@ -124,7 +123,7 @@ export default function LibraryOwnerShell({
                 >
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{tab.label}</span>
-                </Link>
+                </button>
               );
             })}
           </nav>
@@ -135,15 +134,11 @@ export default function LibraryOwnerShell({
               const Icon = tab.icon;
               const isActive = pathname === tab.href;
               return (
-                <Link
+                <button
                   key={tab.href}
-                  href={tab.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleTabClick(tab.href, tab.label);
-                  }}
+                  onClick={() => handleTabClick(tab.href, tab.label)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full text-left",
                     isActive
                       ? "bg-brand-primary text-white"
                       : "text-brand-heading hover:bg-gray-50"
@@ -151,7 +146,7 @@ export default function LibraryOwnerShell({
                 >
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{tab.label}</span>
-                </Link>
+                </button>
               );
             })}
             <button
@@ -165,8 +160,48 @@ export default function LibraryOwnerShell({
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="ml-64 flex-1 min-w-0 w-full">{children}</main>
+      {/* Page Content */}
+      <main className="flex-grow overflow-y-auto pb-16 sm:pb-0 sm:mb-0 sm:ml-64 pt-2 sm:pt-0">
+        <div className="px-4 sm:px-6">{children}</div>
+      </main>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-brand-border sm:hidden z-10">
+        <div className="grid grid-cols-5 h-16">
+          {libraryOwnerTabs.slice(0, 5).map(({ href, label, icon: Icon }) => {
+            const isActive =
+              // href === "/library-owner/resources"
+              //   ? pathname.startsWith("/library-owner/resources") && !pathname.startsWith("/library-owner/subjects")
+              //   : 
+              href === "/library-owner/subjects"
+                ? pathname.startsWith("/library-owner/subjects")
+                : href === "/general-pages/general-materials"
+                ? pathname.startsWith("/general-pages/general-materials")
+                : pathname === href;
+            
+            return (
+              <button
+                key={href}
+                onClick={() => handleTabClick(href, label)}
+                className={cn(
+                  "flex flex-col items-center justify-center text-xs w-full",
+                  isActive
+                    ? "text-brand-primary font-medium"
+                    : "text-gray-500"
+                )}
+              >
+                <Icon
+                  className={cn(
+                    "h-5 w-5 mb-1",
+                    isActive ? "text-brand-primary" : "text-gray-500"
+                  )}
+                />
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

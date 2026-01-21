@@ -13,7 +13,7 @@ export const LibraryClassCard = ({ classItem }: LibraryClassCardProps) => {
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/library-owner/resources/${classItem.id}`);
+    router.push(`/library-owner/subjects/class/${classItem.id}`);
   };
 
   return (

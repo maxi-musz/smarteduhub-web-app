@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2, AlertCircle, RefreshCw, BookOpen, Layers, Video, FileText } from "lucide-react";
 import { useExploreTopics, useExploreVideos } from "@/hooks/explore/use-explore";
-import { ExploreChapterCard } from "@/components/explore/subject/ExploreChapterCard";
+import { ExploreTopicCard } from "@/components/explore/subject/ExploreTopicCard";
 import { VideoCard } from "@/components/explore/explore/VideoCard";
 import { Pagination } from "@/components/explore/explore/Pagination";
 import { Button } from "@/components/ui/button";
@@ -121,9 +121,9 @@ export function SubjectDetailPage({ subjectId, basePath }: SubjectDetailPageProp
     return null;
   }
 
-  // Sort chapters by order
-  const sortedChapters = resourcesData?.chapters
-    ? [...resourcesData.chapters].sort((a, b) => a.order - b.order)
+  // Sort topics by order (API now returns topics directly, not chapters)
+  const sortedTopics = resourcesData?.topics
+    ? [...resourcesData.topics].sort((a, b) => a.order - b.order)
     : [];
 
   return (
@@ -183,9 +183,9 @@ export function SubjectDetailPage({ subjectId, basePath }: SubjectDetailPageProp
                       <BookOpen className="h-4 w-4 text-brand-primary" />
                       <span className="text-brand-light-accent-1">
                         <span className="font-semibold text-brand-heading">
-                          {resourcesData.statistics.chaptersCount}
+                          {resourcesData.statistics.topicsCount}
                         </span>{" "}
-                        Chapters
+                        Topics
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -316,58 +316,47 @@ export function SubjectDetailPage({ subjectId, basePath }: SubjectDetailPageProp
         </div>
       )}
 
-      {/* Chapters Section */}
+      {/* Topics Section */}
       {!isLoading && !error && resourcesData && (
         <div className="pl-0 pr-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-semibold text-brand-heading">
-                Chapters
+                Topics
               </h2>
               <p className="text-sm text-brand-light-accent-1 mt-1">
-                Browse chapters and their topics for this subject
+                Browse topics and their content for this subject
               </p>
             </div>
           </div>
 
-          {sortedChapters.length > 0 ? (
+          {sortedTopics.length > 0 ? (
             <div className="space-y-4">
-            {sortedChapters.map((chapter) => (
-              <ExploreChapterCard
-                key={chapter.id}
-                chapter={chapter}
-                basePath={basePath}
-                isExpanded={expandedChapters.has(chapter.id)}
-                onToggleExpanded={(expanded) => {
-                  const newChapters = new Set(expandedChapters);
-                  if (expanded) {
-                    newChapters.add(chapter.id);
-                  } else {
-                    newChapters.delete(chapter.id);
-                  }
-                  setExpandedChapters(newChapters);
-                  updateExpandedState(newChapters, expandedTopics);
-                }}
-                expandedTopics={expandedTopics}
-                onTopicToggle={(topicId, expanded) => {
-                  const newTopics = new Set(expandedTopics);
-                  if (expanded) {
-                    newTopics.add(topicId);
-                  } else {
-                    newTopics.delete(topicId);
-                  }
-                  setExpandedTopics(newTopics);
-                  updateExpandedState(expandedChapters, newTopics);
-                }}
-              />
-            ))}
+              {sortedTopics.map((topic) => (
+                <ExploreTopicCard
+                  key={topic.id}
+                  topic={topic}
+                  basePath={basePath}
+                  isExpanded={expandedTopics.has(topic.id)}
+                  onToggleExpanded={(expanded) => {
+                    const newTopics = new Set(expandedTopics);
+                    if (expanded) {
+                      newTopics.add(topic.id);
+                    } else {
+                      newTopics.delete(topic.id);
+                    }
+                    setExpandedTopics(newTopics);
+                    updateExpandedState(expandedChapters, newTopics);
+                  }}
+                />
+              ))}
             </div>
           ) : (
             <Card className="shadow-sm bg-white border border-brand-border">
               <CardContent className="py-12 text-center">
                 <BookOpen className="h-12 w-12 text-brand-light-accent-1 mx-auto mb-4" />
                 <p className="text-brand-light-accent-1 mb-4">
-                  No chapters available for this subject.
+                  No topics available for this subject.
                 </p>
               </CardContent>
             </Card>

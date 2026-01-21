@@ -8,7 +8,7 @@ import AdminShell from "@/components/layout/AdminShell";
 import StudentShell from "@/components/layout/StudentShell";
 import LibraryOwnerShell from "@/components/layout/LibraryOwnerShell";
 
-export default function PlayVideoLayout({
+export default function ExploreLayout({
   children,
 }: {
   children: ReactNode;
@@ -54,4 +54,3 @@ export default function PlayVideoLayout({
   // If no role detected, default to TeacherShell (most common case)
   return <TeacherShell>{children}</TeacherShell>;
 }
-

@@ -50,7 +50,7 @@ export function useUpdateVideo() {
         queryKey: ["topic-materials"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["chapter-contents"],
+        queryKey: ["library-owner", "topic-materials"],
       });
       queryClient.invalidateQueries({
         queryKey: ["video-play"],

@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { formatTopicTitle, formatDescription } from "@/lib/text-formatter";
 
@@ -47,6 +48,7 @@ export const VideoUploadModal = ({
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { startUpload, uploadState, reset } = useVideoUpload();
@@ -63,6 +65,19 @@ export const VideoUploadModal = ({
       setVideoPreviewUrl(null);
     }
   }, [videoFile]);
+
+  // Create preview URL when thumbnail file is selected
+  useEffect(() => {
+    if (thumbnailFile) {
+      const url = URL.createObjectURL(thumbnailFile);
+      setThumbnailPreviewUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else {
+      setThumbnailPreviewUrl(null);
+    }
+  }, [thumbnailFile]);
 
   // Reset when modal closes
   useEffect(() => {
@@ -294,157 +309,164 @@ export const VideoUploadModal = ({
               </p>
             </div>
 
-            {/* Video Upload */}
+            {/* Video and Thumbnail Upload - Side by Side */}
             <div className="space-y-2">
-              <Label>
-                Video File <span className="text-red-500">*</span>
-              </Label>
-              {!videoFile ? (
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    isDragOver
-                      ? "border-brand-primary bg-brand-primary/5"
-                      : "border-brand-border hover:border-brand-primary/50"
-                  }`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  <Video className="h-12 w-12 text-brand-light-accent-1 mx-auto mb-4" />
-                  <p className="text-sm font-medium text-brand-heading mb-1">
-                    Drag and drop your video file here
-                  </p>
-                  <p className="text-xs text-brand-light-accent-1 mb-4">
-                    or click to browse
-                  </p>
-                  <Input
-                    type="file"
-                    accept="video/mp4,.mp4"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleVideoSelect(file);
-                    }}
-                    className="hidden"
-                    id="video-upload"
-                    disabled={uploadState.isUploading}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => document.getElementById("video-upload")?.click()}
-                    disabled={uploadState.isUploading}
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Select Video (MP4, max 500MB)
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Video Preview */}
-                  {videoPreviewUrl && (
-                    <div className="relative bg-black rounded-lg overflow-hidden border-4 border-gray-800 shadow-2xl">
-                      <div className="aspect-video relative bg-black">
-                        <video
-                          ref={videoRef}
-                          src={videoPreviewUrl}
-                          className="w-full h-full object-contain"
-                          controls
-                          onTimeUpdate={handleVideoTimeUpdate}
-                        />
+              <div className="flex items-start gap-4">
+                {/* Video Upload */}
+                <div className="space-y-2 flex-1 max-w-[200px]">
+                  <Label className="text-xs">
+                    Video File <span className="text-red-500">*</span>
+                  </Label>
+                  {!videoFile ? (
+                    <div
+                      className={`relative w-full aspect-square border-2 border-dashed rounded-lg p-3 text-center transition-colors cursor-pointer ${
+                        isDragOver
+                          ? "border-brand-primary bg-brand-primary/5"
+                          : "border-brand-border hover:border-brand-primary/50"
+                      }`}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={() => !uploadState.isUploading && document.getElementById("video-upload")?.click()}
+                    >
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <Video className="h-6 w-6 text-brand-light-accent-1 mb-1" />
+                        <p className="text-[10px] font-medium text-brand-heading mb-0.5">
+                          Drop video
+                        </p>
+                        <p className="text-[10px] text-brand-light-accent-1">
+                          or click
+                        </p>
                       </div>
-                      {/* TV Frame Bottom */}
-                      <div className="bg-gray-800 h-3"></div>
+                      <Input
+                        type="file"
+                        accept="video/mp4,.mp4"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleVideoSelect(file);
+                        }}
+                        className="hidden"
+                        id="video-upload"
+                        disabled={uploadState.isUploading}
+                      />
                     </div>
-                  )}
-                  
-                  {/* File Info */}
-                  <div className="border border-brand-border rounded-lg p-4 bg-gray-50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Video className="h-8 w-8 text-brand-primary" />
-                        <div>
-                          <p className="text-sm font-medium text-brand-heading">
-                            {videoFile.name}
-                          </p>
-                          <p className="text-xs text-brand-light-accent-1">
-                            {formatFileSize(videoFile.size)}
-                          </p>
-                        </div>
+                  ) : (
+                    <div className="relative group w-full aspect-square">
+                      <div className="relative w-full h-full bg-black rounded-lg overflow-hidden border border-brand-border shadow-sm">
+                        {videoPreviewUrl ? (
+                          <video
+                            ref={videoRef}
+                            src={videoPreviewUrl}
+                            className="w-full h-full object-cover"
+                            controls
+                            onTimeUpdate={handleVideoTimeUpdate}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Video className="h-6 w-6 text-gray-400" />
+                          </div>
+                        )}
                       </div>
                       {!uploadState.isUploading && (
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
+                          className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white"
                           onClick={() => setVideoFile(null)}
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-3 w-3" />
                         </Button>
                       )}
+                      <div className="mt-1.5 text-center">
+                        <p className="text-[10px] font-medium text-brand-heading truncate">
+                          {videoFile.name}
+                        </p>
+                        <p className="text-[10px] text-brand-light-accent-1">
+                          {formatFileSize(videoFile.size)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Thumbnail Upload */}
-            <div className="space-y-2">
-              <Label>Thumbnail (Optional)</Label>
-              {!thumbnailFile ? (
-                <div className="border-2 border-dashed border-brand-border rounded-lg p-6 text-center hover:border-brand-primary/50 transition-colors">
-                  <ImageIcon className="h-8 w-8 text-brand-light-accent-1 mx-auto mb-2" />
-                  <p className="text-xs text-brand-light-accent-1 mb-2">
-                    Add a custom thumbnail
-                  </p>
-                  <Input
-                    type="file"
-                    accept="image/jpeg,image/png,image/gif,image/webp"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleThumbnailSelect(file);
-                    }}
-                    className="hidden"
-                    id="thumbnail-upload"
-                    disabled={uploadState.isUploading}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => document.getElementById("thumbnail-upload")?.click()}
-                    disabled={uploadState.isUploading}
-                  >
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Select Image
-                  </Button>
-                </div>
-              ) : (
-                <div className="border border-brand-border rounded-lg p-4 bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <ImageIcon className="h-8 w-8 text-brand-primary" />
-                      <div>
-                        <p className="text-sm font-medium text-brand-heading">
+                {/* Thumbnail Upload */}
+                <div className="space-y-2 flex-1 max-w-[200px]">
+                  <Label className="text-xs">Thumbnail (Optional)</Label>
+                  {!thumbnailFile ? (
+                    <div
+                      className={`relative w-full aspect-square border-2 border-dashed rounded-lg p-3 text-center transition-colors cursor-pointer ${
+                        isDragOver
+                          ? "border-brand-primary bg-brand-primary/5"
+                          : "border-brand-border hover:border-brand-primary/50"
+                      }`}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={() => !uploadState.isUploading && document.getElementById("thumbnail-upload")?.click()}
+                    >
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <ImageIcon className="h-6 w-6 text-brand-light-accent-1 mb-1" />
+                        <p className="text-[10px] font-medium text-brand-heading mb-0.5">
+                          Drop image
+                        </p>
+                        <p className="text-[10px] text-brand-light-accent-1">
+                          or click
+                        </p>
+                      </div>
+                      <Input
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleThumbnailSelect(file);
+                        }}
+                        className="hidden"
+                        id="thumbnail-upload"
+                        disabled={uploadState.isUploading}
+                      />
+                    </div>
+                  ) : (
+                    <div className="relative group w-full aspect-square">
+                      <div className="relative w-full h-full bg-gray-100 rounded-lg overflow-hidden border border-brand-border shadow-sm">
+                        {thumbnailPreviewUrl ? (
+                          <Image
+                            src={thumbnailPreviewUrl}
+                            alt="Thumbnail preview"
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-center p-2">
+                            <ImageIcon className="h-6 w-6 text-gray-400 mb-1" />
+                            <p className="text-[10px] text-gray-500">No thumbnail</p>
+                          </div>
+                        )}
+                      </div>
+                      {!uploadState.isUploading && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white"
+                          onClick={() => setThumbnailFile(null)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
+                      <div className="mt-1.5 text-center">
+                        <p className="text-[10px] font-medium text-brand-heading truncate">
                           {thumbnailFile.name}
                         </p>
-                        <p className="text-xs text-brand-light-accent-1">
+                        <p className="text-[10px] text-brand-light-accent-1">
                           {formatFileSize(thumbnailFile.size)}
                         </p>
                       </div>
                     </div>
-                    {!uploadState.isUploading && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setThumbnailFile(null)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Upload Progress */}

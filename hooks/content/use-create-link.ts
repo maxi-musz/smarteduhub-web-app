@@ -5,7 +5,6 @@ import { logger } from "@/lib/logger";
 export interface CreateLinkRequest {
   topicId: string;
   subjectId: string;
-  chapterId?: string;
   title: string;
   url: string;
   description?: string;
@@ -81,7 +80,7 @@ export function useCreateLink() {
         queryKey: ["topic-materials"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["chapter-contents"],
+        queryKey: ["library-owner", "topic-materials"],
       });
       queryClient.invalidateQueries({
         queryKey: ["library-owner", "class-resources"],

@@ -39,7 +39,7 @@ export function useDeleteLink() {
         queryKey: ["topic-materials"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["chapter-contents"],
+        queryKey: ["library-owner", "topic-materials"],
       });
       queryClient.invalidateQueries({
         queryKey: ["library-owner", "class-resources"],

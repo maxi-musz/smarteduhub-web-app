@@ -17,7 +17,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 
 const studentTabs = [
-  { href: "/student/explore", label: "Explore", icon: Compass },
+  { href: "/explore", label: "Explore", icon: Compass },
   { href: "/student/home", label: "Home", icon: Home },
   { href: "/student/subjects", label: "Subjects", icon: Book },
   { href: "/student/assessments", label: "Assessments", icon: ClipboardList },
@@ -65,8 +65,8 @@ export default function StudentShell({ children }: { children: ReactNode }) {
           <nav className="p-4 flex flex-col gap-1 flex-grow">
             {studentTabs.map(({ href, label, icon: Icon }) => {
               const isActive = 
-                href === "/student/explore"
-                  ? pathname.startsWith("/student/explore")
+                href === "/explore"
+                  ? pathname.startsWith("/explore")
                   : href === "/student/assessments"
                   ? pathname.startsWith("/student/assessments")
                   : pathname === href;
@@ -121,8 +121,8 @@ export default function StudentShell({ children }: { children: ReactNode }) {
         <div className="grid grid-cols-5 h-16">
           {studentTabs.slice(0, 5).map(({ href, label, icon: Icon }) => {
               const isActive = 
-                href === "/student/explore"
-                  ? pathname.startsWith("/student/explore")
+                href === "/explore"
+                  ? pathname.startsWith("/explore")
                   : href === "/student/assessments"
                   ? pathname.startsWith("/student/assessments")
                   : pathname === href;

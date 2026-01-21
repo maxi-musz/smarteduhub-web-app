@@ -191,7 +191,7 @@ export interface SubjectStatistics {
 
 export interface SubjectResourcesResponse {
   subject: LibrarySubject;
-  chapters: LibraryChapter[];
+  topics: LibraryTopic[];
   statistics: SubjectStatistics;
 }
 

@@ -86,17 +86,6 @@ export const ResourcesBreakdown = ({ statistics }: ResourcesBreakdownProps) => {
               {statistics.materials.archived}
             </span>
           </div>
-          {statistics.materials.byType && Object.keys(statistics.materials.byType).length > 0 && (
-            <div className="pt-2 border-t border-brand-border">
-              <p className="text-xs text-brand-light-accent-1 mb-2">By Type:</p>
-              {Object.entries(statistics.materials.byType).map(([type, count]) => (
-                <div key={type} className="flex justify-between items-center text-xs">
-                  <span className="text-brand-light-accent-1">{type}</span>
-                  <span className="font-semibold text-brand-heading">{count}</span>
-                </div>
-              ))}
-            </div>
-          )}
         </CardContent>
       </Card>
 
