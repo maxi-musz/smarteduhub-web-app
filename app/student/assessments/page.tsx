@@ -14,7 +14,7 @@ import {
 } from "./assessment-components";
 import type { GetAssessmentsParams } from "@/hooks/teacher/use-teacher-assessments";
 
-const TeacherAssessmentsPage = () => {
+const StudentAssessmentsPage = () => {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -131,4 +131,4 @@ const TeacherAssessmentsPage = () => {
   );
 };
 
-export default TeacherAssessmentsPage;
+export default StudentAssessmentsPage;

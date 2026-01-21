@@ -40,7 +40,7 @@ const CreateAssessmentContent = () => {
       } as never);
       
       if (result) {
-        router.push(`/teacher/assessments/${result.id}`);
+        router.push(`/admin/assessments/${result.id}`);
       }
     } catch (error) {
       // Error handled by mutation

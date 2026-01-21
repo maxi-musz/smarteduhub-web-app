@@ -41,6 +41,34 @@ export function canViewSubjects(role?: UserRole | string): boolean {
 }
 
 /**
+ * Check if a role can create assessments
+ */
+export function canCreateAssessments(role?: UserRole | string): boolean {
+  return role === "teacher" || role === "school_director";
+}
+
+/**
+ * Check if a role can edit assessments
+ */
+export function canEditAssessments(role?: UserRole | string): boolean {
+  return role === "teacher" || role === "school_director";
+}
+
+/**
+ * Check if a role can delete assessments
+ */
+export function canDeleteAssessments(role?: UserRole | string): boolean {
+  return role === "teacher" || role === "school_director";
+}
+
+/**
+ * Check if a role can view assessments (all roles can view)
+ */
+export function canViewAssessments(role?: UserRole | string): boolean {
+  return role === "teacher" || role === "school_director" || role === "student";
+}
+
+/**
  * Get all permissions for a role
  */
 export function getRolePermissions(role?: UserRole | string) {
@@ -50,6 +78,11 @@ export function getRolePermissions(role?: UserRole | string) {
     canCreate: canCreateTopics(role),
     canUpload: canUploadContent(role),
     canView: canViewSubjects(role),
+    // Assessment permissions
+    canCreateAssessment: canCreateAssessments(role),
+    canEditAssessment: canEditAssessments(role),
+    canDeleteAssessment: canDeleteAssessments(role),
+    canViewAssessment: canViewAssessments(role),
   };
 }
 

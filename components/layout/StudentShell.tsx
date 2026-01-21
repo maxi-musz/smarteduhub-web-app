@@ -9,6 +9,7 @@ import {
   Bell,
   User,
   Compass,
+  ClipboardList,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +21,7 @@ const studentTabs = [
   { href: "/student/explore", label: "Explore", icon: Compass },
   { href: "/student/home", label: "Home", icon: Home },
   { href: "/student/subjects", label: "Subjects", icon: Book },
+  { href: "/student/assessments", label: "Assessments", icon: ClipboardList },
   { href: "/student/tasks", label: "Tasks", icon: ListTodo },
   { href: "/student/performance", label: "Performance", icon: BarChart2 },
   { href: "/student/results", label: "Results", icon: Award },
@@ -67,6 +69,8 @@ export default function StudentShell({ children }: { children: ReactNode }) {
               const isActive = 
                 href === "/student/explore"
                   ? pathname.startsWith("/student/explore")
+                  : href === "/student/assessments"
+                  ? pathname.startsWith("/student/assessments")
                   : pathname === href;
               
               return (
@@ -121,6 +125,8 @@ export default function StudentShell({ children }: { children: ReactNode }) {
               const isActive = 
                 href === "/student/explore"
                   ? pathname.startsWith("/student/explore")
+                  : href === "/student/assessments"
+                  ? pathname.startsWith("/student/assessments")
                   : pathname === href;
               
               return (

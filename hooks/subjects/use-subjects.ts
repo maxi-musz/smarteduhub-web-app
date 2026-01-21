@@ -242,6 +242,39 @@ const fetchSubjects = async (
       throw new Error(errorMsg);
     }
 
+    // Handle student endpoint structure: { success: true, data: { subjects: [...], pagination: {...} } }
+    if (
+      role === "student" &&
+      "data" in response &&
+      response.data &&
+      typeof response.data === "object" &&
+      "subjects" in response.data &&
+      Array.isArray(response.data.subjects) &&
+      "pagination" in response.data &&
+      response.data.pagination &&
+      typeof response.data.pagination === "object"
+    ) {
+      const pagination = response.data.pagination as {
+        page?: number;
+        limit?: number;
+        total?: number;
+        totalPages?: number;
+        hasNext?: boolean;
+        hasPrev?: boolean;
+      };
+      return {
+        data: response.data.subjects,
+        meta: {
+          page: pagination.page || 1,
+          limit: pagination.limit || 10,
+          total: pagination.total || 0,
+          totalPages: pagination.totalPages || 1,
+          hasNext: pagination.hasNext || false,
+          hasPrev: pagination.hasPrev || false,
+        },
+      };
+    }
+
     // Handle director endpoint structure: { success: true, data: { subjects: [...], pagination: {...} } }
     if (
       role === "school_director" &&
@@ -349,7 +382,7 @@ const fetchSubjects = async (
 
 /**
  * Fetch comprehensive subject with topics and content
- * Note: School directors use teacher endpoints for comprehensive subject data
+ * Note: School directors and students use teacher endpoints for comprehensive subject data
  */
 const fetchComprehensiveSubject = async (
   params: UseComprehensiveSubjectParams
@@ -366,8 +399,8 @@ const fetchComprehensiveSubject = async (
     role,
   } = params;
 
-  // School directors use teacher endpoints for comprehensive subject data
-  const effectiveRole = role === "school_director" ? "teacher" : role;
+  // School directors and students use teacher endpoints for comprehensive subject data
+  const effectiveRole = (role === "school_director" || role === "student") ? "teacher" : role;
   const rolePrefix = getRoleEndpointPrefix(effectiveRole);
   logger.info(`[use-comprehensive-subject] Fetching comprehensive subject for ${role || "teacher"} (using ${effectiveRole} endpoint)`, { ...params });
 

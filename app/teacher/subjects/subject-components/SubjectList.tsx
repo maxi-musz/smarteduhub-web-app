@@ -21,6 +21,8 @@ interface SubjectListProps {
   searchQuery?: string;
   onAIClick?: (subjectName: string) => void;
   onSubjectClick?: (subjectId: string) => void;
+  basePath?: string;
+  canManage?: boolean;
 }
 
 export const SubjectList = ({
@@ -31,6 +33,8 @@ export const SubjectList = ({
   searchQuery,
   onAIClick,
   onSubjectClick,
+  basePath = "/teacher",
+  canManage = true,
 }: SubjectListProps) => {
   if (isLoading) {
     return (
@@ -90,6 +94,8 @@ export const SubjectList = ({
           subject={subject}
           onAIClick={onAIClick}
           onClick={onSubjectClick ? () => onSubjectClick(subject.id) : undefined}
+          basePath={basePath}
+          canManage={canManage}
         />
       ))}
     </div>

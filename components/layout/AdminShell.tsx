@@ -8,6 +8,7 @@ import {
   User,
   Bell,
   Compass,
+  ClipboardList,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +23,7 @@ const adminTabs = [
   { href: "/admin/students", label: "Students", icon: User },
   { href: "/admin/classes", label: "Classes", icon: Users },
   { href: "/admin/subjects", label: "Subjects", icon: Book },
+  { href: "/admin/assessments", label: "Assessments", icon: ClipboardList },
   { href: "/admin/schedules", label: "Schedules", icon: Calendar },
   // { href: "/onboarding-classes", label: "Onboarding", icon: UserPlus },
   // { href: "/admin/finance", label: "Finance", icon: FileText },
@@ -72,6 +74,8 @@ export default function AdminShell({ children }: { children: ReactNode }) {
               const isActive = 
                 href === "/admin/explore"
                   ? pathname.startsWith("/admin/explore")
+                  : href === "/admin/assessments"
+                  ? pathname.startsWith("/admin/assessments")
                   : pathname === href;
               
               return (
@@ -126,6 +130,8 @@ export default function AdminShell({ children }: { children: ReactNode }) {
             const isActive = 
               href === "/admin/explore"
                 ? pathname.startsWith("/admin/explore")
+                : href === "/admin/assessments"
+                ? pathname.startsWith("/admin/assessments")
                 : pathname === href;
             
             return (

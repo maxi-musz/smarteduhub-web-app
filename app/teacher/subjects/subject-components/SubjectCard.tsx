@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   FileText,
   Settings,
+  Eye,
 } from "lucide-react";
 import { AIAgentLogo } from "@/components/AIAgentLogo";
 import { useRouter } from "next/navigation";
@@ -17,14 +18,16 @@ interface SubjectCardProps {
   subject: TeacherSubject;
   onAIClick?: (subjectName: string) => void;
   onClick?: () => void;
+  basePath?: string;
+  canManage?: boolean;
 }
 
-export const SubjectCard = ({ subject, onAIClick, onClick }: SubjectCardProps) => {
+export const SubjectCard = ({ subject, onAIClick, onClick, basePath = "/teacher", canManage = true }: SubjectCardProps) => {
   const router = useRouter();
 
   const handleManageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    router.push(`/teacher/subjects/${subject.id}`);
+    router.push(`${basePath}/subjects/${subject.id}`);
   };
 
   return (
@@ -134,8 +137,17 @@ export const SubjectCard = ({ subject, onAIClick, onClick }: SubjectCardProps) =
             onClick={handleManageClick}
             className="w-full"
           >
-            <Settings className="h-4 w-4 mr-2" />
-            Manage
+            {canManage ? (
+              <>
+                <Settings className="h-4 w-4 mr-2" />
+                Manage
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4 mr-2" />
+                View Contents
+              </>
+            )}
           </Button>
         </div>
       </CardContent>

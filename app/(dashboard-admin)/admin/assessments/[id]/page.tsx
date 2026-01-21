@@ -56,7 +56,7 @@ const AssessmentDetailPage = () => {
         <div className="text-center py-8 text-red-600">Assessment not found</div>
         <div className="text-center">
           <button
-            onClick={() => router.push("/teacher/assessments")}
+            onClick={() => router.push("/admin/assessments")}
             className="text-brand-primary hover:underline"
           >
             Back to Assessments
@@ -86,7 +86,7 @@ const AssessmentDetailPage = () => {
             {isRefreshing ? "Refreshing..." : ""}
           </Button>
           <button
-            onClick={() => router.push("/teacher/assessments")}
+            onClick={() => router.push("/admin/assessments")}
             className="text-sm text-gray-600 hover:text-gray-900"
           >
             Back to Assessments
