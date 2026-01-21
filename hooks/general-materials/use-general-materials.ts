@@ -52,6 +52,7 @@ export interface GeneralMaterialDashboardItem {
   chapterCount?: number;
   createdAt: string;
   updatedAt: string;
+  classes?: GeneralMaterialClass[];
   uploadedBy: GeneralMaterialUploadedBy;
 }
 
@@ -64,6 +65,7 @@ export interface GeneralMaterialsDashboardResponse {
 export interface GeneralMaterialClass {
   id: string;
   name: string;
+  order?: number;
 }
 
 export interface GeneralMaterialSubject {
@@ -88,6 +90,7 @@ export interface GeneralMaterialItem {
   createdAt: string;
   updatedAt: string;
   class: GeneralMaterialClass | null;
+  classes?: GeneralMaterialClass[];
   subject: GeneralMaterialSubject | null;
   uploadedBy: GeneralMaterialUploadedBy;
 }

@@ -12,7 +12,7 @@ export interface AiBookUploadRequest {
   author?: string;
   isbn?: string;
   publisher?: string;
-  classId?: string;
+  classIds?: string[];
   subjectId?: string;
   isAiEnabled?: boolean;
 }
@@ -74,6 +74,22 @@ export function useAiBookUpload() {
   }, []);
 
   const startPolling = useCallback((sessionId: string) => {
+    // Set initial progress state to show loading immediately
+    setUploadState((prev) => ({
+      ...prev,
+      progress: {
+        sessionId,
+        progress: 0,
+        stage: "validating",
+        message: "Starting upload...",
+        bytesUploaded: 0,
+        totalBytes: 0,
+        estimatedTimeRemaining: null,
+        error: null,
+        materialId: null,
+      },
+    }));
+
     const poll = async () => {
       try {
         const response =
@@ -116,9 +132,21 @@ export function useAiBookUpload() {
         logger.error("[useAiBookUpload] Error polling upload progress", {
           error,
         });
+        // On error, still update progress to show error state
+        setUploadState((prev) => ({
+          ...prev,
+          progress: prev.progress
+            ? {
+                ...prev.progress,
+                stage: "error",
+                error: error instanceof Error ? error.message : "Failed to track upload progress",
+              }
+            : null,
+        }));
       }
     };
 
+    // Start polling immediately, then every 2 seconds
     poll();
     pollingIntervalRef.current = setInterval(poll, 2000);
   }, [queryClient]);
@@ -156,7 +184,11 @@ export function useAiBookUpload() {
         if (data.author) formData.append("author", data.author);
         if (data.isbn) formData.append("isbn", data.isbn);
         if (data.publisher) formData.append("publisher", data.publisher);
-        if (data.classId) formData.append("classId", data.classId);
+        if (data.classIds && data.classIds.length > 0) {
+          data.classIds.forEach((classId) => {
+            formData.append("classIds[]", classId);
+          });
+        }
         if (data.subjectId) formData.append("subjectId", data.subjectId);
         if (typeof data.isAiEnabled === "boolean") {
           formData.append("isAiEnabled", String(data.isAiEnabled));

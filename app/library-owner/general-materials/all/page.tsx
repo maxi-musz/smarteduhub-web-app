@@ -219,42 +219,47 @@ const AllAiBooksPage = () => {
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-brand-bg/60">
-                  <tr className="text-left text-xs text-brand-light-accent-1">
-                    <th className="px-4 py-2 font-medium">Book</th>
-                    <th className="px-4 py-2 font-medium">AI</th>
-                    <th className="px-4 py-2 font-medium">Chapters</th>
-                    <th className="px-4 py-2 font-medium">Views</th>
-                    <th className="px-4 py-2 font-medium">Downloads</th>
-                    <th className="px-4 py-2 font-medium">Uploaded By</th>
-                    <th className="px-4 py-2 font-medium">Status</th>
-                    <th className="px-4 py-2 font-medium text-right">Actions</th>
+                <thead className="bg-gradient-to-r from-brand-primary/10 to-brand-primary/5 border-b-2 border-brand-primary/20">
+                  <tr className="text-left">
+                    <th className="px-4 py-2.5 font-semibold text-brand-heading text-xs uppercase tracking-wider">Book</th>
+                    <th className="px-4 py-2.5 font-semibold text-brand-heading text-xs uppercase tracking-wider">AI</th>
+                    <th className="px-4 py-2.5 font-semibold text-brand-heading text-xs uppercase tracking-wider">Chapters</th>
+                    <th className="px-4 py-2.5 font-semibold text-brand-heading text-xs uppercase tracking-wider">Class</th>
+                    <th className="px-4 py-2.5 font-semibold text-brand-heading text-xs uppercase tracking-wider">Views</th>
+                    <th className="px-4 py-2.5 font-semibold text-brand-heading text-xs uppercase tracking-wider">Downloads</th>
+                    <th className="px-4 py-2.5 font-semibold text-brand-heading text-xs uppercase tracking-wider">Uploaded By</th>
+                    <th className="px-4 py-2.5 font-semibold text-brand-heading text-xs uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-2.5 font-semibold text-brand-heading text-xs uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {materials.items.map((item) => (
+                <tbody className="divide-y divide-brand-border/40">
+                  {materials.items.map((item, index) => (
                     <tr
                       key={item.id}
-                      className="border-t border-brand-border/60 hover:bg-gray-50"
+                      className={`border-t border-brand-border/30 transition-colors duration-150 ${
+                        index % 2 === 0 
+                          ? "bg-white hover:bg-brand-primary/5" 
+                          : "bg-gray-50/50 hover:bg-brand-primary/5"
+                      }`}
                     >
                       <td 
-                        className="px-4 py-2 text-brand-heading max-w-xs"
+                        className="px-4 py-2.5 text-brand-heading max-w-xs"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="relative w-14 h-20 rounded-md overflow-hidden border border-brand-border bg-gray-100 flex-shrink-0">
+                          <div className="relative w-20 h-28 rounded-md overflow-hidden border-2 border-brand-border/50 bg-gray-100 flex-shrink-0 shadow-sm">
                             {item.thumbnailUrl ? (
                               <Image
                                 src={item.thumbnailUrl}
                                 alt={item.title}
                                 fill
                                 className="object-cover"
-                                sizes="56px"
+                                sizes="80px"
                                 unoptimized={item.thumbnailUrl.includes(
                                   "s3.amazonaws.com"
                                 )}
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-brand-primary/10 text-brand-primary text-xs font-semibold text-center px-1">
+                              <div className="w-full h-full flex items-center justify-center bg-brand-primary/10 text-brand-primary text-sm font-semibold text-center px-1">
                                 {item.title.slice(0, 2).toUpperCase()}
                               </div>
                             )}
@@ -269,30 +274,60 @@ const AllAiBooksPage = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-2 text-brand-light-accent-1">
-                        {item.isAiEnabled ? "Enabled" : "Disabled"}
+                      <td className="px-4 py-2.5">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          item.isAiEnabled 
+                            ? "bg-green-100 text-green-700 border border-green-200" 
+                            : "bg-gray-100 text-gray-600 border border-gray-200"
+                        }`}>
+                          {item.isAiEnabled ? "Enabled" : "Disabled"}
+                        </span>
                       </td>
-                      <td className="px-4 py-2 text-brand-light-accent-1">
+                      <td className="px-4 py-2.5 text-brand-light-accent-1 font-medium">
                         <ChaptersDropdown
                           materialId={item.id}
                           chapterCount={item.chapterCount}
                         />
                       </td>
-                      <td className="px-4 py-2 text-brand-light-accent-1">
+                      <td className="px-4 py-2.5">
+                        {item.classes && item.classes.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {item.classes.map((classItem) => (
+                              <span
+                                key={classItem.id}
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-primary/10 text-brand-primary border border-brand-primary/30 shadow-sm"
+                              >
+                                {classItem.name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2.5 text-brand-light-accent-1 font-medium">
                         {item.views.toLocaleString()}
                       </td>
-                      <td className="px-4 py-2 text-brand-light-accent-1">
+                      <td className="px-4 py-2.5 text-brand-light-accent-1 font-medium">
                         {item.downloads.toLocaleString()}
                       </td>
-                      <td className="px-4 py-2 text-brand-light-accent-1">
+                      <td className="px-4 py-2.5 text-brand-light-accent-1">
                         {item.uploadedBy
                           ? `${item.uploadedBy.first_name} ${item.uploadedBy.last_name}`
                           : "-"}
                       </td>
-                      <td className="px-4 py-2 text-brand-light-accent-1">
-                        {item.status}
+                      <td className="px-4 py-2.5">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          item.status === "published"
+                            ? "bg-blue-100 text-blue-700 border border-blue-200"
+                            : item.status === "draft"
+                            ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
+                            : "bg-gray-100 text-gray-600 border border-gray-200"
+                        }`}>
+                          {item.status}
+                        </span>
                       </td>
-                      <td className="px-4 py-2 text-right">
+                      <td className="px-4 py-2.5 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -322,7 +357,7 @@ const AllAiBooksPage = () => {
                   {materials.items.length === 0 && (
                     <tr>
                       <td
-                        colSpan={8}
+                        colSpan={9}
                         className="px-4 py-8 text-center text-brand-light-accent-1"
                       >
                         No AI Books found.

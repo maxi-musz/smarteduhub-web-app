@@ -8,7 +8,7 @@ import AdminShell from "@/components/layout/AdminShell";
 import StudentShell from "@/components/layout/StudentShell";
 import LibraryOwnerShell from "@/components/layout/LibraryOwnerShell";
 
-export default function ExploreLayout({
+export default function GeneralPagesLayout({
   children,
 }: {
   children: ReactNode;
@@ -28,6 +28,7 @@ export default function ExploreLayout({
     return <LibraryOwnerShell>{children}</LibraryOwnerShell>;
   }
 
+  // Check other roles
   if (pathname.startsWith("/teacher") || role === "teacher") {
     return <TeacherShell>{children}</TeacherShell>;
   }
@@ -41,7 +42,7 @@ export default function ExploreLayout({
   }
 
   // Default fallback - try to determine from session
-  if (userType === "libraryresourceowner" || role === "library_owner") {
+  if (userType === "libraryresourceowner") {
     return <LibraryOwnerShell>{children}</LibraryOwnerShell>;
   }
 

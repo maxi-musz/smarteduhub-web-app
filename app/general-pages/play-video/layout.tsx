@@ -16,9 +16,15 @@ export default function PlayVideoLayout({
   const pathname = usePathname();
   const { data: session } = useSession();
   const role = session?.user?.role;
+  const userType = session?.user?.userType;
 
-  // Determine which shell to use based on role or pathname
-  if (pathname.startsWith("/library-owner") || role === "library_owner") {
+  // Check for library owner first (using userType)
+  if (pathname.startsWith("/library-owner") || userType === "libraryresourceowner") {
+    return <LibraryOwnerShell>{children}</LibraryOwnerShell>;
+  }
+
+  // Check for library owner by role as fallback
+  if (role === "library_owner") {
     return <LibraryOwnerShell>{children}</LibraryOwnerShell>;
   }
 
@@ -35,7 +41,7 @@ export default function PlayVideoLayout({
   }
 
   // Default fallback - try to determine from session
-  if (role === "library_owner") {
+  if (userType === "libraryresourceowner" || role === "library_owner") {
     return <LibraryOwnerShell>{children}</LibraryOwnerShell>;
   }
 

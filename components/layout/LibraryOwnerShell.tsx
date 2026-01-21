@@ -23,7 +23,7 @@ const libraryOwnerTabs = [
   // { href: "/library-owner/resources", label: "Resources", icon: BookOpen },
   { href: "/library-owner/subjects", label: "Subjects", icon: BookOpen },
   {
-    href: "/general-pages/general-materials",
+    href: "/library-owner/general-materials",
     label: "AI Books",
     icon: FileText,
   },
@@ -107,8 +107,8 @@ export default function LibraryOwnerShell({
                 //   : 
                 tab.href === "/library-owner/subjects"
                   ? pathname.startsWith("/library-owner/subjects")
-                  : tab.href === "/general-pages/general-materials"
-                  ? pathname.startsWith("/general-pages/general-materials")
+                  : tab.href === "/library-owner/general-materials"
+                  ? pathname.startsWith("/library-owner/general-materials")
                   : pathname === tab.href;
               return (
                 <button
@@ -175,8 +175,8 @@ export default function LibraryOwnerShell({
               //   : 
               href === "/library-owner/subjects"
                 ? pathname.startsWith("/library-owner/subjects")
-                : href === "/general-pages/general-materials"
-                ? pathname.startsWith("/general-pages/general-materials")
+                : href === "/library-owner/general-materials"
+                ? pathname.startsWith("/library-owner/general-materials")
                 : pathname === href;
             
             return (

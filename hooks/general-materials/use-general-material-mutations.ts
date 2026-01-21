@@ -13,7 +13,7 @@ export interface CreateAiBookRequest {
   author?: string;
   isbn?: string;
   publisher?: string;
-  classId?: string;
+  classIds?: string[];
   subjectId?: string;
   isAiEnabled?: boolean;
 }
@@ -90,7 +90,11 @@ export function useCreateAiBook() {
         if (input.author) formData.append("author", input.author);
         if (input.isbn) formData.append("isbn", input.isbn);
         if (input.publisher) formData.append("publisher", input.publisher);
-        if (input.classId) formData.append("classId", input.classId);
+        if (input.classIds && input.classIds.length > 0) {
+          input.classIds.forEach((classId) => {
+            formData.append("classIds[]", classId);
+          });
+        }
         if (input.subjectId) formData.append("subjectId", input.subjectId);
         if (typeof input.isAiEnabled === "boolean") {
           formData.append("isAiEnabled", String(input.isAiEnabled));
@@ -173,6 +177,129 @@ export function useCreateAiBookChapter() {
       });
       // Optionally, we could invalidate a material-specific query if added later
       logger.info("[useCreateAiBookChapter] Cache invalidated", {
+        materialId: variables.materialId,
+      });
+    },
+  });
+}
+
+export interface CreateChapterWithFileRequest {
+  materialId: string;
+  file: File;
+  title: string;
+  description?: string;
+  pageStart?: number;
+  pageEnd?: number;
+  isAiEnabled?: boolean;
+  fileTitle?: string;
+  fileDescription?: string;
+  fileType?: string;
+  fileOrder?: number;
+  enableAiChat?: boolean;
+}
+
+export interface ChapterFile {
+  id: string;
+  fileName: string;
+  fileType: string;
+  url: string;
+  sizeBytes: number;
+  title: string | null;
+  description: string | null;
+  order: number;
+  createdAt: string;
+}
+
+export interface ChapterWithFileResponse {
+  id: string;
+  materialId: string;
+  platformId: string;
+  title: string;
+  description: string | null;
+  pageStart: number | null;
+  pageEnd: number | null;
+  order: number;
+  isAiEnabled: boolean;
+  isProcessed: boolean;
+  chunkCount: number;
+  createdAt: string;
+  updatedAt: string;
+  files: ChapterFile[];
+}
+
+// Inner data type for the authenticated API response
+export type CreateChapterWithFileApiResponse = ChapterWithFileResponse;
+
+export function useCreateChapterWithFile() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    CreateChapterWithFileApiResponse,
+    AuthenticatedApiError,
+    CreateChapterWithFileRequest
+  >({
+    mutationFn: async (input: CreateChapterWithFileRequest) => {
+      logger.info("[useCreateChapterWithFile] Creating chapter with file", {
+        materialId: input.materialId,
+        title: input.title,
+        fileName: input.file.name,
+        fileSize: input.file.size,
+      });
+
+      const formData = new FormData();
+      formData.append("file", input.file);
+      formData.append("title", input.title);
+      if (input.description) formData.append("description", input.description);
+      if (input.pageStart !== undefined) {
+        formData.append("pageStart", String(input.pageStart));
+      }
+      if (input.pageEnd !== undefined) {
+        formData.append("pageEnd", String(input.pageEnd));
+      }
+      if (typeof input.isAiEnabled === "boolean") {
+        formData.append("isAiEnabled", String(input.isAiEnabled));
+      }
+      if (input.fileTitle) formData.append("fileTitle", input.fileTitle);
+      if (input.fileDescription) formData.append("fileDescription", input.fileDescription);
+      if (input.fileType) formData.append("fileType", input.fileType);
+      if (input.fileOrder !== undefined) {
+        formData.append("fileOrder", String(input.fileOrder));
+      }
+      if (typeof input.enableAiChat === "boolean") {
+        formData.append("enableAiChat", String(input.enableAiChat));
+      }
+
+      const response =
+        await authenticatedApi.post<CreateChapterWithFileApiResponse>(
+          `/library/general-materials/${input.materialId}/chapters/with-file`,
+          formData
+        );
+
+      if (response.success && response.data) {
+        logger.info("[useCreateChapterWithFile] Chapter with file created successfully", {
+          chapterId: response.data.id,
+        });
+        return response.data;
+      }
+
+      throw new AuthenticatedApiError(
+        response.message || "Failed to create chapter with file",
+        response.statusCode || 400,
+        response
+      );
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate material detail to refresh chapters
+      queryClient.invalidateQueries({
+        queryKey: ["library-owner", "general-materials", "detail", variables.materialId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["library-owner", "general-materials", "list"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["library-owner", "general-materials", "dashboard"],
+      });
+      logger.info("[useCreateChapterWithFile] Cache invalidated", {
         materialId: variables.materialId,
       });
     },

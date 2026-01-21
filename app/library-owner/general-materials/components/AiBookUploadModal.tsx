@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -25,6 +24,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAiBookUpload } from "@/hooks/general-materials/use-general-material-upload";
+import { useLibraryClasses } from "@/hooks/general-materials/use-library-classes";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface AiBookUploadModalProps {
   isOpen: boolean;
@@ -33,24 +34,23 @@ interface AiBookUploadModalProps {
 
 export const AiBookUploadModal = ({ isOpen, onClose }: AiBookUploadModalProps) => {
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [author, setAuthor] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
 
   const { startUpload, uploadState, reset } = useAiBookUpload();
+  const { data: classes, isLoading: isLoadingClasses } = useLibraryClasses();
 
   useEffect(() => {
     if (!isOpen) {
       setTitle("");
-      setDescription("");
-      setAuthor("");
       setFile(null);
       setThumbnail(null);
       setThumbnailPreview(null);
       setIsDragOver(false);
+      setSelectedClassIds([]);
       reset();
     }
   }, [isOpen, reset]);
@@ -78,12 +78,12 @@ export const AiBookUploadModal = ({ isOpen, onClose }: AiBookUploadModalProps) =
   };
 
   const validateFile = (uploadFile: File): string | null => {
-    const allowedExtensions = [".pdf", ".doc", ".docx", ".ppt", ".pptx"];
+    const allowedExtensions = [".pdf"];
     const ext = "." + (uploadFile.name.split(".").pop() || "").toLowerCase();
     const maxSize = 300 * 1024 * 1024;
 
     if (!allowedExtensions.includes(ext)) {
-      return "Only PDF, DOC, DOCX, PPT, and PPTX files are allowed";
+      return "Only PDF files are allowed";
     }
     if (uploadFile.size > maxSize) {
       return "File must be less than 300MB";
@@ -173,19 +173,30 @@ export const AiBookUploadModal = ({ isOpen, onClose }: AiBookUploadModalProps) =
       toast.error("Please select a thumbnail image");
       return;
     }
+    if (selectedClassIds.length === 0) {
+      toast.error("Please select at least one class");
+      return;
+    }
 
     try {
       await startUpload({
         file,
         thumbnail,
         title: title.trim(),
-        description: description.trim() || undefined,
-        author: author.trim() || undefined,
+        classIds: selectedClassIds,
         isAiEnabled: true,
       });
     } catch {
       // handled in hook
     }
+  };
+
+  const toggleClass = (classId: string) => {
+    setSelectedClassIds((prev) =>
+      prev.includes(classId)
+        ? prev.filter((id) => id !== classId)
+        : [...prev, classId]
+    );
   };
 
   const handleClose = () => {
@@ -249,98 +260,118 @@ export const AiBookUploadModal = ({ isOpen, onClose }: AiBookUploadModalProps) =
               </p>
             </div>
 
-            {/* Author */}
-            <div className="space-y-2">
-              <Label htmlFor="author">Author</Label>
-              <Input
-                id="author"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                placeholder="e.g., John Doe"
-                maxLength={150}
-                disabled={uploadState.isUploading}
-              />
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Brief description of the book..."
-                rows={3}
-                maxLength={2000}
-                disabled={uploadState.isUploading}
-              />
-              <p className="text-xs text-brand-light-accent-1">
-                {description.length}/2000 characters
-              </p>
-            </div>
-
-            {/* Thumbnail Upload */}
+            {/* Classes Selection */}
             <div className="space-y-2">
               <Label>
-                Thumbnail <span className="text-red-500">*</span>
+                Classes <span className="text-red-500">*</span>
               </Label>
-              {!thumbnail ? (
-                <div className="border-2 border-dashed border-brand-border rounded-lg p-6 text-center hover:border-brand-primary/50 transition-colors">
-                  <ImageIcon className="h-8 w-8 text-brand-light-accent-1 mx-auto mb-2" />
-                  <p className="text-xs text-brand-light-accent-1 mb-2">
-                    Add a thumbnail image for the book cover
-                  </p>
-                  <Input
-                    type="file"
-                    accept="image/jpeg,image/png,image/gif,image/webp"
-                    onChange={(e) => {
-                      const selected = e.target.files?.[0];
-                      if (selected) handleThumbnailSelect(selected);
-                    }}
-                    className="hidden"
-                    id="thumbnail-upload"
-                    disabled={uploadState.isUploading}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      document.getElementById("thumbnail-upload")?.click()
-                    }
-                    disabled={uploadState.isUploading}
-                  >
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Select Thumbnail (JPEG, PNG, GIF, WEBP - max 5MB)
-                  </Button>
+              {isLoadingClasses ? (
+                <div className="flex items-center gap-2 text-sm text-brand-light-accent-1">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading classes...
+                </div>
+              ) : classes && classes.length > 0 ? (
+                <div className="border border-brand-border rounded-lg p-4 max-h-48 overflow-y-auto bg-gray-50">
+                  <div className="space-y-2">
+                    {classes.map((classItem) => (
+                      <div
+                        key={classItem.id}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={`class-${classItem.id}`}
+                          checked={selectedClassIds.includes(classItem.id)}
+                          onCheckedChange={() => toggleClass(classItem.id)}
+                          disabled={uploadState.isUploading}
+                        />
+                        <Label
+                          htmlFor={`class-${classItem.id}`}
+                          className="text-sm font-normal cursor-pointer flex-1"
+                        >
+                          {classItem.name}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
-                <div className="border border-brand-border rounded-lg p-4 bg-gray-50">
-                  <div className="flex items-center gap-4">
-                    {thumbnailPreview && (
-                      <div className="relative w-24 h-32 rounded-lg overflow-hidden border-2 border-brand-border flex-shrink-0">
-                        <Image
-                          src={thumbnailPreview}
-                          alt="Thumbnail preview"
-                          fill
-                          sizes="96px"
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <ImageIcon className="h-8 w-8 text-brand-primary" />
-                          <div>
-                            <p className="text-sm font-medium text-brand-heading">
-                              {thumbnail.name}
-                            </p>
-                            <p className="text-xs text-brand-light-accent-1">
-                              {formatFileSize(thumbnail.size)}
-                            </p>
-                          </div>
+                <p className="text-sm text-brand-light-accent-1">
+                  No classes available
+                </p>
+              )}
+              {selectedClassIds.length > 0 && (
+                <p className="text-xs text-brand-light-accent-1">
+                  {selectedClassIds.length} class
+                  {selectedClassIds.length !== 1 ? "es" : ""} selected
+                </p>
+              )}
+            </div>
+
+            {/* Thumbnail and File Upload - Side by Side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Thumbnail Upload */}
+              <div className="space-y-2">
+                <Label>
+                  Thumbnail <span className="text-red-500">*</span>
+                </Label>
+                {!thumbnail ? (
+                  <div className="border-2 border-dashed border-brand-border rounded-lg p-4 text-center hover:border-brand-primary/50 transition-colors">
+                    <ImageIcon className="h-6 w-6 text-brand-light-accent-1 mx-auto mb-2" />
+                    <p className="text-xs text-brand-light-accent-1 mb-2">
+                      Add a thumbnail image
+                    </p>
+                    <Input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      onChange={(e) => {
+                        const selected = e.target.files?.[0];
+                        if (selected) handleThumbnailSelect(selected);
+                      }}
+                      className="hidden"
+                      id="thumbnail-upload"
+                      disabled={uploadState.isUploading}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        document.getElementById("thumbnail-upload")?.click()
+                      }
+                      disabled={uploadState.isUploading}
+                      className="w-full"
+                    >
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Select Thumbnail
+                    </Button>
+                    <p className="text-xs text-brand-light-accent-1 mt-1">
+                      JPEG, PNG, GIF, WEBP - max 5MB
+                    </p>
+                  </div>
+                ) : (
+                  <div className="border border-brand-border rounded-lg p-4 bg-gray-50">
+                    <div className="flex flex-col items-center gap-3">
+                      {thumbnailPreview && (
+                        <div className="relative w-24 h-32 rounded-lg overflow-hidden border-2 border-brand-border">
+                          <Image
+                            src={thumbnailPreview}
+                            alt="Thumbnail preview"
+                            fill
+                            sizes="96px"
+                            className="object-cover"
+                          />
                         </div>
+                      )}
+                      <div className="w-full text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                          <ImageIcon className="h-5 w-5 text-brand-primary" />
+                          <p className="text-sm font-medium text-brand-heading truncate">
+                            {thumbnail.name}
+                          </p>
+                        </div>
+                        <p className="text-xs text-brand-light-accent-1 mb-2">
+                          {formatFileSize(thumbnail.size)}
+                        </p>
                         {!uploadState.isUploading && (
                           <Button
                             type="button"
@@ -351,89 +382,94 @@ export const AiBookUploadModal = ({ isOpen, onClose }: AiBookUploadModalProps) =
                               setThumbnailPreview(null);
                             }}
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-4 w-4 mr-1" />
+                            Remove
                           </Button>
                         )}
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* File Upload */}
-            <div className="space-y-2">
-              <Label>
-                File <span className="text-red-500">*</span>
-              </Label>
-              {!file ? (
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    isDragOver
-                      ? "border-brand-primary bg-brand-primary/5"
-                      : "border-brand-border hover:border-brand-primary/50"
-                  }`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  <BookOpen className="h-12 w-12 text-brand-light-accent-1 mx-auto mb-4" />
-                  <p className="text-sm font-medium text-brand-heading mb-1">
-                    Drag and drop your AI Book file here
-                  </p>
-                  <p className="text-xs text-brand-light-accent-1 mb-4">
-                    or click to browse
-                  </p>
-                  <Input
-                    type="file"
-                    accept=".pdf,.doc,.docx,.ppt,.pptx"
-                    onChange={(e) => {
-                      const selected = e.target.files?.[0];
-                      if (selected) handleFileSelect(selected);
-                    }}
-                    className="hidden"
-                    id="ai-book-upload"
-                    disabled={uploadState.isUploading}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      document.getElementById("ai-book-upload")?.click()
-                    }
-                    disabled={uploadState.isUploading}
+              {/* File Upload */}
+              <div className="space-y-2">
+                <Label>
+                  File <span className="text-red-500">*</span>
+                </Label>
+                {!file ? (
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors h-full flex flex-col justify-center ${
+                      isDragOver
+                        ? "border-brand-primary bg-brand-primary/5"
+                        : "border-brand-border hover:border-brand-primary/50"
+                    }`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
                   >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Select File (PDF, DOC, PPT - max 300MB)
-                  </Button>
-                </div>
-              ) : (
-                <div className="border border-brand-border rounded-lg p-4 bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <BookOpen className="h-6 w-6 text-brand-light-accent-1 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-brand-heading mb-1">
+                      Drag and drop your file
+                    </p>
+                    <p className="text-xs text-brand-light-accent-1 mb-3">
+                      or click to browse
+                    </p>
+                    <Input
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      onChange={(e) => {
+                        const selected = e.target.files?.[0];
+                        if (selected) handleFileSelect(selected);
+                      }}
+                      className="hidden"
+                      id="ai-book-upload"
+                      disabled={uploadState.isUploading}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        document.getElementById("ai-book-upload")?.click()
+                      }
+                      disabled={uploadState.isUploading}
+                      className="w-full"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Select File
+                    </Button>
+                    <p className="text-xs text-brand-light-accent-1 mt-1">
+                      PDF only - max 300MB
+                    </p>
+                  </div>
+                ) : (
+                  <div className="border border-brand-border rounded-lg p-4 bg-gray-50 h-full flex flex-col justify-center">
+                    <div className="flex flex-col items-center gap-3">
                       <BookOpen className="h-8 w-8 text-brand-primary" />
-                      <div>
-                        <p className="text-sm font-medium text-brand-heading">
+                      <div className="w-full text-center">
+                        <p className="text-sm font-medium text-brand-heading mb-1 truncate">
                           {file.name}
                         </p>
-                        <p className="text-xs text-brand-light-accent-1">
+                        <p className="text-xs text-brand-light-accent-1 mb-2">
                           {formatFileSize(file.size)}
                         </p>
+                        {!uploadState.isUploading && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFile(null)}
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Remove
+                          </Button>
+                        )}
                       </div>
                     </div>
-                    {!uploadState.isUploading && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setFile(null)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Upload Progress */}
@@ -496,7 +532,11 @@ export const AiBookUploadModal = ({ isOpen, onClose }: AiBookUploadModalProps) =
               <Button
                 type="submit"
                 disabled={
-                  uploadState.isUploading || !title.trim() || !file || !thumbnail
+                  uploadState.isUploading ||
+                  !title.trim() ||
+                  !file ||
+                  !thumbnail ||
+                  selectedClassIds.length === 0
                 }
               >
                 {uploadState.isUploading ? (
