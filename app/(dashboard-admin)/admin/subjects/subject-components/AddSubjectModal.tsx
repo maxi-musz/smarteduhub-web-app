@@ -8,7 +8,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import {
   useCreateSubject,
   useAvailableTeachersClasses,
@@ -95,12 +94,6 @@ export const AddSubjectModal = ({ open, onOpenChange }: AddSubjectModalProps) =>
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Subject
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Subject</DialogTitle>

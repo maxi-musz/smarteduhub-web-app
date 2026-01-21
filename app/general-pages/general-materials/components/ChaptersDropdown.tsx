@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,6 +22,7 @@ export function ChaptersDropdown({
   chapterCount,
 }: ChaptersDropdownProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const {
     data: chapters,
@@ -29,9 +30,19 @@ export function ChaptersDropdown({
     error,
   } = useMaterialChapters(isOpen ? materialId : null);
 
+  // Determine base path based on current route
+  const getBasePath = () => {
+    if (pathname.startsWith("/library-owner")) return "/library-owner";
+    if (pathname.startsWith("/teacher")) return "/teacher";
+    if (pathname.startsWith("/admin")) return "/admin";
+    if (pathname.startsWith("/student")) return "/student";
+    return "/general-pages";
+  };
+
   const handleChapterClick = (chapterId: string) => {
     setIsOpen(false);
-    router.push(`/library-owner/general-materials/${materialId}?chapter=${chapterId}`);
+    const basePath = getBasePath();
+    router.push(`${basePath}/general-materials/${materialId}?chapter=${chapterId}`);
   };
 
   const displayCount = chapterCount !== undefined ? chapterCount.toLocaleString() : "-";

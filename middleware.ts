@@ -49,11 +49,12 @@ export default withAuth(
 
         const { pathname } = req.nextUrl;
 
-        // Only require auth for dashboard routes
+        // Only require auth for dashboard routes and shared pages
         if (
           pathname.startsWith("/admin") ||
           pathname.startsWith("/teacher") ||
-          pathname.startsWith("/student")
+          pathname.startsWith("/student") ||
+          pathname.startsWith("/general-pages")
         ) {
           return !!token;
         }
@@ -66,5 +67,10 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/admin/:path*", "/teacher/:path*", "/student/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/teacher/:path*",
+    "/student/:path*",
+    "/general-pages/:path*",
+  ],
 };

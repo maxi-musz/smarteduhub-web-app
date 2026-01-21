@@ -4,15 +4,14 @@ import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
-export default function StudentTopicDetailRedirectPage() {
+export default function AdminSubjectDetailRedirectPage() {
   const params = useParams();
   const router = useRouter();
   const subjectId = params.id as string;
-  const topicId = params.topicId as string;
 
   useEffect(() => {
-    router.replace(`/general-pages/subjects/${subjectId}/topics/${topicId}`);
-  }, [subjectId, topicId, router]);
+    router.replace(`/general-pages/subjects/${subjectId}`);
+  }, [subjectId, router]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -20,3 +19,4 @@ export default function StudentTopicDetailRedirectPage() {
     </div>
   );
 }
+

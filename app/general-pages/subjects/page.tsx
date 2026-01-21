@@ -1,20 +1,27 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useTeacherSubjects } from "@/hooks/teacher/use-teacher-subjects";
+import { useSubjects } from "@/hooks/subjects/use-subjects";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import { AIAgentModal } from "@/components/AIAgentModal";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import {
   SubjectHeader,
   SubjectFilters,
   SubjectStatsCards,
   SubjectList,
   SubjectPagination,
-} from "./subject-components";
+} from "@/app/teacher/subjects/subject-components";
+import { AddSubjectModal } from "@/app/(dashboard-admin)/admin/subjects/subject-components/AddSubjectModal";
+import { getRolePermissions } from "@/lib/role-permissions";
 
-const TeacherSubjectsPage = () => {
+const SubjectsPage = () => {
   const router = useRouter();
+  const pathname = usePathname();
+  const { data: session } = useSession();
   const [page, setPage] = useState(1);
   const limit = 10;
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,8 +29,13 @@ const TeacherSubjectsPage = () => {
   const [sortOrder] = useState<"asc" | "desc">("asc");
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [isAddSubjectModalOpen, setIsAddSubjectModalOpen] = useState(false);
 
-  const { data, isLoading, error } = useTeacherSubjects({
+  // Get role permissions
+  const role = session?.user?.role as "teacher" | "school_director" | "student" | undefined;
+  const permissions = getRolePermissions(role);
+
+  const { data, isLoading, error } = useSubjects({
     page,
     limit,
     search: searchQuery || undefined,
@@ -57,8 +69,17 @@ const TeacherSubjectsPage = () => {
     setAiModalOpen(true);
   };
 
+  // Determine base path based on current route
+  const getBasePath = () => {
+    if (pathname.startsWith("/teacher")) return "/teacher";
+    if (pathname.startsWith("/admin")) return "/admin";
+    if (pathname.startsWith("/student")) return "/student";
+    return "/general-pages"; // Fallback
+  };
+
   const handleSubjectClick = (subjectId: string) => {
-    router.push(`/teacher/subjects/${subjectId}`);
+    const basePath = getBasePath();
+    router.push(`${basePath}/subjects/${subjectId}`);
   };
 
   const subjects = useMemo(() => data?.data || [], [data?.data]);
@@ -84,8 +105,6 @@ const TeacherSubjectsPage = () => {
       };
     }
 
-    // For now, we'll use basic counts since comprehensive data requires individual subject fetches
-    // The comprehensive endpoint provides better stats, but we'll keep it simple for the list view
     return {
       totalSubjects: data?.meta?.total || subjectsList.length,
       totalVideos: 0, // Will be populated when viewing individual subjects
@@ -117,6 +136,15 @@ const TeacherSubjectsPage = () => {
           }}
         />
 
+        <div className="flex items-center justify-end mb-4">
+          {permissions.canCreate && (
+            <Button onClick={() => setIsAddSubjectModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Subject
+            </Button>
+          )}
+        </div>
+
         <SubjectList
           subjects={subjects}
           isLoading={isLoading}
@@ -138,8 +166,16 @@ const TeacherSubjectsPage = () => {
         onClose={() => setAiModalOpen(false)}
         subject={selectedSubject}
       />
+
+      {permissions.canCreate && (
+        <AddSubjectModal
+          open={isAddSubjectModalOpen}
+          onOpenChange={setIsAddSubjectModalOpen}
+        />
+      )}
     </>
   );
 };
 
-export default TeacherSubjectsPage;
+export default SubjectsPage;
+

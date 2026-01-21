@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
-export default function StudentTopicDetailRedirectPage() {
+export default function AdminTopicDetailRedirectPage() {
   const params = useParams();
   const router = useRouter();
   const subjectId = params.id as string;
@@ -20,3 +20,4 @@ export default function StudentTopicDetailRedirectPage() {
     </div>
   );
 }
+

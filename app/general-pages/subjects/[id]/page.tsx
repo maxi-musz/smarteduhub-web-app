@@ -1,27 +1,61 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams } from "next/navigation";
-import { useTeacherComprehensiveSubject } from "@/hooks/teacher/use-teacher-subjects";
+import React, { useState, useEffect } from "react";
+import { useParams, usePathname, useSearchParams, useRouter } from "next/navigation";
+import { useComprehensiveSubject } from "@/hooks/subjects/use-subjects";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
-// Import from shared location
-import { CreateTopicModal } from "@/app/general-pages/subjects/[id]/components/topics/CreateTopicModal";
-import { SubjectHeader } from "@/app/general-pages/subjects/[id]/components/SubjectHeader";
-import { SubjectDescription } from "@/app/general-pages/subjects/[id]/components/SubjectDescription";
-import { SubjectStatsCards } from "@/app/general-pages/subjects/[id]/components/SubjectStatsCards";
-import { TopicsContentSection } from "@/app/general-pages/subjects/[id]/components/topics/TopicsContentSection";
+import { useSession } from "next-auth/react";
+import { getRolePermissions } from "@/lib/role-permissions";
+// Import components from shared location
+import { CreateTopicModal } from "./components/topics/CreateTopicModal";
+import { SubjectHeader } from "./components/SubjectHeader";
+import { SubjectDescription } from "./components/SubjectDescription";
+import { SubjectStatsCards } from "./components/SubjectStatsCards";
+import { TopicsContentSection } from "./components/topics/TopicsContentSection";
 
-const TeacherSubjectDetailPage = () => {
+const SubjectDetailPage = () => {
   const params = useParams();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { data: session } = useSession();
   const subjectId = params.id as string;
-  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
+  
+  // Get selected topic from URL params, fallback to null
+  const topicIdFromUrl = searchParams.get("topicId");
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(topicIdFromUrl);
   const [isCreateTopicModalOpen, setIsCreateTopicModalOpen] = useState(false);
+  
+  // Sync URL params with state when URL changes (e.g., when coming back from video player)
+  useEffect(() => {
+    const urlTopicId = searchParams.get("topicId");
+    if (urlTopicId !== selectedTopicId) {
+      setSelectedTopicId(urlTopicId);
+    }
+  }, [searchParams, selectedTopicId]);
+  
+  // Update URL when topic selection changes
+  const handleTopicSelect = (topicId: string | null) => {
+    setSelectedTopicId(topicId);
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    if (topicId) {
+      current.set("topicId", topicId);
+    } else {
+      current.delete("topicId");
+    }
+    const search = current.toString();
+    const query = search ? `?${search}` : "";
+    router.replace(`${pathname}${query}`, { scroll: false });
+  };
   const page = 1;
   const limit = 10;
 
-  const { data, isLoading, error } = useTeacherComprehensiveSubject({
+  const role = session?.user?.role as string | undefined;
+  const permissions = getRolePermissions(role);
+
+  const { data, isLoading, error } = useComprehensiveSubject({
     subjectId,
     page,
     limit,
@@ -101,19 +135,25 @@ const TeacherSubjectDetailPage = () => {
       <TopicsContentSection
         topics={topics}
         selectedTopicId={selectedTopicId}
-        onTopicSelect={setSelectedTopicId}
-        onAddTopic={() => setIsCreateTopicModalOpen(true)}
+        onTopicSelect={handleTopicSelect}
+        onAddTopic={permissions.canCreate ? () => setIsCreateTopicModalOpen(true) : undefined}
         subjectId={subjectId}
+        canEdit={permissions.canEdit}
+        canDelete={permissions.canDelete}
+        canCreate={permissions.canCreate}
+        canUpload={permissions.canUpload}
       />
 
-      <CreateTopicModal
-        isOpen={isCreateTopicModalOpen}
-        onClose={() => setIsCreateTopicModalOpen(false)}
-        subjectId={subjectId}
-      />
+      {permissions.canCreate && (
+        <CreateTopicModal
+          isOpen={isCreateTopicModalOpen}
+          onClose={() => setIsCreateTopicModalOpen(false)}
+          subjectId={subjectId}
+        />
+      )}
     </div>
   );
 };
 
-export default TeacherSubjectDetailPage;
+export default SubjectDetailPage;
 

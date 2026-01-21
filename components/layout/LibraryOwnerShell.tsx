@@ -23,7 +23,7 @@ const libraryOwnerTabs = [
   { href: "/library-owner/schools", label: "Schools", icon: School },
   { href: "/library-owner/resources", label: "Resources", icon: BookOpen },
   {
-    href: "/library-owner/general-materials",
+    href: "/general-pages/general-materials",
     label: "AI Books",
     icon: FileText,
   },
@@ -104,8 +104,8 @@ export default function LibraryOwnerShell({
               const isActive =
                 tab.href === "/library-owner/resources"
                   ? pathname.startsWith("/library-owner/resources")
-                  : tab.href === "/library-owner/general-materials"
-                  ? pathname.startsWith("/library-owner/general-materials")
+                  : tab.href === "/general-pages/general-materials"
+                  ? pathname.startsWith("/general-pages/general-materials")
                   : pathname === tab.href;
               return (
                 <Link

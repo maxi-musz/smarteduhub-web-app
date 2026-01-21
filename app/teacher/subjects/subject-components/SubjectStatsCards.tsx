@@ -1,7 +1,8 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, Video, FileText, GraduationCap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { BookOpen, Video, FileText, GraduationCap, Calendar } from "lucide-react";
 
 interface Stats {
   totalSubjects: number;
@@ -10,34 +11,78 @@ interface Stats {
   totalClasses: number;
 }
 
+interface AcademicSession {
+  id: string;
+  academic_year: string;
+  term: string;
+}
+
 interface SubjectStatsCardsProps {
   stats: Stats;
   isLoading: boolean;
+  academicSession?: AcademicSession | null;
 }
 
 export const SubjectStatsCards = ({
   stats,
   isLoading,
+  academicSession,
 }: SubjectStatsCardsProps) => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {[1, 2, 3, 4].map((i) => (
-          <Card key={i}>
-            <CardContent className="p-4">
-              <div className="h-8 w-8 bg-gray-200 rounded animate-pulse mb-2" />
-              <div className="h-8 w-16 bg-gray-200 rounded animate-pulse mb-2" />
-              <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <>
+        {academicSession && (
+          <div className="mb-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="h-8 w-8 bg-gray-200 rounded animate-pulse mb-2" />
+                <div className="h-8 w-16 bg-gray-200 rounded animate-pulse mb-2" />
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <>
+      {academicSession && (
+        <div className="mb-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-100 rounded-lg">
+                  <Calendar className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Academic Session</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline" className="text-sm font-normal">
+                      {academicSession.academic_year}
+                    </Badge>
+                    <Badge variant="outline" className="text-sm font-normal">
+                      {academicSession.term} Term
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <Card>
         <CardContent className="p-4 flex items-center gap-4">
           <div className="p-3 bg-blue-100 rounded-lg">
@@ -86,6 +131,7 @@ export const SubjectStatsCards = ({
         </CardContent>
       </Card>
     </div>
+    </>
   );
 };
 

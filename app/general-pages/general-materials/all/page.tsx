@@ -25,7 +25,7 @@ import {
   MessageSquare,
   BookOpen,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -45,7 +45,19 @@ import { ChaptersDropdown } from "../components/ChaptersDropdown";
 
 const AllAiBooksPage = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const [page, setPage] = useState(1);
+  
+  // Determine base path based on current route
+  const getBasePath = () => {
+    if (pathname.startsWith("/library-owner")) return "/library-owner";
+    if (pathname.startsWith("/teacher")) return "/teacher";
+    if (pathname.startsWith("/admin")) return "/admin";
+    if (pathname.startsWith("/student")) return "/student";
+    return "/general-pages";
+  };
+  
+  const basePath = getBasePath();
   const [limit] = useState(20);
   const [search, setSearch] = useState("");
   const [isAiEnabled, setIsAiEnabled] = useState<string>("all");
@@ -247,7 +259,7 @@ const AllAiBooksPage = () => {
                     >
                       <td 
                         className="px-4 py-2 text-brand-heading max-w-xs cursor-pointer"
-                        onClick={() => router.push(`/library-owner/general-materials/${item.id}`)}
+                        onClick={() => router.push(`${basePath}/general-materials/${item.id}`)}
                       >
                         <div className="flex items-center gap-3">
                           <div className="relative w-14 h-20 rounded-md overflow-hidden border border-brand-border bg-gray-100 flex-shrink-0">
@@ -317,7 +329,7 @@ const AllAiBooksPage = () => {
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.stopPropagation();
-                                router.push(`/library-owner/general-materials/${item.id}`);
+                                router.push(`${basePath}/general-materials/${item.id}`);
                               }}
                             >
                               <MessageSquare className="h-4 w-4 mr-2" />

@@ -1,13 +1,16 @@
 "use client";
 
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   FileText,
-  Calendar,
+  Settings,
 } from "lucide-react";
 import { AIAgentLogo } from "@/components/AIAgentLogo";
+import { useRouter } from "next/navigation";
 import type { TeacherSubject } from "@/hooks/teacher/use-teacher-subjects";
 
 interface SubjectCardProps {
@@ -17,6 +20,13 @@ interface SubjectCardProps {
 }
 
 export const SubjectCard = ({ subject, onAIClick, onClick }: SubjectCardProps) => {
+  const router = useRouter();
+
+  const handleManageClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/teacher/subjects/${subject.id}`);
+  };
+
   return (
     <Card 
       className="overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer"
@@ -36,20 +46,22 @@ export const SubjectCard = ({ subject, onAIClick, onClick }: SubjectCardProps) =
               </p>
             )}
           </div>
-          {onAIClick && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAIClick(subject.name);
-              }}
-              className="h-8 w-8 rounded-full hover:bg-gray-100 flex items-center justify-center"
-              style={{ color: subject.color || "#6B7280" }}
-              aria-label="AI Assistant"
-            >
-              <AIAgentLogo size="sm" />
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {onAIClick && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAIClick(subject.name);
+                }}
+                className="h-8 w-8 rounded-full hover:bg-gray-100 flex items-center justify-center"
+                style={{ color: subject.color || "#6B7280" }}
+                aria-label="AI Assistant"
+              >
+                <AIAgentLogo size="sm" />
+              </button>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -75,19 +87,6 @@ export const SubjectCard = ({ subject, onAIClick, onClick }: SubjectCardProps) =
               </span>
             </div>
           </div>
-
-          {/* Academic Session */}
-          {subject.academicSession && (
-            <div className="pt-3 border-t">
-              <div className="flex items-center gap-2 mb-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Academic Session</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {subject.academicSession.academic_year} • {subject.academicSession.term} Term
-              </p>
-            </div>
-          )}
 
           {/* Description */}
           {subject.description && (
@@ -128,6 +127,17 @@ export const SubjectCard = ({ subject, onAIClick, onClick }: SubjectCardProps) =
           )}
           </TabsContent>
         </Tabs>
+        <div className="mt-4 pt-4 border-t">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManageClick}
+            className="w-full"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Manage
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

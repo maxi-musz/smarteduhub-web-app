@@ -1,9 +1,10 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { authenticatedApi } from "@/lib/api/authenticated";
 import { logger } from "@/lib/logger";
+import { useSession } from "next-auth/react";
 
-// Types based on TEACHER-SUBJECTS-API.md
-export interface TeacherSubject {
+// Types - shared across all roles
+export interface Subject {
   id: string;
   name: string;
   code: string | null;
@@ -32,7 +33,7 @@ export interface TeacherSubject {
   updatedAt: string;
 }
 
-export interface TeacherSubjectDetail extends TeacherSubject {
+export interface SubjectDetail extends Subject {
   topics: Array<{
     id: string;
     title: string;
@@ -44,7 +45,7 @@ export interface TeacherSubjectDetail extends TeacherSubject {
   }>;
 }
 
-export interface TeacherSubjectWithContent {
+export interface SubjectWithContent {
   id: string;
   title: string;
   description: string;
@@ -76,8 +77,8 @@ export interface TeacherSubjectWithContent {
   updatedAt: string;
 }
 
-export interface TeacherSubjectsListData {
-  data: TeacherSubject[];
+export interface SubjectsListData {
+  data: Subject[];
   meta: {
     page: number;
     limit: number;
@@ -88,7 +89,7 @@ export interface TeacherSubjectsListData {
   };
 }
 
-export interface TeacherComprehensiveSubjectData {
+export interface ComprehensiveSubjectData {
   subject: {
     id: string;
     name: string;
@@ -106,7 +107,7 @@ export interface TeacherComprehensiveSubjectData {
     createdAt: string;
     updatedAt: string;
   };
-  topics: TeacherSubjectWithContent[];
+  topics: SubjectWithContent[];
   pagination: {
     page: number;
     limit: number;
@@ -133,7 +134,7 @@ export interface TeacherComprehensiveSubjectData {
   };
 }
 
-export interface UseTeacherSubjectsParams {
+export interface UseSubjectsParams {
   page?: number;
   limit?: number;
   search?: string;
@@ -142,9 +143,10 @@ export interface UseTeacherSubjectsParams {
   isActive?: boolean;
   sortBy?: "name" | "code" | "createdAt" | "updatedAt";
   sortOrder?: "asc" | "desc";
+  role?: "teacher" | "school_director" | "student";
 }
 
-export interface UseTeacherComprehensiveSubjectParams {
+export interface UseComprehensiveSubjectParams {
   subjectId: string;
   page?: number;
   limit?: number;
@@ -153,14 +155,31 @@ export interface UseTeacherComprehensiveSubjectParams {
   type?: "all" | "videos" | "materials" | "mixed";
   orderBy?: "order" | "title" | "createdAt" | "updatedAt";
   orderDirection?: "asc" | "desc";
+  role?: "teacher" | "school_director" | "student";
 }
 
 /**
- * Fetch all teacher subjects
+ * Get API endpoint prefix based on role
  */
-const fetchTeacherSubjects = async (
-  params: UseTeacherSubjectsParams
-): Promise<TeacherSubjectsListData> => {
+function getRoleEndpointPrefix(role?: string): string {
+  switch (role) {
+    case "teacher":
+      return "/teachers";
+    case "school_director":
+      return "/director";
+    case "student":
+      return "/students";
+    default:
+      return "/teachers"; // Default fallback
+  }
+}
+
+/**
+ * Fetch subjects for any role
+ */
+const fetchSubjects = async (
+  params: UseSubjectsParams
+): Promise<SubjectsListData> => {
   const {
     page = 1,
     limit = 10,
@@ -170,9 +189,11 @@ const fetchTeacherSubjects = async (
     isActive,
     sortBy = "name",
     sortOrder = "asc",
+    role,
   } = params;
 
-  logger.info("[use-teacher-subjects] Fetching teacher subjects", { ...params });
+  const rolePrefix = getRoleEndpointPrefix(role);
+  logger.info(`[use-subjects] Fetching ${role || "teacher"} subjects`, { ...params });
 
   try {
     const queryParams = new URLSearchParams({
@@ -187,11 +208,13 @@ const fetchTeacherSubjects = async (
     if (color) queryParams.append("color", color);
     if (isActive !== undefined) queryParams.append("isActive", isActive.toString());
 
-    // Backend returns: { data: [...], meta: {...}, message: "..." }
-    // But authenticatedApi.get wraps it in ApiResponse: { success, data, message }
-    // So we need to handle both structures
+    // Use the correct endpoint for school directors
+    const endpoint = role === "school_director" 
+      ? `${rolePrefix}/subjects/fetch-all-subjects?${queryParams.toString()}`
+      : `${rolePrefix}/subjects?${queryParams.toString()}`;
+
     const response = await authenticatedApi.get<{
-      data: TeacherSubject[];
+      data: Subject[];
       meta: {
         page: number;
         limit: number;
@@ -201,31 +224,58 @@ const fetchTeacherSubjects = async (
         hasPrev: boolean;
       };
       message?: string;
-    }>(`/teachers/subjects?${queryParams.toString()}`);
+    }>(endpoint);
 
-    logger.info("[use-teacher-subjects] Subjects fetched successfully", response);
+    logger.info(`[use-subjects] Subjects fetched successfully`, response);
 
-    // Check if response is valid
     if (!response || typeof response !== "object") {
-      logger.error("[use-teacher-subjects] Response is not an object:", { response });
+      logger.error("[use-subjects] Response is not an object:", { response });
       throw new Error("Invalid response format from subjects API");
     }
 
-    // Handle case where backend returns success: false
     if ("success" in response && response.success === false) {
       const errorMsg = response.message || "Failed to fetch subjects";
-      logger.error("[use-teacher-subjects] Backend returned success: false", {
+      logger.error("[use-subjects] Backend returned success: false", {
         message: errorMsg,
         response,
       });
       throw new Error(errorMsg);
     }
 
-    // Backend returns: { data: [...], meta: {...}, message: "..." }
-    // But authenticatedApi.get may wrap it: { success: true, data: { data: [...], meta: {...} } }
-    // OR backend returns directly: { data: [...], meta: {...}, message: "..." }
-    
-    // Check if response.data exists and has nested structure
+    // Handle director endpoint structure: { success: true, data: { subjects: [...], pagination: {...} } }
+    if (
+      role === "school_director" &&
+      "data" in response &&
+      response.data &&
+      typeof response.data === "object" &&
+      "subjects" in response.data &&
+      Array.isArray(response.data.subjects) &&
+      "pagination" in response.data &&
+      response.data.pagination &&
+      typeof response.data.pagination === "object"
+    ) {
+      const pagination = response.data.pagination as {
+        page?: number;
+        limit?: number;
+        total?: number;
+        totalPages?: number;
+        hasNext?: boolean;
+        hasPrev?: boolean;
+      };
+      return {
+        data: response.data.subjects,
+        meta: {
+          page: pagination.page || 1,
+          limit: pagination.limit || 10,
+          total: pagination.total || 0,
+          totalPages: pagination.totalPages || 1,
+          hasNext: pagination.hasNext || false,
+          hasPrev: pagination.hasPrev || false,
+        },
+      };
+    }
+
+    // Handle nested structure: { success: true, data: { data: [...], meta: {...} } }
     if (
       "data" in response &&
       response.data &&
@@ -236,14 +286,13 @@ const fetchTeacherSubjects = async (
       response.data.meta &&
       typeof response.data.meta === "object"
     ) {
-      // Nested structure: { success: true, data: { data: [...], meta: {...} } }
       return {
         data: response.data.data,
         meta: response.data.meta,
       };
     }
 
-    // Check if response has direct data array and meta (backend returns directly)
+    // Handle direct structure: { data: [...], meta: {...} }
     if (
       "data" in response &&
       Array.isArray(response.data) &&
@@ -257,7 +306,6 @@ const fetchTeacherSubjects = async (
       "hasNext" in response.meta &&
       "hasPrev" in response.meta
     ) {
-      // Direct structure: { data: [...], meta: {...}, message: "..." }
       return {
         data: response.data,
         meta: response.meta as {
@@ -273,7 +321,7 @@ const fetchTeacherSubjects = async (
 
     // Fallback: if data exists but no meta, create default meta
     if ("data" in response && Array.isArray(response.data)) {
-      logger.warn("[use-teacher-subjects] Response missing meta, using defaults", { response });
+      logger.warn("[use-subjects] Response missing meta, using defaults", { response });
       const defaultMeta = {
         page: page,
         limit: limit,
@@ -288,23 +336,10 @@ const fetchTeacherSubjects = async (
       };
     }
 
-    // Handle nested structure: { success: true, data: { data: [...], meta: {...} } }
-    if (
-      "success" in response &&
-      response.success === true &&
-      "data" in response &&
-      response.data &&
-      typeof response.data === "object" &&
-      "data" in response.data &&
-      "meta" in response.data
-    ) {
-      return response.data as TeacherSubjectsListData;
-    }
-
-    logger.error("[use-teacher-subjects] Unexpected response structure:", { response });
+    logger.error("[use-subjects] Unexpected response structure:", { response });
     throw new Error("Unexpected response structure from subjects API");
   } catch (error) {
-    logger.error("[use-teacher-subjects] Error fetching subjects:", {
+    logger.error("[use-subjects] Error fetching subjects:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });
@@ -313,44 +348,12 @@ const fetchTeacherSubjects = async (
 };
 
 /**
- * Fetch teacher subject by ID
+ * Fetch comprehensive subject with topics and content
+ * Note: School directors use teacher endpoints for comprehensive subject data
  */
-const fetchTeacherSubjectById = async (subjectId: string): Promise<TeacherSubjectDetail> => {
-  logger.info("[use-teacher-subject-detail] Fetching subject", { subjectId });
-
-  try {
-    const response = await authenticatedApi.get<TeacherSubjectDetail>(
-      `/teachers/subjects/${subjectId}`
-    );
-
-    logger.info("[use-teacher-subject-detail] Subject fetched successfully", response);
-
-    if (
-      response &&
-      typeof response === "object" &&
-      "data" in response &&
-      response.success &&
-      response.data
-    ) {
-      return response.data;
-    }
-
-    logger.error("[use-teacher-subject-detail] Unexpected response structure:", { response });
-    throw new Error("Unexpected response structure from subject detail API");
-  } catch (error) {
-    logger.error("[use-teacher-subject-detail] Error fetching subject:", {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    throw error;
-  }
-};
-
-/**
- * Fetch comprehensive teacher subject with topics and content
- */
-const fetchTeacherComprehensiveSubject = async (
-  params: UseTeacherComprehensiveSubjectParams
-): Promise<TeacherComprehensiveSubjectData> => {
+const fetchComprehensiveSubject = async (
+  params: UseComprehensiveSubjectParams
+): Promise<ComprehensiveSubjectData> => {
   const {
     subjectId,
     page = 1,
@@ -360,9 +363,13 @@ const fetchTeacherComprehensiveSubject = async (
     type = "all",
     orderBy = "order",
     orderDirection = "asc",
+    role,
   } = params;
 
-  logger.info("[use-teacher-comprehensive-subject] Fetching comprehensive subject", { ...params });
+  // School directors use teacher endpoints for comprehensive subject data
+  const effectiveRole = role === "school_director" ? "teacher" : role;
+  const rolePrefix = getRoleEndpointPrefix(effectiveRole);
+  logger.info(`[use-comprehensive-subject] Fetching comprehensive subject for ${role || "teacher"} (using ${effectiveRole} endpoint)`, { ...params });
 
   try {
     const queryParams = new URLSearchParams({
@@ -376,12 +383,12 @@ const fetchTeacherComprehensiveSubject = async (
     if (search) queryParams.append("search", search);
     if (status) queryParams.append("status", status);
 
-    const response = await authenticatedApi.get<TeacherComprehensiveSubjectData>(
-      `/teachers/subjects/${subjectId}/comprehensive?${queryParams.toString()}`
+    const response = await authenticatedApi.get<ComprehensiveSubjectData>(
+      `${rolePrefix}/subjects/${subjectId}/comprehensive?${queryParams.toString()}`
     );
 
     logger.info(
-      "[use-teacher-comprehensive-subject] Comprehensive subject fetched successfully",
+      `[use-comprehensive-subject] Comprehensive subject fetched successfully`,
       response
     );
 
@@ -395,12 +402,12 @@ const fetchTeacherComprehensiveSubject = async (
       return response.data;
     }
 
-    logger.error("[use-teacher-comprehensive-subject] Unexpected response structure:", {
+    logger.error("[use-comprehensive-subject] Unexpected response structure:", {
       response,
     });
     throw new Error("Unexpected response structure from comprehensive subject API");
   } catch (error) {
-    logger.error("[use-teacher-comprehensive-subject] Error fetching comprehensive subject:", {
+    logger.error("[use-comprehensive-subject] Error fetching comprehensive subject:", {
       error: error instanceof Error ? error.message : String(error),
     });
     throw error;
@@ -408,43 +415,36 @@ const fetchTeacherComprehensiveSubject = async (
 };
 
 /**
- * Hook to fetch all teacher subjects
+ * Hook to fetch subjects - automatically uses current user's role
  */
-export const useTeacherSubjects = (params: UseTeacherSubjectsParams = {}) => {
+export const useSubjects = (params: Omit<UseSubjectsParams, "role"> = {}) => {
+  const { data: session } = useSession();
+  const role = session?.user?.role as "teacher" | "school_director" | "student" | undefined;
   const { page = 1, limit = 10 } = params;
 
   return useQuery({
-    queryKey: ["teacher", "subjects", page, limit, params.search, params.academicSessionId],
-    queryFn: () => fetchTeacherSubjects(params),
+    queryKey: ["subjects", role, page, limit, params.search, params.academicSessionId],
+    queryFn: () => fetchSubjects({ ...params, role }),
     staleTime: 5 * 60 * 1000, // 5 minutes
     placeholderData: keepPreviousData,
+    enabled: !!role, // Only fetch if role is available
   });
 };
 
 /**
- * Hook to fetch teacher subject by ID
+ * Hook to fetch comprehensive subject - automatically uses current user's role
  */
-export const useTeacherSubjectById = (subjectId: string) => {
-  return useQuery({
-    queryKey: ["teacher", "subject", subjectId],
-    queryFn: () => fetchTeacherSubjectById(subjectId),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!subjectId,
-  });
-};
-
-/**
- * Hook to fetch comprehensive teacher subject with topics and content
- */
-export const useTeacherComprehensiveSubject = (
-  params: UseTeacherComprehensiveSubjectParams
+export const useComprehensiveSubject = (
+  params: Omit<UseComprehensiveSubjectParams, "role">
 ) => {
+  const { data: session } = useSession();
+  const role = session?.user?.role as "teacher" | "school_director" | "student" | undefined;
   const { subjectId, page = 1, limit = 10 } = params;
 
   return useQuery({
     queryKey: [
-      "teacher",
       "subject",
+      role,
       subjectId,
       "comprehensive",
       page,
@@ -455,10 +455,10 @@ export const useTeacherComprehensiveSubject = (
       params.orderBy,
       params.orderDirection,
     ],
-    queryFn: () => fetchTeacherComprehensiveSubject(params),
+    queryFn: () => fetchComprehensiveSubject({ ...params, role }),
     staleTime: 5 * 60 * 1000, // 5 minutes
     placeholderData: keepPreviousData,
-    enabled: !!subjectId,
+    enabled: !!subjectId && !!role, // Only fetch if subjectId and role are available
   });
 };
 

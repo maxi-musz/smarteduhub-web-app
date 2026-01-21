@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useGeneralMaterialsDashboard } from "@/hooks/general-materials/use-general-materials";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import {
@@ -21,6 +22,18 @@ import {
 import { AiBookUploadModal } from "./components/AiBookUploadModal";
 
 const GeneralMaterialsPage = () => {
+  const pathname = usePathname();
+  
+  // Determine base path based on current route
+  const getBasePath = () => {
+    if (pathname.startsWith("/library-owner")) return "/library-owner";
+    if (pathname.startsWith("/teacher")) return "/teacher";
+    if (pathname.startsWith("/admin")) return "/admin";
+    if (pathname.startsWith("/student")) return "/student";
+    return "/general-pages";
+  };
+  
+  const basePath = getBasePath();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const {
     data: dashboard,
@@ -183,7 +196,7 @@ const GeneralMaterialsPage = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    window.location.href = "/library-owner/general-materials/all";
+                    window.location.href = `${basePath}/general-materials/all`;
                   }}
                   className="flex items-center gap-2 w-full sm:w-auto"
                 >
