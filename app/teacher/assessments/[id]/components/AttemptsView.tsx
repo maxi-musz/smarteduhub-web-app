@@ -47,15 +47,15 @@ export const AttemptsView = ({
   const { students = [], statistics, assessment: _assessment } = attemptsData;
 
   // Provide default values for statistics if undefined
-  const safeStatistics = statistics || {
-    total_students: 0,
-    attempted_count: 0,
-    not_attempted_count: 0,
-    passed_count: 0,
-    failed_count: 0,
-    average_score: 0,
-    highest_score: 0,
-    lowest_score: 0,
+  const safeStatistics = {
+    total_students: statistics?.total_students ?? 0,
+    attempted_count: statistics?.attempted_count ?? 0,
+    not_attempted_count: statistics?.not_attempted_count ?? 0,
+    passed_count: statistics?.passed_count ?? 0,
+    failed_count: statistics?.failed_count ?? 0,
+    average_score: statistics?.average_score ?? 0,
+    highest_score: statistics?.highest_score ?? 0,
+    lowest_score: statistics?.lowest_score ?? 0,
   };
 
   return (

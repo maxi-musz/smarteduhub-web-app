@@ -36,7 +36,7 @@ import {
 } from "recharts";
 
 // Add imports for toast
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminFinances = () => {
   // State for modals

@@ -371,101 +371,101 @@ export const StudentAttendanceList = ({ classId, date }: StudentAttendanceListPr
                 </TableRow>
               </TableHeader>
               <TableBody>
-          {studentsData.students.map((student) => {
-            const state = attendanceState[student.id] || {
-              student_id: student.id,
-              status: null as AttendanceStatus,
-            };
+                {studentsData.students.map((student) => {
+                  const state = attendanceState[student.id] || {
+                    student_id: student.id,
+                    status: null as AttendanceStatus,
+                  };
 
-            // Build full name from first_name and last_name
-            const firstName = (student.first_name || "").trim();
-            const lastName = (student.last_name || "").trim();
-            const fullName = firstName && lastName
-              ? `${firstName} ${lastName}`
-              : firstName || lastName || student.student_id || "Unknown Student";
-            
-            // Get initials for avatar
-            const firstInitial = firstName?.[0]?.toUpperCase() || "";
-            const lastInitial = lastName?.[0]?.toUpperCase() || "";
-            const initials = firstInitial && lastInitial
-              ? `${firstInitial}${lastInitial}`
-              : firstInitial || lastInitial || student.student_id?.[0]?.toUpperCase() || "?";
+                  // Build full name from first_name and last_name
+                  const firstName = (student.first_name || "").trim();
+                  const lastName = (student.last_name || "").trim();
+                  const fullName = firstName && lastName
+                    ? `${firstName} ${lastName}`
+                    : firstName || lastName || student.student_id || "Unknown Student";
+                  
+                  // Get initials for avatar
+                  const firstInitial = firstName?.[0]?.toUpperCase() || "";
+                  const lastInitial = lastName?.[0]?.toUpperCase() || "";
+                  const initials = firstInitial && lastInitial
+                    ? `${firstInitial}${lastInitial}`
+                    : firstInitial || lastInitial || student.student_id?.[0]?.toUpperCase() || "?";
 
-            const handleStatusChange = (newStatus: AttendanceStatus) => {
-              // If clicking the same status, uncheck it; otherwise set the new status
-              if (state.status === newStatus) {
-                updateStudentStatus(student.id, { status: null });
-              } else {
-                updateStudentStatus(student.id, { status: newStatus });
-              }
-            };
+                  const handleStatusChange = (newStatus: AttendanceStatus) => {
+                    // If clicking the same status, uncheck it; otherwise set the new status
+                    if (state.status === newStatus) {
+                      updateStudentStatus(student.id, { status: null });
+                    } else {
+                      updateStudentStatus(student.id, { status: newStatus });
+                    }
+                  };
 
-            const isPresent = state.status === "PRESENT";
-            const isAbsent = state.status === "ABSENT";
-            const isMarked = isPresent || isAbsent;
+                  const isPresent = state.status === "PRESENT";
+                  const isAbsent = state.status === "ABSENT";
+                  const isMarked = isPresent || isAbsent;
 
-            return (
-              <TableRow
-                key={student.id}
-                className={`hover:bg-gray-50 transition-colors ${
-                  isMarked ? "" : "bg-yellow-50/30"
-                }`}
-              >
-                <TableCell className="w-12">
-                  <Avatar className="h-10 w-10 border border-gray-200">
-                    <AvatarImage
-                      src={student.display_picture || undefined}
-                      alt={fullName}
-                    />
-                    <AvatarFallback className="bg-brand-primary text-white text-sm font-semibold">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                </TableCell>
-                <TableCell>
-                  <div>
-                    <div className="font-medium text-gray-900">{fullName}</div>
-                    {student.email && (
-                      <div className="text-xs text-gray-500 mt-0.5">{student.email}</div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="font-mono text-xs">
-                    {student.student_id || student.admission_number || "N/A"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <Checkbox
-                      id={`present-${student.id}`}
-                      checked={isPresent}
-                      onCheckedChange={() => handleStatusChange("PRESENT")}
-                      disabled={isSubmitting}
-                      className="h-5 w-5"
-                    />
-                    {isPresent && (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-center">
-                  <div className="flex items-center justify-center gap-2">
-                        <Checkbox
-                      id={`absent-${student.id}`}
-                      checked={isAbsent}
-                      onCheckedChange={() => handleStatusChange("ABSENT")}
-                          disabled={isSubmitting}
-                      className="h-5 w-5"
-                    />
-                    {isAbsent && (
-                      <XCircle className="h-4 w-4 text-red-600" />
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+                  return (
+                    <TableRow
+                      key={student.id}
+                      className={`hover:bg-gray-50 transition-colors ${
+                        isMarked ? "" : "bg-yellow-50/30"
+                      }`}
+                    >
+                      <TableCell className="w-12">
+                        <Avatar className="h-10 w-10 border border-gray-200">
+                          <AvatarImage
+                            src={student.display_picture || undefined}
+                            alt={fullName}
+                          />
+                          <AvatarFallback className="bg-brand-primary text-white text-sm font-semibold">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-gray-900">{fullName}</div>
+                          {student.email && (
+                            <div className="text-xs text-gray-500 mt-0.5">{student.email}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {student.student_id || student.admission_number || "N/A"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Checkbox
+                            id={`present-${student.id}`}
+                            checked={isPresent}
+                            onCheckedChange={() => handleStatusChange("PRESENT")}
+                            disabled={isSubmitting}
+                            className="h-5 w-5"
+                          />
+                          {isPresent && (
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Checkbox
+                            id={`absent-${student.id}`}
+                            checked={isAbsent}
+                            onCheckedChange={() => handleStatusChange("ABSENT")}
+                            disabled={isSubmitting}
+                            className="h-5 w-5"
+                          />
+                          {isAbsent && (
+                            <XCircle className="h-4 w-4 text-red-600" />
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -502,30 +502,30 @@ export const StudentAttendanceList = ({ classId, date }: StudentAttendanceListPr
               )}
             </div>
             <div className="flex gap-2">
-            <Button
-              variant="outline"
+              <Button
+                variant="outline"
                 onClick={() => {
                   setAttendanceState({});
                   setNotes("");
                 }}
-              disabled={isSubmitting}
+                disabled={isSubmitting}
                 className="gap-2"
-            >
+              >
                 <RefreshCw className="h-4 w-4" />
-              Reset
-            </Button>
+                Reset
+              </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting || !canSubmit}
                 className="gap-2 min-w-[140px]"
               >
                 <Save className="h-4 w-4" />
-              {isSubmitting
-                ? "Saving..."
-                : hasExistingAttendance
-                  ? "Update Attendance"
-                  : "Submit Attendance"}
-            </Button>
+                {isSubmitting
+                  ? "Saving..."
+                  : hasExistingAttendance
+                    ? "Update Attendance"
+                    : "Submit Attendance"}
+              </Button>
             </div>
           </div>
         </div>
@@ -533,4 +533,3 @@ export const StudentAttendanceList = ({ classId, date }: StudentAttendanceListPr
     </Card>
   );
 };
-

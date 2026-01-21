@@ -28,6 +28,12 @@ const STATUS_OPTIONS: { label: string; value?: string }[] = [
   { label: "Archived", value: "ARCHIVED" },
 ];
 
+const TYPE_OPTIONS: { label: string; value?: string }[] = [
+  { label: "All Types", value: undefined },
+  { label: "CBT", value: "CBT" },
+  { label: "Exam", value: "EXAM" },
+];
+
 export const AssessmentFilters = ({
   status,
   type,
@@ -77,14 +83,11 @@ export const AssessmentFilters = ({
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="CBT">CBT</SelectItem>
-            <SelectItem value="QUIZ">Quiz</SelectItem>
-            <SelectItem value="EXAM">Exam</SelectItem>
-            <SelectItem value="ASSIGNMENT">Assignment</SelectItem>
-            <SelectItem value="TEST">Test</SelectItem>
-            <SelectItem value="FORMATIVE">Formative</SelectItem>
-            <SelectItem value="SUMMATIVE">Summative</SelectItem>
+            {TYPE_OPTIONS.map((option) => (
+              <SelectItem key={option.label} value={option.value || "all"}>
+                {option.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

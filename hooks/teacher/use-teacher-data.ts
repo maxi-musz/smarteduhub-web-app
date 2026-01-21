@@ -645,19 +645,23 @@ export interface StudentsResponse {
   };
 }
 
+// Actual backend response structure (may differ from API docs)
 export interface AttendanceRecord {
-  id: string | null;
-  student_id: string;
-  student_user_id: string;
-  student_name: string;
-  student_email: string;
-  student_number: string;
-  display_picture: string | null;
-  status: string | null;
-  reason: string | null;
-  is_excused: boolean;
-  excuse_note: string | null;
-  marked_at: string | null;
+  id: string;
+  student_id: string; // This is the student ID string like "STUD/26/001"
+  is_present: boolean;
+  marked_at: string;
+  marked_by: string;
+  // Optional fields that might be in API docs version
+  student_user_id?: string;
+  student_name?: string;
+  student_email?: string;
+  student_number?: string;
+  display_picture?: string | null;
+  status?: string | null;
+  reason?: string | null;
+  is_excused?: boolean;
+  excuse_note?: string | null;
 }
 
 export interface AttendanceStatistics {
@@ -670,18 +674,27 @@ export interface AttendanceStatistics {
   attendance_rate: number;
 }
 
+// Actual backend response structure
 export interface AttendanceForDateResponse {
-  session_id: string | null;
-  class_id: string;
-  class_name: string;
   date: string;
-  session_type: string;
-  status: string | null;
+  class_id: string;
+  attendance_status: string; // "submitted" | "draft" etc.
+  is_marked: boolean;
   submitted_at: string | null;
-  submitted_by: string | null;
-  notes: string | null;
-  statistics: AttendanceStatistics | null;
   attendance_records: AttendanceRecord[];
+  total_students: number;
+  present_count: number;
+  absent_count: number;
+  late_count: number;
+  attendance_rate: number;
+  // Optional fields from API docs version
+  session_id?: string | null;
+  class_name?: string;
+  session_type?: string;
+  status?: string | null;
+  submitted_by?: string | null;
+  notes?: string | null;
+  statistics?: AttendanceStatistics | null;
 }
 
 export interface SubmitAttendanceRequest {
@@ -811,10 +824,11 @@ export function useAttendanceForDate(classId: string | null, date: string | null
       );
     },
     enabled: !!classId && !!date,
-    staleTime: 30 * 1000, // Consider data stale after 30 seconds
-    gcTime: 2 * 60 * 1000, // Keep in cache for 2 minutes
+    staleTime: 0, // Always consider data stale to allow refetching
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     retry: 1,
     refetchOnWindowFocus: true, // Refetch when window regains focus
+    refetchOnMount: true, // Always refetch on mount
   });
 }
 
@@ -848,12 +862,16 @@ export function useSubmitAttendance() {
       );
     },
     onSuccess: (data, variables) => {
-      // Invalidate attendance queries
+      // Invalidate and refetch attendance queries
       queryClient.invalidateQueries({
         queryKey: ["teacher", "attendance", "date", variables.class_id, variables.date],
       });
       queryClient.invalidateQueries({
         queryKey: ["teacher", "attendance", "session-details"],
+      });
+      // Force immediate refetch
+      queryClient.refetchQueries({
+        queryKey: ["teacher", "attendance", "date", variables.class_id, variables.date],
       });
       toast({
         title: "Attendance submitted successfully",
@@ -900,8 +918,12 @@ export function useUpdateAttendance() {
       );
     },
     onSuccess: (data, variables) => {
-      // Invalidate attendance queries
+      // Invalidate and refetch attendance queries
       queryClient.invalidateQueries({
+        queryKey: ["teacher", "attendance", "date", variables.class_id, variables.date],
+      });
+      // Force immediate refetch
+      queryClient.refetchQueries({
         queryKey: ["teacher", "attendance", "date", variables.class_id, variables.date],
       });
       toast({

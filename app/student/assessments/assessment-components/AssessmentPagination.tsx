@@ -2,10 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { AssessmentPagination as PaginationType } from "@/hooks/teacher/use-teacher-assessments";
+import type { StudentAssessmentsPagination } from "@/hooks/student/use-student-assessments";
 
 interface AssessmentPaginationProps {
-  pagination: PaginationType;
+  pagination: StudentAssessmentsPagination;
   onPageChange: (page: number) => void;
 }
 
@@ -25,7 +25,7 @@ export const AssessmentPagination = ({
           variant="outline"
           size="sm"
           onClick={() => onPageChange(pagination.page - 1)}
-          disabled={!pagination.hasPrevious}
+          disabled={!pagination.hasPrev}
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
           Previous

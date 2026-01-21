@@ -12,7 +12,7 @@ import {
   StudentAttendanceList,
 } from "./attendance-components";
 
-const TeacherAttendancePage = () => {
+const AdminAttendancePage = () => {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     // Default to today's date in YYYY-MM-DD format
@@ -226,5 +226,4 @@ const TeacherAttendancePage = () => {
   );
 };
 
-export default TeacherAttendancePage;
-
+export default AdminAttendancePage;

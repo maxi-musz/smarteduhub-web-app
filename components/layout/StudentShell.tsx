@@ -3,13 +3,12 @@
 import {
   Home,
   Book,
-  ListTodo,
-  BarChart2,
   Award,
   Bell,
   User,
   Compass,
   ClipboardList,
+  CalendarCheck,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -22,8 +21,7 @@ const studentTabs = [
   { href: "/student/home", label: "Home", icon: Home },
   { href: "/student/subjects", label: "Subjects", icon: Book },
   { href: "/student/assessments", label: "Assessments", icon: ClipboardList },
-  { href: "/student/tasks", label: "Tasks", icon: ListTodo },
-  { href: "/student/performance", label: "Performance", icon: BarChart2 },
+  { href: "/student/attendance", label: "Attendance", icon: CalendarCheck },
   { href: "/student/results", label: "Results", icon: Award },
 ];
 

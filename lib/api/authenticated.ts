@@ -1,4 +1,4 @@
-import { getSession } from "next-auth/react";
+import { getSession, signOut } from "next-auth/react";
 import { logger } from "@/lib/logger";
 
 type ApiResponse<T = unknown> = {
@@ -20,6 +20,21 @@ export class AuthenticatedApiError extends Error {
   }
 }
 
+// Function to handle automatic logout
+async function handleAuthenticationError(message: string) {
+  logger.error("[Auth] Authentication failed, logging out user", { message });
+  
+  // Sign out the user
+  await signOut({ 
+    callbackUrl: "/login",
+    redirect: true 
+  });
+  
+  // This will redirect, so the error below won't be shown
+  // but we throw it anyway for consistency
+  throw new AuthenticatedApiError(message, 401);
+}
+
 export async function makeAuthenticatedRequest<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
@@ -29,9 +44,8 @@ export async function makeAuthenticatedRequest<T = unknown>(
     const session = await getSession();
 
     if (!session?.user?.accessToken) {
-      throw new AuthenticatedApiError(
-        "No access token available. Please login again.",
-        401
+      await handleAuthenticationError(
+        "Your session has expired. Please login again."
       );
     }
 
@@ -39,7 +53,7 @@ export async function makeAuthenticatedRequest<T = unknown>(
     // Don't set Content-Type for FormData - browser will set it with boundary
     const isFormData = options.body instanceof FormData;
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${session.user.accessToken}`,
+      Authorization: `Bearer ${session!.user.accessToken}`,
       ...((options.headers as Record<string, string>) || {}),
     };
     
@@ -88,12 +102,10 @@ export async function makeAuthenticatedRequest<T = unknown>(
       });
     }
 
-    // Handle authentication errors
+    // Handle authentication errors - automatically log out user
     if (response.status === 401) {
-      throw new AuthenticatedApiError(
-        "Access token expired or invalid. Please login again.",
-        401,
-        data
+      await handleAuthenticationError(
+        "Your session has expired. Please login again."
       );
     }
 

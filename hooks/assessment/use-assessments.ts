@@ -4,8 +4,8 @@ import { logger } from "@/lib/logger";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
 
-// Re-export types from teacher assessments hook
-export type {
+// Import and re-export types from teacher assessments hook
+import type {
   Assessment,
   AssessmentStatus,
   AssessmentType,
@@ -28,6 +28,31 @@ export type {
   AssessmentAttemptsResponse,
   StudentSubmissionResponse,
 } from "@/hooks/teacher/use-teacher-assessments";
+
+// Re-export for external use
+export type {
+  Assessment,
+  AssessmentStatus,
+  AssessmentType,
+  GradingType,
+  QuestionType,
+  DifficultyLevel,
+  AssessmentPagination,
+  AssessmentsResponse,
+  CreateAssessmentRequest,
+  UpdateAssessmentRequest,
+  Question,
+  QuestionOption,
+  CorrectAnswer,
+  QuestionsResponse,
+  CreateQuestionRequest,
+  UpdateQuestionRequest,
+  UploadImageResponse,
+  AssessmentAttempt,
+  StudentAttemptData,
+  AssessmentAttemptsResponse,
+  StudentSubmissionResponse,
+};
 
 export interface GetAssessmentsParams {
   subject_id: string;
@@ -127,16 +152,17 @@ const fetchAssessments = async (
       "data" in response &&
       response.data &&
       typeof response.data === "object" &&
-      "assessments" in response.data
+      "assessments" in response.data &&
+      response.data.assessments
     ) {
       const apiData = response.data;
       let flatAssessments: Assessment[] = [];
 
-      if (assessment_type && apiData.assessments[assessment_type]) {
+      if (assessment_type && apiData.assessments && apiData.assessments[assessment_type]) {
         flatAssessments = Array.isArray(apiData.assessments[assessment_type])
           ? apiData.assessments[assessment_type]!
           : [];
-      } else {
+      } else if (apiData.assessments) {
         flatAssessments = Object.values(apiData.assessments).flatMap((group) =>
           Array.isArray(group) ? group : []
         );
@@ -160,15 +186,19 @@ const fetchAssessments = async (
     }
 
     // Handle direct structure: { assessments: {...}, total: ... }
-    if ("assessments" in response && typeof response.assessments === "object") {
-      const apiData = response;
+    if ("assessments" in response && typeof response.assessments === "object" && response.assessments) {
+      const apiData = response as {
+        assessments?: Partial<Record<AssessmentType, Assessment[]>>;
+        total?: number;
+        pagination?: AssessmentPagination;
+      };
       let flatAssessments: Assessment[] = [];
 
-      if (assessment_type && apiData.assessments[assessment_type]) {
+      if (assessment_type && apiData.assessments && apiData.assessments[assessment_type]) {
         flatAssessments = Array.isArray(apiData.assessments[assessment_type])
           ? apiData.assessments[assessment_type]!
           : [];
-      } else {
+      } else if (apiData.assessments) {
         flatAssessments = Object.values(apiData.assessments).flatMap((group) =>
           Array.isArray(group) ? group : []
         );
@@ -237,12 +267,12 @@ const fetchAssessmentById = async (
     }>(`${rolePrefix}/assessments/${assessmentId}`);
 
     if (response.success && response.data) {
-      return response.data;
+      return response.data as Assessment;
     }
 
     // Handle direct structure
     if ("data" in response && response.data) {
-      return response.data;
+      return response.data as Assessment;
     }
 
     throw new AuthenticatedApiError(
@@ -291,11 +321,11 @@ const fetchAssessmentQuestions = async (
     }>(`${rolePrefix}/assessments/${assessmentId}/questions`);
 
     if (response.success && response.data) {
-      return response.data;
+      return response.data as QuestionsResponse;
     }
 
     if ("data" in response && response.data) {
-      return response.data;
+      return response.data as QuestionsResponse;
     }
 
     throw new AuthenticatedApiError(
@@ -344,11 +374,11 @@ const fetchAssessmentAttempts = async (
     }>(`${rolePrefix}/assessments/${assessmentId}/attempts`);
 
     if (response.success && response.data) {
-      return response.data;
+      return response.data as AssessmentAttemptsResponse;
     }
 
     if ("data" in response && response.data) {
-      return response.data;
+      return response.data as AssessmentAttemptsResponse;
     }
 
     throw new AuthenticatedApiError(
@@ -397,11 +427,11 @@ export function useCreateAssessment() {
 
       if (response.success && response.data) {
         logger.info("[useCreateAssessment] Assessment created successfully");
-        return response.data;
+        return response.data as Assessment;
       }
 
       if ("data" in response && response.data) {
-        return response.data;
+        return response.data as Assessment;
       }
 
       throw new AuthenticatedApiError(
@@ -445,11 +475,11 @@ export function useUpdateAssessment() {
 
       if (response.success && response.data) {
         logger.info("[useUpdateAssessment] Assessment updated successfully");
-        return response.data;
+        return response.data as Assessment;
       }
 
       if ("data" in response && response.data) {
-        return response.data;
+        return response.data as Assessment;
       }
 
       throw new AuthenticatedApiError(

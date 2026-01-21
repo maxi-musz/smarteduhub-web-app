@@ -32,7 +32,7 @@ const TeacherAssessmentsPage = () => {
   const assessmentsParams: GetAssessmentsParams = {
     subject_id: selectedSubjectId || "",
     status: statusFilter as "DRAFT" | "PUBLISHED" | "ACTIVE" | "CLOSED" | "ARCHIVED" | undefined,
-    assessment_type: typeFilter as "CBT" | "ASSIGNMENT" | "EXAM" | "QUIZ" | "TEST" | "FORMATIVE" | "SUMMATIVE" | "DIAGNOSTIC" | "BENCHMARK" | "PRACTICE" | "MOCK_EXAM" | "OTHER" | undefined,
+    assessment_type: typeFilter as "CBT" | "EXAM" | undefined,
     topic_id: topicFilter,
     page,
     limit,

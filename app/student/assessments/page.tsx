@@ -1,60 +1,37 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useSubjectsDashboard } from "@/hooks/teacher/use-teacher-data";
-import { useAssessments } from "@/hooks/teacher/use-teacher-assessments";
+import { useStudentAssessments } from "@/hooks/student/use-student-assessments";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import {
   AssessmentHeader,
-  SubjectSelector,
   AssessmentFilters,
   AssessmentList,
   AssessmentPagination,
-  CreateAssessmentButton,
 } from "./assessment-components";
-import type { GetAssessmentsParams } from "@/hooks/teacher/use-teacher-assessments";
 
 const StudentAssessmentsPage = () => {
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
-  const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined);
-  const [topicFilter, setTopicFilter] = useState<string | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [subjectFilter, setSubjectFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Get subjects
-  const { data: subjectsData, isLoading: isLoadingSubjects } = useSubjectsDashboard({
-    page: 1,
-    limit: 100,
-  });
-
-  // Get assessments for selected subject
-  const assessmentsParams: GetAssessmentsParams = {
-    subject_id: selectedSubjectId || "",
-    status: statusFilter as "DRAFT" | "PUBLISHED" | "ACTIVE" | "CLOSED" | "ARCHIVED" | undefined,
-    assessment_type: typeFilter as "CBT" | "ASSIGNMENT" | "EXAM" | "QUIZ" | "TEST" | "FORMATIVE" | "SUMMATIVE" | "DIAGNOSTIC" | "BENCHMARK" | "PRACTICE" | "MOCK_EXAM" | "OTHER" | undefined,
-    topic_id: topicFilter,
+  // Get assessments
+  const { data: assessmentsData, isLoading: isLoadingAssessments, error } = useStudentAssessments({
     page,
     limit,
-  };
-
-  const { data: assessmentsData, isLoading: isLoadingAssessments, error } = useAssessments(assessmentsParams);
-
-  // Auto-select first subject if available
-  useEffect(() => {
-    if (
-      !selectedSubjectId &&
-      subjectsData?.subjects.data &&
-      subjectsData.subjects.data.length > 0
-    ) {
-      setSelectedSubjectId(subjectsData.subjects.data[0].id);
-    }
-  }, [subjectsData, selectedSubjectId]);
+    status: statusFilter,
+    assessmentType: typeFilter,
+    subjectId: subjectFilter,
+    search: searchQuery,
+  });
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, typeFilter, topicFilter, selectedSubjectId]);
+  }, [statusFilter, typeFilter, subjectFilter, searchQuery]);
 
   const errorMessage = useMemo(() => {
     if (!error) return null;
@@ -72,60 +49,44 @@ const StudentAssessmentsPage = () => {
     return "An unexpected error occurred while loading assessments.";
   }, [error]);
 
-  const subjects = subjectsData?.subjects.data || [];
-  const assessments = Array.isArray(assessmentsData?.assessments)
-    ? assessmentsData.assessments
-    : [];
-  const pagination = assessmentsData?.pagination;
+  const assessments = assessmentsData?.data?.assessments || [];
+  const pagination = assessmentsData?.data?.pagination;
+  const currentSession = assessmentsData?.data?.general_info?.current_session;
+  const subjects = assessmentsData?.data?.subjects || [];
 
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
-      <AssessmentHeader refreshParams={assessmentsParams} />
+      <AssessmentHeader 
+        currentSession={currentSession}
+        subjects={subjects}
+        onSearch={setSearchQuery}
+        searchQuery={searchQuery}
+      />
 
       {errorMessage && (
         <div className="text-center py-8 text-red-600">{errorMessage}</div>
       )}
 
-      <SubjectSelector
+      <AssessmentFilters
+        status={statusFilter}
+        type={typeFilter}
+        subject={subjectFilter}
         subjects={subjects}
-        selectedSubjectId={selectedSubjectId}
-        onSubjectChange={setSelectedSubjectId}
-        isLoading={isLoadingSubjects}
+        onStatusChange={setStatusFilter}
+        onTypeChange={setTypeFilter}
+        onSubjectChange={setSubjectFilter}
       />
 
-      {selectedSubjectId && (
-        <>
-          <div className="flex items-center justify-between">
-            <AssessmentFilters
-              status={statusFilter}
-              type={typeFilter}
-              topicId={topicFilter}
-              onStatusChange={setStatusFilter}
-              onTypeChange={setTypeFilter}
-              onTopicChange={setTopicFilter}
-            />
-            <CreateAssessmentButton subjectId={selectedSubjectId} />
-          </div>
+      <AssessmentList
+        assessments={assessments}
+        isLoading={isLoadingAssessments}
+      />
 
-          <AssessmentList
-            assessments={assessments}
-            isLoading={isLoadingAssessments}
-            selectedSubjectId={selectedSubjectId}
-          />
-
-          {pagination && (
-            <AssessmentPagination
-              pagination={pagination}
-              onPageChange={setPage}
-            />
-          )}
-        </>
-      )}
-
-      {!selectedSubjectId && !isLoadingSubjects && (
-        <div className="text-center py-8 text-gray-500">
-          Please select a subject to view assessments
-        </div>
+      {pagination && (
+        <AssessmentPagination
+          pagination={pagination}
+          onPageChange={setPage}
+        />
       )}
     </div>
   );
