@@ -153,7 +153,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Toaster />
               <Sonner />
               {children}
-              <VoiceflowAgent /> {/* Add the assistant here */}
+              {/* <VoiceflowAgent /> Add the assistant here */}
               <CookieConsent /> {/* Cookie consent banner */}
             </TooltipProvider>
           </QueryProvider>

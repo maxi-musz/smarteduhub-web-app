@@ -12,6 +12,8 @@ import {
 import { ExploreStatistics } from "./explore-components/ExploreStatistics";
 import { ExploreClassCard } from "./explore-components/ExploreClassCard";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AIAgentLogo } from "@/components/AIAgentLogo";
 
 const ExplorePage = () => {
   const router = useRouter();
@@ -125,7 +127,54 @@ const ExplorePage = () => {
 
   return (
     <>
-      <div className="py-6 space-y-6 bg-brand-bg">
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+          }
+          @keyframes glow {
+            0%, 100% {
+              box-shadow: 0 0 20px rgba(124, 58, 237, 0.5), 0 0 40px rgba(124, 58, 237, 0.3);
+            }
+            50% {
+              box-shadow: 0 0 30px rgba(124, 58, 237, 0.8), 0 0 60px rgba(124, 58, 237, 0.5);
+            }
+          }
+          .shimmer-effect {
+            background: linear-gradient(
+              90deg,
+              transparent,
+              rgba(255, 255, 255, 0.3),
+              transparent
+            );
+            background-size: 1000px 100%;
+            animation: shimmer 3s infinite;
+          }
+          .glow-effect {
+            animation: glow 2s ease-in-out infinite;
+          }
+        `
+      }} />
+      <div className="py-6 space-y-6 bg-brand-bg relative">
+        {/* Explore AI Books Button - Top Right */}
+        <div className="absolute top-6 right-6 z-10">
+          <Button
+            onClick={() => router.push("/explore/ai-book")}
+            className="group relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
+          >
+            <div className="absolute inset-0 shimmer-effect"></div>
+            <div className="relative flex items-center gap-3 z-10">
+              <div className="glow-effect">
+                <AIAgentLogo size="md" className="text-white" />
+              </div>
+              <span className="text-base font-semibold tracking-wide">
+                Explore AI Books
+              </span>
+            </div>
+          </Button>
+        </div>
+
         <SubjectHeader />
 
         {errorMessage && (
