@@ -257,11 +257,9 @@ export default function AIChatStudentBookPage() {
         onSendMessage={handleSendMessage}
         isLoading={isLoading}
         onStudyToolClick={handleStudyToolClick}
-        initialMessage={
-          selectedChapterData?.title
-            ? `Hello! How can I assist you with the chapter on ${selectedChapterData.title} today? Feel free to ask any questions you have.`
-            : "Hello! Please select a chapter to start chatting about the book content."
-        }
+        materialId={selectedChapterId || undefined}
+        useSocket={true}
+        // initialMessage will be auto-translated based on user's language preference
       />
     </div>
   );

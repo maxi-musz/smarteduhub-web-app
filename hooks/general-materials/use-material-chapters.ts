@@ -16,6 +16,7 @@ export interface MaterialChapterFile {
   title: string | null;
   description: string | null;
   order: number;
+  processingStatus: "draft" | "published" | "archived"; // Processing status for the file
   createdAt: string;
 }
 

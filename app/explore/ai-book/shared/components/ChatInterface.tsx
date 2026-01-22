@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   Send,
   BookOpen,
@@ -11,9 +11,19 @@ import {
   ThumbsUp,
   ThumbsDown,
   GripVertical,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  RefreshCw,
+  Settings,
 } from "lucide-react";
+import { useExploreChatSocket, type MessageResponseData, type MessageErrorData } from "@/hooks/explore/use-explore-chat-socket";
+import { MarkdownRenderer } from "./MarkdownRenderer";
+import { ChatSettings, getStoredSettings, type ChatSettingsData } from "./ChatSettings";
+import { getChatTranslations } from "./chatTranslations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSession } from "next-auth/react";
 import {
   Select,
   SelectContent,
@@ -48,6 +58,8 @@ export interface ChatInterfaceProps {
   showStudyTools?: boolean;
   onStudyToolClick?: (toolId: string) => void;
   disclaimer?: string;
+  materialId?: string; // Chapter ID for socket messaging
+  useSocket?: boolean; // Whether to use socket for messaging (default: true)
 }
 
 const defaultStudyTools: StudyTool[] = [
@@ -102,23 +114,135 @@ const DEFAULT_WIDTH = 600;
 export function ChatInterface({
   bookTitle,
   chapterTitle,
-  initialMessage = "Hello! How can I assist you with the chapter today? Feel free to ask any questions you have.",
-  messages = [],
-  onSendMessage,
-  isLoading = false,
+  initialMessage,
+  messages: externalMessages = [],
+  onSendMessage: externalOnSendMessage,
+  isLoading: externalIsLoading = false,
   studyTools = defaultStudyTools,
   showStudyTools = true,
   onStudyToolClick,
-  disclaimer = "iBookGPT's answers are based on the provided book and might have errors.",
+  disclaimer,
+  materialId,
+  useSocket = true,
 }: ChatInterfaceProps) {
+  const { data: session } = useSession();
   const [inputMessage, setInputMessage] = useState("");
   const [selectedStudyTool, setSelectedStudyTool] = useState<string>("");
   const [showFeedback, setShowFeedback] = useState<string | null>(null);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
+  const [internalMessages, setInternalMessages] = useState<ChatMessage[]>([]);
+  const [internalIsLoading, setInternalIsLoading] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settings, setSettings] = useState<ChatSettingsData>(() => getStoredSettings());
   const chatEndRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
+
+  // Get translations based on selected language
+  const translations = useMemo(() => getChatTranslations(settings.language), [settings.language]);
+  
+  // Get default disclaimer from translations if not provided
+  const effectiveDisclaimer = disclaimer || translations.disclaimer;
+  
+  // Translate study tools
+  const translatedStudyTools = useMemo(() => {
+    const toolIdToKey: Record<string, keyof typeof translations.studyTools> = {
+      "chapter-summary": "chapterSummary",
+      "important-notes": "importantNotes",
+      "revision-notes": "revisionNotes",
+      "common-mistakes": "commonMistakes",
+      "study-tricks": "studyTricks",
+      "create-definitions": "createDefinitions",
+      "create-question-paper": "createQuestionPaper",
+    };
+    
+    return studyTools.map((tool) => {
+      const translationKey = toolIdToKey[tool.id];
+      const translatedLabel = translationKey ? translations.studyTools[translationKey] : tool.label;
+      return {
+        ...tool,
+        label: translatedLabel,
+      };
+    });
+  }, [studyTools, translations]);
+
+  // Socket connection
+  const {
+    connectionStatus,
+    isConnected,
+    error: socketError,
+    isTyping: socketIsTyping,
+    retryConnection,
+    sendMessage: socketSendMessage,
+    onMessageResponse,
+    onMessageError,
+    onTypingStatus,
+  } = useExploreChatSocket();
+
+  // Use socket messaging if enabled, otherwise use external callbacks
+  const useSocketMessaging = useSocket && isConnected && !!materialId && !!session?.user?.id;
+
+  // Check if chapter is selected (required for socket messaging)
+  const hasChapterSelected = !!materialId;
+  
+  // Determine if user can send messages
+  // If useSocket is true, require materialId (chapter) to be selected
+  const canSendMessage = useSocket
+    ? hasChapterSelected && isConnected && !internalIsLoading && !socketIsTyping
+    : !externalIsLoading;
+
+  // Handle socket message responses
+  useEffect(() => {
+    if (!useSocketMessaging) return;
+
+    const cleanupResponse = onMessageResponse((data: MessageResponseData) => {
+      console.log("[ChatInterface] Received message response:", {
+        chapterId: data.data.chapterId,
+        chapterTitle: data.data.chapterTitle,
+        materialId: data.data.materialId,
+        materialTitle: data.data.materialTitle,
+        language: data.data.language,
+        tokensUsed: data.data.tokensUsed,
+        responseTimeMs: data.data.responseTimeMs,
+        responseLength: data.data.response?.length || 0,
+      });
+      setInternalIsLoading(false);
+      
+      const aiMessage: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        role: "assistant",
+        content: data.data.response, // Markdown content
+        timestamp: new Date(data.data.timestamp),
+      };
+      
+      setInternalMessages((prev) => [...prev, aiMessage]);
+    });
+
+    const cleanupError = onMessageError((error: MessageErrorData) => {
+      console.error("[ChatInterface] Message error:", error);
+      setInternalIsLoading(false);
+      
+      // Show error message to user
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        role: "assistant",
+        content: `**Error:** ${error.message || error.error || "Failed to get response. Please try again."}`,
+        timestamp: new Date(),
+      };
+      
+      setInternalMessages((prev) => [...prev, errorMessage]);
+    });
+
+    return () => {
+      cleanupResponse();
+      cleanupError();
+    };
+  }, [useSocketMessaging, onMessageResponse, onMessageError]);
+
+  // Use internal messages if using socket, otherwise use external messages
+  const messages = useSocketMessaging ? internalMessages : externalMessages;
+  const isLoading = useSocketMessaging ? internalIsLoading || socketIsTyping : externalIsLoading;
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -168,8 +292,33 @@ export function ChatInterface({
   }, [isResizing, handleMouseMove, handleMouseUp]);
 
   const handleSend = () => {
-    if (inputMessage.trim() && onSendMessage && !isLoading) {
-      onSendMessage(inputMessage.trim());
+    const message = inputMessage.trim();
+    if (!message || !canSendMessage) return;
+
+    if (useSocketMessaging && materialId && session?.user?.id) {
+      // Use socket messaging
+      const userMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        role: "user",
+        content: message,
+        timestamp: new Date(),
+      };
+      
+      setInternalMessages((prev) => [...prev, userMessage]);
+      setInternalIsLoading(true);
+      setInputMessage("");
+      
+      console.log("[ChatInterface] Sending message via socket:", {
+        message,
+        materialId,
+        userId: session.user.id,
+        language: settings.language,
+      });
+      
+      socketSendMessage(message, materialId, session.user.id, settings.language);
+    } else if (externalOnSendMessage) {
+      // Use external callback
+      externalOnSendMessage(message);
       setInputMessage("");
     }
   };
@@ -184,31 +333,64 @@ export function ChatInterface({
   const handleStudyToolChange = (toolId: string) => {
     setSelectedStudyTool(toolId);
     onStudyToolClick?.(toolId);
-    // Auto-send a message based on the tool
-    if (onSendMessage) {
-      const toolMessages: Record<string, string> = {
-        "chapter-summary": "Please provide a summary of this chapter.",
-        "important-notes": "What are the important notes for exams in this chapter?",
-        "revision-notes": "Generate revision notes for this chapter.",
-        "common-mistakes": "What are common mistakes students make in this chapter?",
-        "study-tricks": "Share some study tricks for this chapter.",
-        "create-definitions": "Create definitions and key concepts for this chapter.",
-        "create-question-paper": "Create a question paper based on this chapter.",
+    
+    const toolMessages: Record<string, string> = {
+      "chapter-summary": "Please provide a summary of this chapter.",
+      "important-notes": "What are the important notes for exams in this chapter?",
+      "revision-notes": "Generate revision notes for this chapter.",
+      "common-mistakes": "What are common mistakes students make in this chapter?",
+      "study-tricks": "Share some study tricks for this chapter.",
+      "create-definitions": "Create definitions and key concepts for this chapter.",
+      "create-question-paper": "Create a question paper based on this chapter.",
+    };
+    const message = toolMessages[toolId] || `Help me with ${toolId}`;
+    
+    // Auto-send message
+    if (useSocketMessaging && materialId && session?.user?.id && canSendMessage) {
+      const userMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        role: "user",
+        content: message,
+        timestamp: new Date(),
       };
-      const message = toolMessages[toolId] || `Help me with ${toolId}`;
-      onSendMessage(message);
-      setSelectedStudyTool(""); // Reset after sending
+      
+      setInternalMessages((prev) => [...prev, userMessage]);
+      setInternalIsLoading(true);
+      socketSendMessage(message, materialId, session.user.id, settings.language);
+    } else if (externalOnSendMessage && canSendMessage) {
+      externalOnSendMessage(message);
     }
+    
+    setSelectedStudyTool(""); // Reset after sending
   };
 
-  const displayMessages = messages.length > 0 ? messages : [
-    {
-      id: "initial",
-      role: "assistant" as const,
-      content: initialMessage,
-      timestamp: new Date(),
-    },
-  ];
+  // Use translated initial message if no custom initialMessage provided
+  const defaultInitialMessage = chapterTitle
+    ? translations.initialMessageWithChapter
+    : translations.initialMessageNoChapter;
+  
+  const effectiveInitialMessage = initialMessage || defaultInitialMessage;
+  
+  // Only show initial message if:
+  // 1. There are no messages yet, AND
+  // 2. Either not using socket, OR (chapter is selected AND connected), OR not connected yet
+  // When using socket and no chapter selected, show the "select chapter" prompt instead
+  const shouldShowInitialMessage = messages.length === 0 && (
+    !useSocket || 
+    (hasChapterSelected && isConnected) || 
+    !isConnected
+  );
+  
+  const displayMessages = messages.length > 0 ? messages : (
+    shouldShowInitialMessage ? [
+      {
+        id: "initial",
+        role: "assistant" as const,
+        content: effectiveInitialMessage,
+        timestamp: new Date(),
+      },
+    ] : []
+  );
 
   return (
     <div
@@ -235,6 +417,48 @@ export function ChatInterface({
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-brand-heading text-lg">iBookGPT®</h2>
           <div className="flex items-center gap-2">
+            {/* Connection Status Indicator */}
+            {connectionStatus === "connected" && (
+              <>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-50 border border-green-200">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span className="text-xs font-medium text-green-700">{translations.connected}</span>
+                </div>
+                <Button
+                  onClick={() => setSettingsOpen(true)}
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 hover:bg-brand-bg"
+                  title="Chat Settings"
+                >
+                  <Settings className="h-4 w-4 text-brand-light-accent-1" />
+                </Button>
+              </>
+            )}
+            {connectionStatus === "connecting" && (
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-50 border border-amber-200">
+                <Loader2 className="h-4 w-4 text-amber-600 animate-spin" />
+                <span className="text-xs font-medium text-amber-700">{translations.connecting}</span>
+              </div>
+            )}
+            {connectionStatus === "error" && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-red-50 border border-red-200" title={socketError || "Connection failed"}>
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <span className="text-xs font-medium text-red-700">{translations.disconnected}</span>
+                </div>
+                <Button
+                  onClick={retryConnection}
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2 text-xs border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300"
+                  title="Retry connection"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Retry
+                </Button>
+              </div>
+            )}
             <div className="h-6 w-6 rounded-full bg-brand-primary/20 flex items-center justify-center border border-brand-primary/30">
               <span className="text-xs font-semibold text-brand-primary">U</span>
             </div>
@@ -245,6 +469,11 @@ export function ChatInterface({
             {chapterTitle || bookTitle}
           </p>
         )}
+        {connectionStatus === "error" && socketError && (
+          <p className="text-xs text-red-600 mt-1.5 font-medium">
+            {socketError}
+          </p>
+        )}
       </div>
 
       {/* Study Tools Dropdown */}
@@ -253,12 +482,18 @@ export function ChatInterface({
           <label className="block text-xs font-semibold text-brand-heading mb-2 uppercase tracking-wide">
             ✨ Study Tools
           </label>
-          <Select value={selectedStudyTool} onValueChange={handleStudyToolChange}>
-            <SelectTrigger className="w-full bg-brand-bg border-brand-border hover:bg-white focus:ring-2 focus:ring-brand-primary">
-              <SelectValue placeholder="Select a study tool..." />
+          <Select value={selectedStudyTool} onValueChange={handleStudyToolChange} disabled={!isConnected || (useSocket && !hasChapterSelected)}>
+            <SelectTrigger className="w-full bg-brand-bg border-brand-border hover:bg-white focus:ring-2 focus:ring-brand-primary disabled:opacity-50 disabled:cursor-not-allowed">
+              <SelectValue placeholder={
+                !isConnected 
+                  ? translations.connecting 
+                  : useSocket && !hasChapterSelected
+                  ? translations.selectChapterFirst
+                  : translations.selectStudyTool
+              } />
             </SelectTrigger>
             <SelectContent className="max-h-[300px] overflow-y-auto">
-              {studyTools.map((tool) => (
+              {translatedStudyTools.map((tool) => (
                 <SelectItem
                   key={tool.id}
                   value={tool.id}
@@ -282,6 +517,20 @@ export function ChatInterface({
         ref={chatEndRef}
         className="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-gradient-to-b from-white to-brand-bg/30"
       >
+        {/* Show message when no chapter is selected and using socket */}
+        {useSocket && !hasChapterSelected && isConnected && (
+          <div className="flex justify-center items-center h-full min-h-[200px]">
+            <div className="text-center max-w-md">
+              <BookOpen className="h-12 w-12 text-brand-light-accent-1 mx-auto mb-3 opacity-50" />
+              <p className="text-sm font-medium text-brand-heading mb-2">
+                {translations.selectChapterFirst}
+              </p>
+              <p className="text-xs text-brand-light-accent-1">
+                {translations.initialMessageNoChapter}
+              </p>
+            </div>
+          </div>
+        )}
         {displayMessages.map((message) => (
           <div
             key={message.id}
@@ -294,7 +543,11 @@ export function ChatInterface({
                   : "bg-white border border-brand-border/50 text-brand-heading"
               }`}
             >
-              <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+              {message.role === "assistant" ? (
+                <MarkdownRenderer content={message.content} />
+              ) : (
+                <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+              )}
               {message.role === "assistant" && message.id !== "initial" && (
                 <div className="flex items-center gap-2 mt-3 pt-2 border-t border-brand-border/30">
                   <button
@@ -316,7 +569,7 @@ export function ChatInterface({
             </div>
           </div>
         ))}
-        {isLoading && (
+        {(isLoading || socketIsTyping) && (
           <div className="flex justify-start">
             <div className="bg-white border border-brand-border/50 rounded-lg px-4 py-2.5 shadow-sm">
               <div className="flex items-center gap-2">
@@ -325,7 +578,9 @@ export function ChatInterface({
                   <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
                   <div className="h-2 w-2 bg-brand-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
-                <span className="text-xs text-brand-light-accent-1 font-medium">Thinking...</span>
+                <span className="text-xs text-brand-light-accent-1 font-medium">
+                  {socketIsTyping ? translations.aiTyping : translations.thinking}
+                </span>
               </div>
             </div>
           </div>
@@ -352,28 +607,43 @@ export function ChatInterface({
           </div>
           <Input
             type="text"
-            placeholder="Ask any question about the chapter..."
+            placeholder={
+              !isConnected
+                ? translations.connectingToServer
+                : !hasChapterSelected && useSocket
+                ? translations.selectChapterFirst
+                : translations.askQuestionPlaceholder
+            }
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            disabled={isLoading}
-            className="flex-1 bg-brand-bg border-brand-border focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20"
+            disabled={!canSendMessage}
+            className="flex-1 bg-brand-bg border-brand-border focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <Button
             onClick={handleSend}
-            disabled={!inputMessage.trim() || isLoading}
+            disabled={!inputMessage.trim() || !canSendMessage}
             size="icon"
-            className="flex-shrink-0 bg-gradient-to-br from-brand-primary to-brand-primary/90 hover:from-brand-primary-hover hover:to-brand-primary shadow-md"
+            className="flex-shrink-0 bg-gradient-to-br from-brand-primary to-brand-primary/90 hover:from-brand-primary-hover hover:to-brand-primary shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            title={!isConnected ? "Please wait for connection..." : undefined}
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        {disclaimer && (
+        {effectiveDisclaimer && (
           <p className="text-xs text-brand-light-accent-1 text-center italic">
-            {disclaimer}
+            {effectiveDisclaimer}
           </p>
         )}
       </div>
+
+      {/* Settings Dialog */}
+      <ChatSettings
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        settings={settings}
+        onSettingsChange={setSettings}
+      />
     </div>
   );
 }

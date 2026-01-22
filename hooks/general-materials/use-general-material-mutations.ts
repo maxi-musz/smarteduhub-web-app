@@ -306,4 +306,77 @@ export function useCreateChapterWithFile() {
   });
 }
 
+export interface RetryProcessingResponse {
+  materialId: string;
+  status: "COMPLETED" | "FAILED" | "PROCESSING";
+  totalChunks: number;
+  processedChunks: number;
+  failedChunks: number;
+  errorMessage: string | null;
+  embeddingModel: string | null;
+  processingTime: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Inner data type for the authenticated API response
+export type RetryProcessingApiResponse = RetryProcessingResponse;
+
+export function useRetryProcessing() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    RetryProcessingApiResponse,
+    AuthenticatedApiError,
+    { chapterId: string }
+  >({
+    mutationFn: async ({ chapterId }) => {
+      logger.info("[useRetryProcessing] Retrying AI processing", {
+        chapterId,
+        endpoint: `/library/general-materials/${chapterId}/retry-processing`,
+      });
+
+      const endpoint = `/library/general-materials/${chapterId}/retry-processing`;
+      console.log("[useRetryProcessing] Calling endpoint:", endpoint, "for chapterId:", chapterId);
+
+      const response =
+        await authenticatedApi.post<RetryProcessingApiResponse>(
+          endpoint
+        );
+
+      if (response.success && response.data) {
+        logger.info("[useRetryProcessing] Processing retry completed", {
+          chapterId,
+          status: response.data.status,
+          processingTime: response.data.processingTime,
+        });
+        return response.data;
+      }
+
+      throw new AuthenticatedApiError(
+        response.message || "Failed to retry processing",
+        response.statusCode || 400,
+        response
+      );
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate all chapters queries to refresh processing status
+      // Since we don't have materialId, we invalidate all chapter queries
+      queryClient.invalidateQueries({
+        queryKey: ["library-owner", "general-materials", "chapters"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["library-owner", "general-materials", "list"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["library-owner", "general-materials", "dashboard"],
+      });
+      logger.info("[useRetryProcessing] Cache invalidated", {
+        chapterId: variables.chapterId,
+        status: data.status,
+      });
+    },
+  });
+}
+
 

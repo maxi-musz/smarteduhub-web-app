@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,8 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, BookOpen, Loader2, AlertCircle, MessageSquare } from "lucide-react";
+import { ChevronDown, BookOpen, Loader2, AlertCircle, MessageSquare, CheckCircle2, FileText, Archive, RefreshCw } from "lucide-react";
 import { useMaterialChapters, type MaterialChapter } from "@/hooks/general-materials/use-material-chapters";
+import { useRetryProcessing } from "@/hooks/general-materials/use-general-material-mutations";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChaptersDropdownProps {
   materialId: string;
@@ -23,11 +25,18 @@ export function ChaptersDropdown({
 }: ChaptersDropdownProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
   const {
     data: chapters,
     isLoading,
     error,
   } = useMaterialChapters(isOpen ? materialId : null);
+  const retryProcessing = useRetryProcessing();
+  
+  // Track which chapter is currently being processed
+  const processingChapterId = retryProcessing.isPending && retryProcessing.variables?.chapterId 
+    ? retryProcessing.variables.chapterId 
+    : null;
 
   const basePath = "/library-owner";
 
@@ -35,6 +44,39 @@ export function ChaptersDropdown({
     setIsOpen(false);
     router.push(`${basePath}/general-materials/${materialId}?chapter=${chapterId}`);
   };
+
+  const handleRetryProcessing = useCallback(async (e: React.MouseEvent, chapterId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    // Log for debugging
+    console.log("[ChaptersDropdown] Retrying processing for chapter:", chapterId);
+    
+    try {
+      const result = await retryProcessing.mutateAsync({ 
+        chapterId: chapterId 
+      });
+      
+      if (result.status === "COMPLETED") {
+        toast({
+          title: "Processing Completed",
+          description: `Successfully processed ${result.processedChunks} chunks in ${(result.processingTime / 1000).toFixed(1)}s`,
+        });
+      } else if (result.status === "FAILED") {
+        toast({
+          title: "Processing Failed",
+          description: result.errorMessage || "Failed to process document",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to retry processing",
+        variant: "destructive",
+      });
+    }
+  }, [retryProcessing, toast]);
 
   const displayCount = chapterCount !== undefined ? chapterCount.toLocaleString() : "-";
 
@@ -117,6 +159,139 @@ export function ChaptersDropdown({
                         <span className="text-green-600">AI Processed</span>
                       )}
                     </div>
+                    {/* File Processing Status */}
+                    {chapter.files.length > 0 && (() => {
+                      // Filter files that have processingStatus
+                      const filesWithStatus = chapter.files.filter(f => f.processingStatus);
+                      
+                      if (filesWithStatus.length === 0) {
+                        // If no files have processingStatus, show chat readiness based on isProcessed
+                        return (
+                          <div className="flex items-center gap-2 mt-1.5">
+                            {chapter.isProcessed ? (
+                              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-xs font-medium bg-green-50 text-green-700 border-green-200">
+                                <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                <span>Ready for Chat</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-xs font-medium bg-gray-50 text-gray-700 border-gray-200">
+                                  <FileText className="h-3 w-3 text-gray-600" />
+                                  <span>Not Processed</span>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 px-2 text-xs"
+                                  onClick={(e) => handleRetryProcessing(e, chapter.id)}
+                                  disabled={processingChapterId === chapter.id}
+                                  title="Retry AI processing for this chapter"
+                                >
+                                  {processingChapterId === chapter.id ? (
+                                    <>
+                                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                      Processing...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <RefreshCw className="h-3 w-3 mr-1" />
+                                      Retry
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                      
+                      // Get unique statuses
+                      const uniqueStatuses = Array.from(new Set(filesWithStatus.map(f => f.processingStatus)));
+                      
+                      // If all files have the same status, show one badge
+                      // Otherwise, show individual statuses
+                      const filesToShow = uniqueStatuses.length === 1 
+                        ? [filesWithStatus[0]] // Show first file if all have same status
+                        : filesWithStatus; // Show all if different statuses
+                      
+                      const getStatusConfig = (status: string) => {
+                        switch (status) {
+                          case "published":
+                            return {
+                              label: "Published",
+                              icon: CheckCircle2,
+                              className: "bg-green-50 text-green-700 border-green-200",
+                              iconClassName: "text-green-600",
+                              chatReady: chapter.isProcessed,
+                            };
+                          case "draft":
+                            return {
+                              label: "Draft",
+                              icon: FileText,
+                              className: "bg-amber-50 text-amber-700 border-amber-200",
+                              iconClassName: "text-amber-600",
+                              chatReady: false,
+                            };
+                          case "archived":
+                            return {
+                              label: "Archived",
+                              icon: Archive,
+                              className: "bg-gray-50 text-gray-700 border-gray-200",
+                              iconClassName: "text-gray-600",
+                              chatReady: false,
+                            };
+                          default:
+                            return {
+                              label: status || "Unknown",
+                              icon: FileText,
+                              className: "bg-gray-50 text-gray-700 border-gray-200",
+                              iconClassName: "text-gray-600",
+                              chatReady: false,
+                            };
+                        }
+                      };
+                      
+                      return (
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          {filesToShow.map((file) => {
+                            const statusConfig = getStatusConfig(file.processingStatus || "");
+                            const StatusIcon = statusConfig.icon;
+                            const fileCount = filesWithStatus.filter(f => f.processingStatus === file.processingStatus).length;
+                            
+                            return (
+                              <div key={file.id} className="flex items-center gap-2 flex-wrap">
+                                <div
+                                  className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-xs font-medium ${statusConfig.className}`}
+                                  title={
+                                    uniqueStatuses.length === 1
+                                      ? `All ${filesWithStatus.length} file(s) are ${statusConfig.label}`
+                                      : `File: ${file.fileName} - ${statusConfig.label}`
+                                  }
+                                >
+                                  <StatusIcon className={`h-3 w-3 ${statusConfig.iconClassName}`} />
+                                  <span>
+                                    {statusConfig.label}
+                                    {uniqueStatuses.length === 1 && filesWithStatus.length > 1 && (
+                                      <span className="ml-1 opacity-75">({filesWithStatus.length})</span>
+                                    )}
+                                  </span>
+                                </div>
+                                {/* Show chat readiness indicator */}
+                                {statusConfig.chatReady && (
+                                  <div
+                                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-xs font-medium bg-blue-50 text-blue-700 border-blue-200"
+                                    title="This file is processed and ready for AI chat"
+                                  >
+                                    <MessageSquare className="h-3 w-3 text-blue-600" />
+                                    <span>Chat Ready</span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </DropdownMenuItem>
