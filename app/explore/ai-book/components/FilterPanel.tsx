@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Filter, RotateCcw, Search } from "lucide-react";
+import { RotateCcw, Search } from "lucide-react";
 import type { AIClassWithCount } from "@/hooks/explore/use-ai-books-landing";
 
 interface FilterPanelProps {

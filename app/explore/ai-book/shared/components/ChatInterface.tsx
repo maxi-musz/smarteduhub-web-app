@@ -16,14 +16,21 @@ import {
   Loader2,
   RefreshCw,
   Settings,
+  Copy,
+  Check,
+  FileDown,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useExploreChatSocket, type MessageResponseData, type MessageErrorData } from "@/hooks/explore/use-explore-chat-socket";
 import { MarkdownRenderer } from "./MarkdownRenderer";
+import { TypewriterText } from "./TypewriterText";
 import { ChatSettings, getStoredSettings, type ChatSettingsData } from "./ChatSettings";
 import { getChatTranslations } from "./chatTranslations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSession } from "next-auth/react";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -37,6 +44,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  isTyping?: boolean; // Whether this message is currently being typed
 }
 
 export interface StudyTool {
@@ -128,13 +136,19 @@ export function ChatInterface({
   const { data: session } = useSession();
   const [inputMessage, setInputMessage] = useState("");
   const [selectedStudyTool, setSelectedStudyTool] = useState<string>("");
-  const [showFeedback, setShowFeedback] = useState<string | null>(null);
+  const [, setShowFeedback] = useState<string | null>(null);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
   const [internalMessages, setInternalMessages] = useState<ChatMessage[]>([]);
   const [internalIsLoading, setInternalIsLoading] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settings, setSettings] = useState<ChatSettingsData>(() => getStoredSettings());
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+  const [loadingTtsMessageId, setLoadingTtsMessageId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+  const { toast } = useToast();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
@@ -177,7 +191,6 @@ export function ChatInterface({
     sendMessage: socketSendMessage,
     onMessageResponse,
     onMessageError,
-    onTypingStatus,
   } = useExploreChatSocket();
 
   // Use socket messaging if enabled, otherwise use external callbacks
@@ -223,6 +236,7 @@ export function ChatInterface({
         role: "assistant",
         content: data.data.response, // Markdown content
         timestamp: new Date(data.data.timestamp),
+        isTyping: true, // Mark as typing to trigger typewriter effect
       };
       
       setInternalMessages((prev) => [...prev, aiMessage]);
@@ -256,6 +270,18 @@ export function ChatInterface({
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length]);
+
+  // Auto-scroll during typing (more frequent updates)
+  useEffect(() => {
+    const hasTypingMessage = messages.some((msg) => msg.isTyping);
+    if (hasTypingMessage) {
+      // Scroll more frequently when typing
+      const interval = setInterval(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 500); // Every 500ms during typing
+      return () => clearInterval(interval);
+    }
   }, [messages]);
 
   // Handle resize
@@ -336,6 +362,345 @@ export function ChatInterface({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  // Convert markdown to plain text
+  const markdownToPlainText = (markdown: string): string => {
+    if (!markdown) return "";
+    
+    let text = markdown;
+    
+    // Remove code blocks (```code```)
+    text = text.replace(/```[\s\S]*?```/g, "");
+    
+    // Remove inline code (`code`)
+    text = text.replace(/`([^`]+)`/g, "$1");
+    
+    // Remove headers (# Header)
+    text = text.replace(/^#{1,6}\s+(.+)$/gm, "$1");
+    
+    // Remove bold (**text** or __text__)
+    text = text.replace(/\*\*([^*]+)\*\*/g, "$1");
+    text = text.replace(/__([^_]+)__/g, "$1");
+    
+    // Remove italic (*text* or _text_)
+    text = text.replace(/\*([^*]+)\*/g, "$1");
+    text = text.replace(/_([^_]+)_/g, "$1");
+    
+    // Remove links [text](url)
+    text = text.replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1");
+    
+    // Remove images ![alt](url)
+    text = text.replace(/!\[([^\]]*)\]\([^\)]+\)/g, "");
+    
+    // Remove strikethrough (~~text~~)
+    text = text.replace(/~~([^~]+)~~/g, "$1");
+    
+    // Remove blockquotes (> text)
+    text = text.replace(/^>\s+(.+)$/gm, "$1");
+    
+    // Remove horizontal rules (--- or ***)
+    text = text.replace(/^[-*]{3,}$/gm, "");
+    
+    // Remove list markers (-, *, +, 1.)
+    text = text.replace(/^[\s]*[-*+]\s+(.+)$/gm, "$1");
+    text = text.replace(/^[\s]*\d+\.\s+(.+)$/gm, "$1");
+    
+    // Clean up multiple newlines
+    text = text.replace(/\n{3,}/g, "\n\n");
+    
+    // Trim whitespace
+    text = text.trim();
+    
+    return text;
+  };
+
+  // Handle copy to clipboard
+  const handleCopyMessage = async (messageId: string, content: string) => {
+    try {
+      const plainText = markdownToPlainText(content);
+      await navigator.clipboard.writeText(plainText);
+      
+      setCopiedMessageId(messageId);
+      toast({
+        title: "Copied!",
+        description: "Response copied to clipboard as plain text",
+        duration: 2000,
+      });
+      
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedMessageId(null);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy:", error);
+      toast({
+        title: "Copy failed",
+        description: "Failed to copy to clipboard",
+        variant: "destructive",
+        duration: 2000,
+      });
+    }
+  };
+
+  // Handle TTS playback
+  const handlePlayTTS = async (messageId: string, content: string) => {
+    // If already playing this message, stop it
+    if (playingMessageId === messageId && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setPlayingMessageId(null);
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+      return;
+    }
+
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+    }
+
+    try {
+      setLoadingTtsMessageId(messageId);
+      
+      // Convert markdown to plain text for TTS
+      const plainText = markdownToPlainText(content);
+      
+      // Truncate if too long (backend limit is 4096 characters)
+      const textToSpeak = plainText.length > 4096 ? plainText.substring(0, 4096) : plainText;
+
+      // Get backend URL and token
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      if (!backendUrl) {
+        throw new Error("Backend URL not configured");
+      }
+
+      if (!session?.user?.accessToken) {
+        throw new Error("Authentication required");
+      }
+
+      // Construct endpoint - check if backendUrl already includes /api/v1
+      const endpoint = backendUrl.includes('/api/v1') 
+        ? '/explore/chat/tts/speak'
+        : '/api/v1/explore/chat/tts/speak';
+      
+      // Call TTS API with streaming support
+      const response = await fetch(`${backendUrl}${endpoint}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.user.accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: textToSpeak,
+          voice: settings.ttsVoice || "alloy",
+          speed: settings.ttsSpeed || 1.0,
+          language: settings.language || "en",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "TTS request failed" }));
+        throw new Error(errorData.message || `TTS request failed: ${response.status}`);
+      }
+
+      // SIMPLE & RELIABLE APPROACH: Browser automatically collects all stream chunks
+      // This is the recommended approach from the new TTS guide
+      // The browser will collect all chunks and create a blob when stream completes
+      // This is more reliable than trying to update audio source while playing
+      const audioBlob = await response.blob();
+      
+      // Debug: Log blob information
+      console.log('[TTS Frontend] Blob size:', audioBlob.size, 'bytes');
+      console.log('[TTS Frontend] Blob type:', audioBlob.type);
+      
+      // Verify blob is not empty
+      if (audioBlob.size === 0) {
+        throw new Error('Received empty audio blob');
+      }
+      
+      const audioUrl = URL.createObjectURL(audioBlob);
+      audioUrlRef.current = audioUrl;
+
+      // Create and play audio
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      // Handle audio events
+      audio.onplay = () => {
+        setLoadingTtsMessageId(null);
+        setPlayingMessageId(messageId);
+      };
+
+      audio.onended = () => {
+        setPlayingMessageId(null);
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+          audioUrlRef.current = null;
+        }
+        audioRef.current = null;
+      };
+
+      audio.onerror = (error) => {
+        console.error("Audio playback error:", error);
+        setLoadingTtsMessageId(null);
+        setPlayingMessageId(null);
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+          audioUrlRef.current = null;
+        }
+        audioRef.current = null;
+        toast({
+          title: "Playback Error",
+          description: "Failed to play audio. Please try again.",
+          variant: "destructive",
+          duration: 3000,
+        });
+      };
+
+      audio.onpause = () => {
+        // Don't reset playing state on pause (user might resume)
+        // Only reset when explicitly stopped
+      };
+
+      // Play the audio
+      await audio.play();
+    } catch (error) {
+      console.error("TTS error:", error);
+      setLoadingTtsMessageId(null);
+      setPlayingMessageId(null);
+      
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate speech";
+      toast({
+        title: "TTS Error",
+        description: errorMessage,
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+    };
+  }, []);
+
+  // Handle PDF download with formatting preserved
+  const handleDownloadPDF = async (messageId: string, content: string) => {
+    try {
+      const jsPDFModule = await import("jspdf");
+      const html2canvasModule = await import("html2canvas");
+      
+      const jsPDF = jsPDFModule.default;
+      const html2canvas = html2canvasModule.default;
+
+      // Create a temporary container to render the markdown
+      const tempContainer = document.createElement("div");
+      tempContainer.style.position = "absolute";
+      tempContainer.style.left = "-9999px";
+      tempContainer.style.top = "0";
+      tempContainer.style.width = "800px";
+      tempContainer.style.padding = "40px";
+      tempContainer.style.backgroundColor = "#ffffff";
+      tempContainer.style.fontFamily = "Arial, sans-serif";
+      tempContainer.style.fontSize = "14px";
+      tempContainer.style.lineHeight = "1.6";
+      tempContainer.style.color = "#333333";
+      tempContainer.className = "prose prose-sm max-w-none";
+      
+      // Use React to render markdown into the container using MarkdownRenderer
+      const React = await import("react");
+      const ReactDOM = await import("react-dom/client");
+      const { MarkdownRenderer } = await import("./MarkdownRenderer");
+      
+      // Create React element with MarkdownRenderer
+      const MarkdownWrapper = React.createElement(MarkdownRenderer, { content });
+      
+      const root = ReactDOM.createRoot(tempContainer);
+      root.render(MarkdownWrapper);
+      
+      document.body.appendChild(tempContainer);
+      
+      // Wait for rendering and images to load
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      // Capture the container as canvas
+      const canvas = await html2canvas(tempContainer, {
+        backgroundColor: "#ffffff",
+        scale: 2, // Higher quality
+        logging: false,
+        useCORS: true,
+      });
+      
+      // Calculate PDF dimensions
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const pdfWidth = imgWidth * 0.264583; // Convert pixels to mm (1px = 0.264583mm at 96dpi)
+      const pdfHeight = imgHeight * 0.264583;
+      
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: pdfHeight > pdfWidth ? "portrait" : "landscape",
+        unit: "mm",
+        format: [pdfWidth, pdfHeight],
+      });
+      
+      // Add image to PDF
+      const imgData = canvas.toDataURL("image/png");
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+      const filename = `ai-response-${timestamp}.pdf`;
+      
+      // Download PDF
+      pdf.save(filename);
+      
+      // Cleanup
+      document.body.removeChild(tempContainer);
+      root.unmount();
+      
+      toast({
+        title: "PDF Downloaded!",
+        description: "Response downloaded as PDF with formatting preserved",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      
+      // Check if it's a module not found error
+      if (error instanceof Error && error.message.includes("Cannot find module")) {
+        toast({
+          title: "PDF Library Not Installed",
+          description: "Please install jspdf and html2canvas: npm install jspdf html2canvas",
+          variant: "destructive",
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: "PDF Generation Failed",
+          description: "Failed to generate PDF. Please try again.",
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
     }
   };
 
@@ -553,12 +918,71 @@ export function ChatInterface({
               }`}
             >
               {message.role === "assistant" ? (
-                <MarkdownRenderer content={message.content} />
+                message.isTyping && message.id !== "initial" ? (
+                  <TypewriterText
+                    key={`typewriter-${message.id}`}
+                    text={message.content}
+                    speed={settings.typewriterSpeed || 20}
+                    showCursor={true}
+                    renderMarkdown={true}
+                    onComplete={() => {
+                      // Mark message as complete (no longer typing)
+                      // Only update if using socket messaging (internal messages)
+                      if (useSocketMessaging) {
+                        setInternalMessages((prev) =>
+                          prev.map((msg) =>
+                            msg.id === message.id ? { ...msg, isTyping: false } : msg
+                          )
+                        );
+                      }
+                    }}
+                  />
+                ) : (
+                  <MarkdownRenderer content={message.content} />
+                )
               ) : (
                 <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
               )}
               {message.role === "assistant" && message.id !== "initial" && (
                 <div className="flex items-center gap-2 mt-3 pt-2 border-t border-brand-border/30">
+                  <button
+                    onClick={() => handleCopyMessage(message.id, message.content)}
+                    className="p-1.5 hover:bg-brand-bg rounded-md transition-colors group"
+                    title="Copy response"
+                  >
+                    {copiedMessageId === message.id ? (
+                      <Check className="h-3.5 w-3.5 text-green-500 transition-colors" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5 text-brand-light-accent-1 group-hover:text-brand-primary transition-colors" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handlePlayTTS(message.id, message.content)}
+                    disabled={loadingTtsMessageId === message.id}
+                    className="p-1.5 hover:bg-brand-bg rounded-md transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={
+                      playingMessageId === message.id
+                        ? "Stop audio"
+                        : loadingTtsMessageId === message.id
+                        ? "Generating audio..."
+                        : "Play audio"
+                    }
+                  >
+                    {loadingTtsMessageId === message.id ? (
+                      <Loader2 className="h-3.5 w-3.5 text-brand-primary animate-spin" />
+                    ) : playingMessageId === message.id ? (
+                      <VolumeX className="h-3.5 w-3.5 text-brand-primary transition-colors" />
+                    ) : (
+                      <Volume2 className="h-3.5 w-3.5 text-brand-light-accent-1 group-hover:text-brand-primary transition-colors" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleDownloadPDF(message.id, message.content)}
+                    className="p-1.5 hover:bg-brand-bg rounded-md transition-colors group"
+                    title="Download as PDF"
+                  >
+                    <FileDown className="h-3.5 w-3.5 text-brand-light-accent-1 group-hover:text-brand-primary transition-colors" />
+                  </button>
                   <button
                     onClick={() => setShowFeedback(message.id)}
                     className="p-1.5 hover:bg-brand-bg rounded-md transition-colors group"

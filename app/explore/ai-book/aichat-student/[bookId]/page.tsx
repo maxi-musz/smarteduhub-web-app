@@ -87,7 +87,7 @@ export default function AIChatStudentBookPage() {
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "I'm here to help you understand this chapter better. This is a placeholder response that will be replaced with actual AI responses.",
+        content: "I&apos;m here to help you understand this chapter better. This is a placeholder response that will be replaced with actual AI responses.",
         timestamp: new Date(),
       };
       setChatMessages((prev) => [...prev, aiMessage]);
@@ -176,7 +176,7 @@ export default function AIChatStudentBookPage() {
           <BookOpen className="h-12 w-12 text-brand-light-accent-1 mx-auto mb-4" />
           <p className="text-brand-heading text-lg mb-2">No Chapters Available</p>
           <p className="text-brand-light-accent-1 mb-4">
-            This book doesn't have any chapters available yet.
+            This book doesn&apos;t have any chapters available yet.
           </p>
           <Button onClick={() => router.push("/explore/ai-book")} variant="outline">
             Back to Books

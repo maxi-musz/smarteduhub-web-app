@@ -55,7 +55,7 @@ export function BookCard({ book, platformName }: BookCardProps) {
       thumbnailUrl: book.thumbnailUrl,
       rawBook: book,
     });
-  }, [book.id, book.thumbnailS3Key, book.thumbnailUrl]);
+  }, [book]);
 
   // Backend returns thumbnailS3Key as a full URL string, so prioritize it
   const thumbnailUrl = getThumbnailUrl(book.thumbnailUrl, book.thumbnailS3Key);
@@ -77,7 +77,7 @@ export function BookCard({ book, platformName }: BookCardProps) {
         thumbnailUrl: book.thumbnailUrl,
       });
     }
-  }, [book.id, book.title, thumbnailUrl]);
+  }, [book.id, book.title, book.thumbnailS3Key, book.thumbnailUrl, thumbnailUrl]);
   
   // Determine if image should be unoptimized (external URLs)
   const isExternalUrl = thumbnailUrl 
@@ -114,7 +114,7 @@ export function BookCard({ book, platformName }: BookCardProps) {
             className="object-cover"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             unoptimized={isExternalUrl}
-            onError={(e) => {
+            onError={() => {
               console.error("Image failed to load:", {
                 thumbnailUrl,
                 thumbnailS3Key: book.thumbnailS3Key,

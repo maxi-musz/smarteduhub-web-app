@@ -6,7 +6,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
-import VoiceflowAgent from "@/components/ai-agent/VoiceflowAgent";
 import CookieConsent from "@/components/ui/CookieConsent";
 import type { Metadata, Viewport } from "next";
 

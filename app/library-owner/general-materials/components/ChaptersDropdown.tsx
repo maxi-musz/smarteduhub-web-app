@@ -256,7 +256,6 @@ export function ChaptersDropdown({
                           {filesToShow.map((file) => {
                             const statusConfig = getStatusConfig(file.processingStatus || "");
                             const StatusIcon = statusConfig.icon;
-                            const fileCount = filesWithStatus.filter(f => f.processingStatus === file.processingStatus).length;
                             
                             return (
                               <div key={file.id} className="flex items-center gap-2 flex-wrap">

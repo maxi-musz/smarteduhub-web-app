@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, ChevronDown, Maximize2, X, Wifi, WifiOff } from "lucide-react";
+import { ArrowLeft, Maximize2, X, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -50,7 +50,6 @@ export function BookDisplay({
   onDismissConnectionWarning,
   pdfUrl,
   chapterPageStart,
-  chapterPageEnd,
   children,
 }: BookDisplayProps) {
   const [isConnectionWarningDismissed, setIsConnectionWarningDismissed] = useState(false);
