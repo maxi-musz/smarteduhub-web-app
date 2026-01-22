@@ -192,6 +192,15 @@ export function ChatInterface({
     ? hasChapterSelected && isConnected && !internalIsLoading && !socketIsTyping
     : !externalIsLoading;
 
+  // Clear messages when chapter (materialId) changes
+  useEffect(() => {
+    if (useSocket && materialId) {
+      console.log("[ChatInterface] Chapter changed, clearing messages. New materialId:", materialId);
+      setInternalMessages([]);
+      setInternalIsLoading(false);
+    }
+  }, [materialId, useSocket]);
+
   // Handle socket message responses
   useEffect(() => {
     if (!useSocketMessaging) return;

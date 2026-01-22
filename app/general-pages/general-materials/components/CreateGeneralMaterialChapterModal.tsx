@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useCreateChapterWithFile } from "@/hooks/general-materials/use-general-material-mutations";
+import { useChapterUpload } from "@/hooks/general-materials/use-chapter-upload";
 import { Loader2, Upload, X, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { formatChapterTitle, formatDescription } from "@/lib/text-formatter";
@@ -39,7 +39,7 @@ export const CreateGeneralMaterialChapterModal = ({
   const [fileDescription, setFileDescription] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
 
-  const createChapter = useCreateChapterWithFile();
+  const { startUpload, uploadState, reset } = useChapterUpload();
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -158,7 +158,7 @@ export const CreateGeneralMaterialChapterModal = ({
     }
 
     try {
-      await createChapter.mutateAsync({
+      await startUpload({
         materialId,
         file,
         title: formatChapterTitle(title),
@@ -169,28 +169,57 @@ export const CreateGeneralMaterialChapterModal = ({
         fileDescription: fileDescription.trim() || undefined,
         enableAiChat: true, // Default to true for AI processing
       });
-
-      toast.success("Chapter with file created successfully");
-      handleClose();
-      onSuccess?.();
+      // Progress tracking is handled by the hook
+      // onSuccess will be called when upload completes
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "Failed to create chapter. Please try again.";
-      toast.error(errorMessage);
+      // Error is already handled by the hook with toast
+      console.error("Chapter upload error:", error);
     }
   };
 
+  // Handle upload completion
+  const isUploading = uploadState.isUploading;
+  const progress = uploadState.progress;
+  const isCompleted = progress?.stage === "completed";
+  const isError = progress?.stage === "error";
+  
+  // Show "Processing AI Chat" when progress is 100% but stage is still processing
+  const showProcessingAI = progress?.progress === 100 && progress?.stage === "processing";
+  const displayProgress = showProcessingAI ? 100 : (progress?.progress || 0);
+  const displayMessage = showProcessingAI 
+    ? "Processing AI Chat..." 
+    : (progress?.message || "Starting upload...");
+
+  // Close modal and call onSuccess when upload completes
+  if (isCompleted && !isUploading) {
+    setTimeout(() => {
+      reset();
+      setTitle("");
+      setDescription("");
+      setPageStart("");
+      setPageEnd("");
+      setFile(null);
+      setFileTitle("");
+      setFileDescription("");
+      setIsDragOver(false);
+      onClose();
+      onSuccess?.();
+    }, 1000);
+  }
+
   const handleClose = () => {
-    setTitle("");
-    setDescription("");
-    setPageStart("");
-    setPageEnd("");
-    setFile(null);
-    setFileTitle("");
-    setFileDescription("");
-    setIsDragOver(false);
-    onClose();
+    if (!isUploading) {
+      reset();
+      setTitle("");
+      setDescription("");
+      setPageStart("");
+      setPageEnd("");
+      setFile(null);
+      setFileTitle("");
+      setFileDescription("");
+      setIsDragOver(false);
+      onClose();
+    }
   };
 
   return (
@@ -212,7 +241,7 @@ export const CreateGeneralMaterialChapterModal = ({
               placeholder="e.g., Chapter 1: Introduction to Algebra"
               maxLength={200}
               required
-              disabled={createChapter.isPending}
+              disabled={isUploading}
             />
             <p className="text-xs text-brand-light-accent-1">
               {title.length}/200 characters
@@ -245,7 +274,7 @@ export const CreateGeneralMaterialChapterModal = ({
                   type="button"
                   variant="outline"
                   onClick={() => document.getElementById("chapter-file-upload")?.click()}
-                  disabled={createChapter.isPending}
+                  disabled={isUploading}
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   Select File
@@ -277,7 +306,7 @@ export const CreateGeneralMaterialChapterModal = ({
                       </p>
                     </div>
                   </div>
-                  {!createChapter.isPending && (
+                  {!isUploading && (
                     <Button
                       type="button"
                       variant="ghost"
@@ -301,7 +330,7 @@ export const CreateGeneralMaterialChapterModal = ({
               placeholder="Brief description of what this chapter covers..."
               rows={4}
               maxLength={2000}
-              disabled={createChapter.isPending}
+              disabled={isUploading}
             />
             <p className="text-xs text-brand-light-accent-1">
               {description.length}/2000 characters
@@ -318,7 +347,7 @@ export const CreateGeneralMaterialChapterModal = ({
                 value={pageStart}
                 onChange={(e) => setPageStart(e.target.value)}
                 placeholder="e.g., 1"
-                disabled={createChapter.isPending}
+                disabled={isUploading}
               />
               <p className="text-xs text-brand-light-accent-1">
                 Page number where this chapter starts in the material
@@ -334,7 +363,7 @@ export const CreateGeneralMaterialChapterModal = ({
                 value={pageEnd}
                 onChange={(e) => setPageEnd(e.target.value)}
                 placeholder="e.g., 20"
-                disabled={createChapter.isPending}
+                disabled={isUploading}
               />
               <p className="text-xs text-brand-light-accent-1">
                 Page number where this chapter ends in the material
@@ -350,7 +379,7 @@ export const CreateGeneralMaterialChapterModal = ({
               onChange={(e) => setFileTitle(e.target.value)}
               placeholder="e.g., Chapter 1 - Introduction PDF"
               maxLength={200}
-              disabled={createChapter.isPending}
+              disabled={isUploading}
             />
             <p className="text-xs text-brand-light-accent-1">
               {fileTitle.length}/200 characters (defaults to filename if not provided)
@@ -366,7 +395,7 @@ export const CreateGeneralMaterialChapterModal = ({
               placeholder="Brief description of the file content..."
               rows={3}
               maxLength={2000}
-              disabled={createChapter.isPending}
+              disabled={isUploading}
             />
             <p className="text-xs text-brand-light-accent-1">
               {fileDescription.length}/2000 characters
@@ -380,20 +409,51 @@ export const CreateGeneralMaterialChapterModal = ({
             </p>
           </div>
 
+          {/* Upload Progress */}
+          {isUploading && progress && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-brand-heading font-medium">
+                  {displayMessage}
+                </span>
+                <span className="text-brand-light-accent-1">
+                  {displayProgress}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  className="bg-brand-primary h-2.5 rounded-full transition-all duration-300"
+                  style={{ width: `${displayProgress}%` }}
+                />
+              </div>
+              {progress.bytesUploaded > 0 && progress.totalBytes > 0 && (
+                <p className="text-xs text-brand-light-accent-1">
+                  {formatFileSize(progress.bytesUploaded)} / {formatFileSize(progress.totalBytes)}
+                </p>
+              )}
+            </div>
+          )}
+
+          {isError && progress?.error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-800">{progress.error}</p>
+            </div>
+          )}
+
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={createChapter.isPending}
+              disabled={isUploading}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!file || createChapter.isPending}>
-              {createChapter.isPending ? (
+            <Button type="submit" disabled={!file || isUploading}>
+              {isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  {showProcessingAI ? "Processing AI Chat..." : "Uploading..."}
                 </>
               ) : (
                 <>
