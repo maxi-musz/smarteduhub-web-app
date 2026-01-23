@@ -9,6 +9,7 @@ import {
   LogOut,
   School,
 } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -45,20 +46,21 @@ export default function LibraryOwnerShell({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const handleTabClick = (href: string, label: string) => {
-    if (pathname !== href) {
-      logger.info(`[Navigation] Switching to ${label} tab`, {
-        from: pathname,
-        to: href,
-        timestamp: new Date().toISOString(),
-      });
-      router.push(href);
-      toast({
-        title: `Switched to ${label}`,
-        description: `You are now viewing the ${label.toLowerCase()} section.`,
-        duration: 2000,
-      });
+  const handleNavClick = (href: string, label: string, e: React.MouseEvent) => {
+    if (pathname === href) {
+      e.preventDefault();
+      return;
     }
+    logger.info(`[Navigation] Switching to ${label} tab`, {
+      from: pathname,
+      to: href,
+      timestamp: new Date().toISOString(),
+    });
+    toast({
+      title: `Switched to ${label}`,
+      description: `You are now viewing the ${label.toLowerCase()} section.`,
+      duration: 2000,
+    });
   };
 
   const handleLogout = async () => {
@@ -102,18 +104,16 @@ export default function LibraryOwnerShell({
               const Icon = tab.icon;
               // Check if active - use startsWith for routes with sub-pages
               const isActive =
-                // tab.href === "/library-owner/resources"
-                //   ? pathname.startsWith("/library-owner/resources") && !pathname.startsWith("/library-owner/subjects")
-                //   : 
                 tab.href === "/library-owner/subjects"
                   ? pathname.startsWith("/library-owner/subjects")
                   : tab.href === "/library-owner/general-materials"
                   ? pathname.startsWith("/library-owner/general-materials")
                   : pathname === tab.href;
               return (
-                <button
+                <Link
                   key={tab.href}
-                  onClick={() => handleTabClick(tab.href, tab.label)}
+                  href={tab.href}
+                  onClick={(e) => handleNavClick(tab.href, tab.label, e)}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full text-left",
                     isActive
@@ -123,7 +123,7 @@ export default function LibraryOwnerShell({
                 >
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{tab.label}</span>
-                </button>
+                </Link>
               );
             })}
           </nav>
@@ -134,9 +134,10 @@ export default function LibraryOwnerShell({
               const Icon = tab.icon;
               const isActive = pathname === tab.href;
               return (
-                <button
+                <Link
                   key={tab.href}
-                  onClick={() => handleTabClick(tab.href, tab.label)}
+                  href={tab.href}
+                  onClick={(e) => handleNavClick(tab.href, tab.label, e)}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full text-left",
                     isActive
@@ -146,7 +147,7 @@ export default function LibraryOwnerShell({
                 >
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{tab.label}</span>
-                </button>
+                </Link>
               );
             })}
             <button
@@ -170,19 +171,16 @@ export default function LibraryOwnerShell({
         <div className="grid grid-cols-5 h-16">
           {libraryOwnerTabs.slice(0, 5).map(({ href, label, icon: Icon }) => {
             const isActive =
-              // href === "/library-owner/resources"
-              //   ? pathname.startsWith("/library-owner/resources") && !pathname.startsWith("/library-owner/subjects")
-              //   : 
               href === "/library-owner/subjects"
                 ? pathname.startsWith("/library-owner/subjects")
                 : href === "/library-owner/general-materials"
                 ? pathname.startsWith("/library-owner/general-materials")
                 : pathname === href;
-            
             return (
-              <button
+              <Link
                 key={href}
-                onClick={() => handleTabClick(href, label)}
+                href={href}
+                onClick={(e) => handleNavClick(href, label, e)}
                 className={cn(
                   "flex flex-col items-center justify-center text-xs w-full",
                   isActive
@@ -197,7 +195,7 @@ export default function LibraryOwnerShell({
                   )}
                 />
                 <span>{label}</span>
-              </button>
+              </Link>
             );
           })}
         </div>
