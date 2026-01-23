@@ -86,37 +86,80 @@ const Login = () => {
       }
 
       if (result?.ok) {
-        // Get the session to determine redirect based on role or userType
-        const session = await getSession();
-
-        // Check if user is a library owner
-        if (session?.user?.userType === "libraryresourceowner") {
-          router.push("/library-owner/dashboard");
-          return;
+        console.log("[Login] Sign in successful, waiting for session...");
+        
+        // Wait a bit for session to be established, then get the session
+        // Use a small delay to ensure session cookie is set
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Try to get session with retries
+        let session = await getSession();
+        let retries = 0;
+        const maxRetries = 10;
+        
+        while (!session?.user && retries < maxRetries) {
+          console.log(`[Login] Session not ready, retry ${retries + 1}/${maxRetries}`);
+          await new Promise(resolve => setTimeout(resolve, 300));
+          session = await getSession();
+          retries++;
         }
 
-        if (session?.user?.role) {
+        console.log("[Login] Session after login:", {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          role: session?.user?.role,
+          userType: session?.user?.userType,
+          retries,
+        });
+
+        // Determine redirect URL
+        let redirectUrl = "/login";
+        
+        // Check if user is a library owner
+        if (session?.user?.userType === "libraryresourceowner") {
+          redirectUrl = "/library-owner/dashboard";
+          console.log("[Login] Redirecting library owner to:", redirectUrl);
+        } else if (session?.user?.role) {
           // Redirect based on user role
           switch (session.user.role) {
             case "school_director":
-              router.push("/admin/dashboard");
+              redirectUrl = "/admin/dashboard";
               break;
             case "teacher":
-              router.push("/teacher/dashboard");
+              redirectUrl = "/teacher/dashboard";
               break;
             case "student":
-              router.push("/student/home");
+              redirectUrl = "/student/home";
               break;
             default:
-              // Unknown role - show error and stay on login page
+              console.error("[Login] Unknown role:", session.user.role);
               setError("Your account role is not recognized. Please contact support.");
               setIsLoading(false);
               return;
           }
+          console.log("[Login] Redirecting based on role:", session.user.role, "to:", redirectUrl);
         } else {
-          // No role in session - show error and stay on login page
-          setError("Unable to determine your account role. Please try again or contact support.");
-          setIsLoading(false);
+          // Session not available after retries - this might be a cookie issue
+          // Still try to redirect - the middleware will handle it, or cookies might be set by the time the page loads
+          console.warn("[Login] Session not fully available after retries, but signIn was successful. Attempting redirect anyway.");
+          console.warn("[Login] This might indicate a cookie configuration issue. Check NEXTAUTH_URL and cookie settings.");
+          
+          // Try to determine redirect from the signIn result or use a default
+          // Since signIn was successful, we can try redirecting to admin dashboard as fallback
+          // The middleware will redirect back to login if session isn't available, but at least we tried
+          redirectUrl = "/admin/dashboard"; // Default fallback
+          
+          // Show a message but still attempt redirect
+          console.log("[Login] Attempting redirect despite session delay:", redirectUrl);
+        }
+
+        // Use window.location.href for full page reload to ensure cookies are set
+        // This is important for production/staging where cookies might not be immediately available
+        if (redirectUrl !== "/login") {
+          console.log("[Login] Performing full page redirect to:", redirectUrl);
+          // Add a small delay to ensure any pending cookie writes complete
+          await new Promise(resolve => setTimeout(resolve, 100));
+          window.location.href = redirectUrl;
           return;
         }
       }
