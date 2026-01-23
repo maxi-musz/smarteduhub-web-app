@@ -53,9 +53,24 @@ export async function registerSchool(
       formData.append("tax_cert", documentData.taxId);
     }
 
+    // Construct the full URL
+    let backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    if (!backendUrl) {
+      throw new Error("NEXT_PUBLIC_BACKEND_URL is not configured");
+    }
+    
+    // Ensure the URL has a protocol to prevent relative URL issues
+    // If it doesn't start with http:// or https://, prepend https://
+    if (!backendUrl.startsWith('http://') && !backendUrl.startsWith('https://')) {
+      backendUrl = `https://${backendUrl}`;
+    }
+    
+    const endpoint = `${backendUrl}/auth/onboard-school`;
+    
     // Log what we're sending for debugging
     console.log("Sending registration data to backend:", {
-      endpoint: `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/onboard-school`,
+      backendUrl,
+      endpoint,
       schoolData,
       files: {
         cac: documentData.cac?.name,
@@ -66,7 +81,7 @@ export async function registerSchool(
 
     // Call backend API directly
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/onboard-school`,
+      endpoint,
       {
         method: "POST",
         body: formData,
@@ -74,7 +89,22 @@ export async function registerSchool(
       }
     );
 
-    const data = await response.json();
+    // Check if response is ok before parsing JSON
+    let data;
+    try {
+      const responseText = await response.text();
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch (parseError) {
+      // If JSON parsing fails, return error response
+      return {
+        success: false,
+        statusCode: response.status || 500,
+        message: response.status === 405 
+          ? "Invalid endpoint. Please check the API configuration."
+          : "Invalid response from server. Please try again.",
+        error: parseError,
+      };
+    }
 
     return {
       success: data.success || response.ok,
