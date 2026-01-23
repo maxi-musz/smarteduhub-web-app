@@ -17,6 +17,7 @@ export default withAuth(
     }
 
     const userRole = token.role as string;
+    const userType = token.userType as string | undefined;
 
     // Redirect library owners away from legacy general-pages AI Books routes
     if (
@@ -31,7 +32,10 @@ export default withAuth(
       return NextResponse.redirect(redirectUrl);
     }
 
-    const getDashboardPath = (role?: string) => {
+    const getDashboardPath = (role?: string, type?: string) => {
+      if (type === "libraryresourceowner") {
+        return "/library-owner";
+      }
       switch (role) {
         case "school_director":
           return "/admin";
@@ -49,25 +53,33 @@ export default withAuth(
     // Role-based dashboard access
     if (pathname.startsWith("/admin")) {
       if (userRole !== "school_director") {
-        return NextResponse.redirect(new URL(getDashboardPath(userRole), req.url));
+        return NextResponse.redirect(
+          new URL(getDashboardPath(userRole, userType), req.url)
+        );
       }
     }
 
     if (pathname.startsWith("/library-owner")) {
-      if (userRole !== "library_owner") {
-        return NextResponse.redirect(new URL(getDashboardPath(userRole), req.url));
+      if (userRole !== "library_owner" && userType !== "libraryresourceowner") {
+        return NextResponse.redirect(
+          new URL(getDashboardPath(userRole, userType), req.url)
+        );
       }
     }
 
     if (pathname.startsWith("/teacher")) {
       if (userRole !== "teacher") {
-        return NextResponse.redirect(new URL(getDashboardPath(userRole), req.url));
+        return NextResponse.redirect(
+          new URL(getDashboardPath(userRole, userType), req.url)
+        );
       }
     }
 
     if (pathname.startsWith("/student")) {
       if (userRole !== "student") {
-        return NextResponse.redirect(new URL(getDashboardPath(userRole), req.url));
+        return NextResponse.redirect(
+          new URL(getDashboardPath(userRole, userType), req.url)
+        );
       }
     }
 
