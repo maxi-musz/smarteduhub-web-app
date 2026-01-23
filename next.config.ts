@@ -96,6 +96,11 @@ const nextConfig: NextConfig = {
         destination: "/",
         permanent: true,
       },
+      {
+        source: "/general-pages/general-materials/:path*",
+        destination: "/library-owner/general-materials/:path*",
+        permanent: true,
+      },
     ];
   },
 

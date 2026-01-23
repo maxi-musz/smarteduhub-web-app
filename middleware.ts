@@ -18,22 +18,56 @@ export default withAuth(
 
     const userRole = token.role as string;
 
+    // Redirect library owners away from legacy general-pages AI Books routes
+    if (
+      pathname.startsWith("/general-pages/general-materials") &&
+      userRole === "library_owner"
+    ) {
+      const redirectUrl = req.nextUrl.clone();
+      redirectUrl.pathname = redirectUrl.pathname.replace(
+        /^\/general-pages\/general-materials/,
+        "/library-owner/general-materials"
+      );
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    const getDashboardPath = (role?: string) => {
+      switch (role) {
+        case "school_director":
+          return "/admin";
+        case "teacher":
+          return "/teacher";
+        case "student":
+          return "/student";
+        case "library_owner":
+          return "/library-owner";
+        default:
+          return "/login";
+      }
+    };
+
     // Role-based dashboard access
     if (pathname.startsWith("/admin")) {
       if (userRole !== "school_director") {
-        return NextResponse.redirect(new URL("/login", req.url));
+        return NextResponse.redirect(new URL(getDashboardPath(userRole), req.url));
+      }
+    }
+
+    if (pathname.startsWith("/library-owner")) {
+      if (userRole !== "library_owner") {
+        return NextResponse.redirect(new URL(getDashboardPath(userRole), req.url));
       }
     }
 
     if (pathname.startsWith("/teacher")) {
       if (userRole !== "teacher") {
-        return NextResponse.redirect(new URL("/login", req.url));
+        return NextResponse.redirect(new URL(getDashboardPath(userRole), req.url));
       }
     }
 
     if (pathname.startsWith("/student")) {
       if (userRole !== "student") {
-        return NextResponse.redirect(new URL("/login", req.url));
+        return NextResponse.redirect(new URL(getDashboardPath(userRole), req.url));
       }
     }
 
@@ -52,6 +86,7 @@ export default withAuth(
         // Only require auth for dashboard routes and shared pages
         if (
           pathname.startsWith("/admin") ||
+          pathname.startsWith("/library-owner") ||
           pathname.startsWith("/teacher") ||
           pathname.startsWith("/student") ||
           pathname.startsWith("/general-pages")
@@ -69,6 +104,7 @@ export default withAuth(
 export const config = {
   matcher: [
     "/admin/:path*",
+    "/library-owner/:path*",
     "/teacher/:path*",
     "/student/:path*",
     "/general-pages/:path*",
