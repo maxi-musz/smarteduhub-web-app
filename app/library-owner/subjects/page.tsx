@@ -73,7 +73,7 @@ const LibraryOwnerSubjectsPage = () => {
     setSelectedSubject(subjectName);
     setAiModalOpen(true);
   };
-
+// please workkkkkkk
   const handleSubjectClick = (subjectId: string) => {
     router.push(`/library-owner/subjects/${subjectId}`);
   };
