@@ -63,7 +63,7 @@ export async function makeAuthenticatedRequest<T = unknown>(
     }
 
     // Make the API request
-    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    let baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
 
     if (!baseUrl) {
       throw new AuthenticatedApiError(
@@ -72,8 +72,26 @@ export async function makeAuthenticatedRequest<T = unknown>(
       );
     }
 
+    // Ensure the URL has a protocol to prevent relative URL issues
+    // If it doesn't start with http:// or https://, prepend https://
+    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+      baseUrl = `https://${baseUrl}`;
+    }
+    
+    // Remove trailing slash if present to avoid double slashes
+    baseUrl = baseUrl.replace(/\/$/, '');
+
     const fullUrl = `${baseUrl}${endpoint}`;
     const method = options.method || "GET";
+    
+    // Always log to browser console for debugging
+    console.log(`[API Call] ${method} ${fullUrl}`, {
+      timestamp: new Date().toISOString(),
+      method,
+      endpoint,
+      fullUrl,
+      hasToken: !!session?.user?.accessToken,
+    });
     
     // Log API call to terminal (only if logging is enabled)
     if (process.env.ENABLE_LOGGING === "true") {
@@ -90,7 +108,42 @@ export async function makeAuthenticatedRequest<T = unknown>(
       headers,
     });
 
-    const data = await response.json();
+    // Check if response is ok before parsing JSON
+    let data;
+    let responseText: string = "";
+    try {
+      responseText = await response.text();
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch (parseError) {
+      // Always log parsing errors to console
+      const preview = responseText ? responseText.substring(0, 200) : "(empty response)";
+      console.error(`[API Error] Failed to parse JSON response from ${fullUrl}`, {
+        status: response.status,
+        statusText: response.statusText,
+        responseText: preview,
+        error: parseError,
+      });
+      
+      // If JSON parsing fails, throw a more descriptive error
+      throw new AuthenticatedApiError(
+        response.status === 405
+          ? "Invalid endpoint. Please check the API configuration."
+          : response.status >= 500
+          ? "Server error. Please try again later."
+          : "Invalid response from server. Please try again.",
+        response.status || 500,
+        { success: false, message: "Failed to parse server response" }
+      );
+    }
+
+    // Always log response to browser console for debugging
+    console.log(`[API Response] ${method} ${fullUrl}`, {
+      status: response.status,
+      statusText: response.statusText,
+      success: data.success,
+      timestamp: new Date().toISOString(),
+      hasData: !!data.data,
+    });
 
     // Log API response to terminal (only if logging is enabled)
     if (process.env.ENABLE_LOGGING === "true") {
@@ -111,6 +164,13 @@ export async function makeAuthenticatedRequest<T = unknown>(
 
     // Handle other errors
     if (!response.ok) {
+      console.error(`[API Error] Request failed: ${method} ${fullUrl}`, {
+        status: response.status,
+        statusText: response.statusText,
+        error: data.message || data.error,
+        response: data,
+      });
+      
       throw new AuthenticatedApiError(
         data.message || `Request failed with status ${response.status}`,
         response.status,
@@ -121,10 +181,21 @@ export async function makeAuthenticatedRequest<T = unknown>(
     return data;
   } catch (error) {
     if (error instanceof AuthenticatedApiError) {
+      // Log authenticated API errors
+      console.error(`[API Error] AuthenticatedApiError:`, {
+        message: error.message,
+        statusCode: error.statusCode,
+        endpoint: endpoint,
+      });
       throw error;
     }
 
     // Handle network errors
+    console.error(`[API Error] Network error:`, {
+      endpoint: endpoint,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    
     throw new AuthenticatedApiError(
       "Network error occurred. Please check your connection.",
       0

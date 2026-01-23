@@ -27,7 +27,7 @@ export async function makePublicRequest<T = unknown>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    let baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
 
     if (!baseUrl) {
       throw new PublicApiError(
@@ -35,6 +35,15 @@ export async function makePublicRequest<T = unknown>(
         500
       );
     }
+
+    // Ensure the URL has a protocol to prevent relative URL issues
+    // If it doesn't start with http:// or https://, prepend https://
+    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+      baseUrl = `https://${baseUrl}`;
+    }
+    
+    // Remove trailing slash if present to avoid double slashes
+    baseUrl = baseUrl.replace(/\/$/, '');
 
     const fullUrl = `${baseUrl}${endpoint}`;
 

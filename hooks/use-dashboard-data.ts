@@ -50,13 +50,27 @@ export function useDashboardData() {
   return useQuery<DashboardData, AuthenticatedApiError>({
     queryKey: ["dashboard", "data"],
     queryFn: async () => {
+      console.log("[Dashboard] Fetching dashboard data...");
       const response = await authenticatedApi.get<DashboardData>(
         "/director/dashboard/fetch-dashboard-data"
       );
 
+      console.log("[Dashboard] Dashboard data response:", {
+        success: response.success,
+        hasData: !!response.data,
+        statusCode: response.statusCode,
+      });
+
       if (response.success && response.data) {
+        console.log("[Dashboard] Dashboard data loaded successfully");
         return response.data;
       }
+
+      console.error("[Dashboard] Failed to fetch dashboard data:", {
+        message: response.message,
+        statusCode: response.statusCode,
+        response,
+      });
 
       throw new AuthenticatedApiError(
         response.message || "Failed to fetch dashboard data",

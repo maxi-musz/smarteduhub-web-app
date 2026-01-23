@@ -69,6 +69,18 @@ const classFilters = [
 const AdminDashboard = () => {
   const router = useRouter();
 
+  // Log component mount
+  React.useEffect(() => {
+    console.log("[Dashboard] AdminDashboard component mounted");
+    console.log("[Dashboard] Environment:", {
+      backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL ? "configured" : "missing",
+      nodeEnv: process.env.NODE_ENV,
+    });
+    return () => {
+      console.log("[Dashboard] AdminDashboard component unmounting");
+    };
+  }, []);
+
   // Use React Query hook for data fetching with automatic caching
   const {
     data: dashboardData,
@@ -77,7 +89,24 @@ const AdminDashboard = () => {
     refetch,
   } = useDashboardData();
 
+  // Log hook state changes
+  React.useEffect(() => {
+    console.log("[Dashboard] Hook state changed", {
+      isLoading,
+      hasData: !!dashboardData,
+      hasError: !!queryError,
+      errorType: queryError?.constructor?.name,
+    });
+  }, [isLoading, dashboardData, queryError]);
+
   const [showErrorModal, setShowErrorModal] = useState(false);
+
+  // Log any errors that occur
+  React.useEffect(() => {
+    if (queryError) {
+      console.error("[Dashboard] Query error detected:", queryError);
+    }
+  }, [queryError]);
 
   // Format error message
   const error = useMemo(() => {
@@ -122,6 +151,7 @@ const AdminDashboard = () => {
 
   // Show full-page loading state
   if (isLoading) {
+    console.log("[Dashboard] Showing loading state");
     return (
       <div className="min-h-screen bg-brand-bg flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -188,6 +218,11 @@ const AdminDashboard = () => {
       </div>
     );
   }
+
+  console.log("[Dashboard] Rendering dashboard content", {
+    hasData: !!dashboardData,
+    hasError: !!error,
+  });
 
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
