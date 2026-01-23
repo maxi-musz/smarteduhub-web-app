@@ -54,7 +54,7 @@ export async function registerSchool(
     }
 
     // Construct the full URL
-    let backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    let backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
     if (!backendUrl) {
       throw new Error("NEXT_PUBLIC_BACKEND_URL is not configured");
     }
@@ -64,6 +64,9 @@ export async function registerSchool(
     if (!backendUrl.startsWith('http://') && !backendUrl.startsWith('https://')) {
       backendUrl = `https://${backendUrl}`;
     }
+    
+    // Remove trailing slash if present to avoid double slashes
+    backendUrl = backendUrl.replace(/\/$/, '');
     
     const endpoint = `${backendUrl}/auth/onboard-school`;
     

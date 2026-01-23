@@ -39,10 +39,33 @@ const ConfirmCreate = () => {
   const taxIdInputRef = useRef<HTMLInputElement>(null!);
   const schoolLogoInputRef = useRef<HTMLInputElement>(null!);
 
+  // Maximum file size: 5MB (5 * 1024 * 1024 bytes)
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+
   const handleFileUpload = (
     type: "cac" | "utility" | "taxId" | "schoolLogo",
     file: File
   ) => {
+    // Validate file size before accepting
+    if (file.size > MAX_FILE_SIZE) {
+      const maxSizeMB = (MAX_FILE_SIZE / (1024 * 1024)).toFixed(0);
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      setErrorMessage(
+        `File "${file.name}" is too large (${fileSizeMB}MB). Maximum file size is ${maxSizeMB}MB.`
+      );
+      setShowErrorModal(true);
+      // Reset the file input
+      const inputRef = 
+        type === "cac" ? cacInputRef :
+        type === "utility" ? utilityInputRef :
+        type === "taxId" ? taxIdInputRef :
+        schoolLogoInputRef;
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+      return;
+    }
+
     const newFile: UploadedFile = {
       name: file.name,
       size: file.size,
@@ -177,12 +200,12 @@ const ConfirmCreate = () => {
             <p className="text-sm font-medium text-gray-700">Choose a file</p>
             <p className="text-xs text-gray-500">
               {type === "cac"
-                ? "PDF, DOC, DOCX format, up to 10MB"
+                ? "PDF, DOC, DOCX format, up to 5MB"
                 : type === "utility"
-                ? "PDF, PNG, JPG format, up to 10MB"
+                ? "PDF, PNG, JPG format, up to 5MB"
                 : type === "schoolLogo"
-                ? "PNG, JPG, JPEG format, up to 10MB"
-                : "PDF, DOC, DOCX format, up to 10MB"}
+                ? "PNG, JPG, JPEG format, up to 5MB"
+                : "PDF, DOC, DOCX format, up to 5MB"}
             </p>
             <Button
               type="button"

@@ -11,6 +11,7 @@ import {
   ChevronRight,
   RefreshCw,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -118,6 +119,75 @@ const AdminDashboard = () => {
           c.class.toUpperCase().startsWith(classFilter.toUpperCase())
         );
   }, [dashboardData?.ongoingClasses, classFilter]);
+
+  // Show full-page loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-brand-bg flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 text-brand-primary animate-spin mx-auto" />
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Loading Dashboard
+            </h3>
+            <p className="text-sm text-gray-500">
+              Please wait while we fetch your data...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if there's an error and no data
+  if (error && !dashboardData) {
+    return (
+      <div className="min-h-screen bg-brand-bg flex items-center justify-center">
+        <div className="text-center space-y-4 max-w-md">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto" />
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Failed to Load Dashboard
+            </h3>
+            <p className="text-sm text-gray-500">{error}</p>
+            <Button
+              onClick={handleRetry}
+              className="mt-4 gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no data after loading (shouldn't happen, but safety check)
+  if (!isLoading && !dashboardData && !error) {
+    return (
+      <div className="min-h-screen bg-brand-bg flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <AlertCircle className="h-12 w-12 text-yellow-500 mx-auto" />
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-900">
+              No Data Available
+            </h3>
+            <p className="text-sm text-gray-500">
+              Unable to load dashboard data. Please try refreshing.
+            </p>
+            <Button
+              onClick={handleRetry}
+              className="mt-4 gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
