@@ -4,7 +4,6 @@ import {
   Home,
   BookOpen,
   FileText,
-  BarChart3,
   User,
   LogOut,
   School,
