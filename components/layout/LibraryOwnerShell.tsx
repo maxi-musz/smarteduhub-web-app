@@ -28,7 +28,7 @@ const libraryOwnerTabs = [
     label: "AI Books",
     icon: FileText,
   },
-  { href: "/library-owner/analytics", label: "Analytics", icon: BarChart3 },
+  // { href: "/library-owner/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
 const bottomTabs = [
