@@ -4,7 +4,7 @@ import {
   Home,
   BookOpen,
   FileText,
-  BarChart3,
+  // BarChart3,
   User,
   LogOut,
   School,
@@ -28,7 +28,8 @@ const libraryOwnerTabs = [
     label: "AI Books",
     icon: FileText,
   },
-  { href: "/library-owner/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/library-owner/exam-body", label: "Exam Body", icon: BookOpen },
+  // { href: "/library-owner/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
 const bottomTabs = [
@@ -108,6 +109,8 @@ export default function LibraryOwnerShell({
                   ? pathname.startsWith("/library-owner/subjects")
                   : tab.href === "/library-owner/general-materials"
                   ? pathname.startsWith("/library-owner/general-materials")
+                  : tab.href === "/library-owner/exam-body"
+                  ? pathname.startsWith("/library-owner/exam-body")
                   : pathname === tab.href;
               return (
                 <Link
@@ -175,6 +178,8 @@ export default function LibraryOwnerShell({
                 ? pathname.startsWith("/library-owner/subjects")
                 : href === "/library-owner/general-materials"
                 ? pathname.startsWith("/library-owner/general-materials")
+                : href === "/library-owner/exam-body"
+                ? pathname.startsWith("/library-owner/exam-body")
                 : pathname === href;
             return (
               <Link
