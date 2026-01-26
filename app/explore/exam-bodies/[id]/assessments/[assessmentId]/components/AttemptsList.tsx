@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import {
   useAssessmentAttempts,
-  type Attempt,
 } from "@/hooks/explore/use-explore-exam-bodies";
 
 interface AttemptsListProps {

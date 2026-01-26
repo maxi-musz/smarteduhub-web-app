@@ -2,10 +2,9 @@
 
 import { useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Loader2, AlertCircle, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import { useAttemptResults } from "@/hooks/explore/use-explore-exam-bodies";
 import { AttemptResultsViewer } from "./components/AttemptResultsViewer";

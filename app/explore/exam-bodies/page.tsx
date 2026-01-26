@@ -8,7 +8,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import {
   useExploreExamBodies,
-  type ExploreExamBody,
 } from "@/hooks/explore/use-explore-exam-bodies";
 import { ExamBodyCard } from "./components/ExamBodyCard";
 

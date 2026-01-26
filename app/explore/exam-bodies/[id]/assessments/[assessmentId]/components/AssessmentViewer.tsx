@@ -63,7 +63,7 @@ export const AssessmentViewer = ({
   const endIndex = startIndex + questionsPerPage;
   const paginatedQuestions = questions.slice(startIndex, endIndex);
 
-  const formatAnswersForSubmission = () => {
+  const formatAnswersForSubmission = useCallback(() => {
     return questions.map((question) => {
       const answer = answers[question.id];
       const response: {
@@ -107,7 +107,7 @@ export const AssessmentViewer = ({
 
       return response;
     });
-  };
+  }, [questions, answers]);
 
   const timeRemaining = useMemo(() => {
     if (!assessment.duration || !isExamMode) return null;
@@ -137,10 +137,10 @@ export const AssessmentViewer = ({
       router.push(
         `/explore/exam-bodies/${examBodyId}/assessments/${assessmentId}/attempts/${result.attempt.id}`
       );
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation's onError
     }
-  }, [isExamMode, questions, answers, assessment.duration, elapsedTime, submitMutation, router, examBodyId, assessmentId, timeRemaining]);
+  }, [isExamMode, formatAnswersForSubmission, assessment.duration, elapsedTime, submitMutation, router, examBodyId, assessmentId, timeRemaining]);
 
   // Timer logic
   useEffect(() => {
@@ -152,7 +152,7 @@ export const AssessmentViewer = ({
 
     if (isExamMode && assessment.duration && startTime) {
       intervalRef.current = setInterval(() => {
-        setElapsedTime((prev) => {
+        setElapsedTime(() => {
           const totalSeconds = Math.floor((Date.now() - startTime) / 1000);
           const durationSeconds = assessment.duration! * 60;
           

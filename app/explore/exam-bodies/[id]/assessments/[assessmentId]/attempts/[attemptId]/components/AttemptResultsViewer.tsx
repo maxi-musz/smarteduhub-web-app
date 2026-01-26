@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Clock, Calendar } from "lucide-react";
+import { CheckCircle2, XCircle, Calendar } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -21,7 +21,6 @@ interface AttemptResultsViewerProps {
 
 export const AttemptResultsViewer = ({ results }: AttemptResultsViewerProps) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   const questionsPerPage = 10;
   const totalQuestions = results.questions?.length || 0;
@@ -198,12 +197,13 @@ export const AttemptResultsViewer = ({ results }: AttemptResultsViewerProps) => 
 
                   {/* Question Image */}
                   {question.imageUrl && (
-                    <div className="rounded overflow-hidden border border-brand-border">
-                      <img
+                    <div className="rounded overflow-hidden border border-brand-border relative w-full h-40">
+                      <Image
                         src={question.imageUrl}
                         alt="Question"
-                        className="w-full h-auto max-h-40 object-contain"
-                        onError={() => setImageErrors(prev => new Set(prev).add(question.questionId))}
+                        fill
+                        className="object-contain"
+                        unoptimized
                       />
                     </div>
                   )}
