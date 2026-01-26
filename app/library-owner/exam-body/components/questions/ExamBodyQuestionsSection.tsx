@@ -195,7 +195,7 @@ export const ExamBodyQuestionsSection = ({
         </Card>
       ) : (
         <>
-          <div className="grid gap-4">
+          <div className="grid gap-2.5">
             {paginatedQuestions.map((question, index) => {
               // Calculate the actual question number (accounting for pagination)
               const questionNumber = startIndex + index + 1;
@@ -204,71 +204,74 @@ export const ExamBodyQuestionsSection = ({
 
             return (
               <Card key={question.id} className="border-brand-border">
-                <CardContent className="py-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4 flex-1">
+                <CardContent className="p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2 flex-1 min-w-0">
                       <div className="flex-shrink-0">
-                        <div className="h-10 w-10 rounded-md bg-gradient-to-br from-brand-primary/10 to-brand-primary/5 flex items-center justify-center">
-                          <span className="text-sm font-semibold text-brand-primary">
+                        <div className="h-8 w-8 rounded bg-gradient-to-br from-brand-primary/10 to-brand-primary/5 flex items-center justify-center">
+                          <span className="text-xs font-semibold text-brand-primary">
                             {questionNumber}
                           </span>
                         </div>
                       </div>
-                      <div className="flex-1 space-y-3">
+                      <div className="flex-1 space-y-2 min-w-0">
                         <div>
-                          <p className="font-medium text-brand-heading text-base leading-relaxed">
+                          <p className="font-medium text-brand-heading text-sm leading-snug">
                             {question.questionText}
                           </p>
                           {question.imageUrl && (
-                            <div className="mt-3 rounded-lg overflow-hidden border border-brand-border">
+                            <div className="mt-1.5 rounded overflow-hidden border border-brand-border">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={question.imageUrl}
                                 alt="Question image"
-                                className="w-full h-auto max-h-64 object-contain"
+                                className="w-full h-auto max-h-40 object-contain"
                               />
                             </div>
                           )}
                         </div>
 
-                        {/* Options Display */}
+                        {/* Options Display - Compact */}
                         {hasOptions && (
-                          <div className="space-y-2 mt-4">
+                          <div className="space-y-1 mt-2">
                             {question.options!.map((option, optIndex) => {
                               const isCorrect = correctAnswers.includes(option.optionText);
                               return (
                                 <div
                                   key={option.id}
-                                  className={`flex items-start gap-3 p-3 rounded-md border ${
+                                  className={`flex items-center gap-2 p-1.5 rounded border ${
                                     isCorrect
                                       ? "border-green-500 bg-green-50/50"
                                       : "border-brand-border bg-gray-50/50"
                                   }`}
                                 >
-                                  <div className="flex-shrink-0 mt-0.5">
+                                  <div className="flex-shrink-0">
                                     {isCorrect ? (
-                                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
                                     ) : (
-                                      <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
+                                      <div className="h-3.5 w-3.5 rounded-full border-2 border-gray-300" />
                                     )}
                                   </div>
-                                  <div className="flex-1">
+                                  <div className="flex-1 min-w-0">
                                     <p
-                                      className={`text-sm ${
+                                      className={`text-xs ${
                                         isCorrect
                                           ? "font-semibold text-green-700"
                                           : "text-brand-heading"
                                       }`}
                                     >
-                                      {String.fromCharCode(65 + optIndex)}. {option.optionText}
+                                      <span className="font-medium">
+                                        {String.fromCharCode(65 + optIndex)}.
+                                      </span>{" "}
+                                      {option.optionText}
                                     </p>
                                   </div>
                                   {isCorrect && (
                                     <Badge
                                       variant="outline"
-                                      className="bg-green-100 text-green-700 border-green-300"
+                                      className="bg-green-100 text-green-700 border-green-300 text-[10px] px-1 py-0 flex-shrink-0"
                                     >
-                                      Correct
+                                      ✓
                                     </Badge>
                                   )}
                                 </div>
@@ -279,14 +282,14 @@ export const ExamBodyQuestionsSection = ({
 
                         {/* Correct Answer Display for non-option questions */}
                         {!hasOptions && correctAnswers.length > 0 && (
-                          <div className="mt-4 p-3 rounded-md border border-green-500 bg-green-50/50">
-                            <div className="flex items-start gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <div className="mt-2 p-2 rounded border border-green-500 bg-green-50/50">
+                            <div className="flex items-center gap-1.5">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />
                               <div>
-                                <p className="text-xs font-medium text-green-700 mb-1">
+                                <p className="text-[10px] font-medium text-green-700 mb-0.5">
                                   Correct Answer:
                                 </p>
-                                <p className="text-sm font-semibold text-green-800">
+                                <p className="text-xs font-semibold text-green-800">
                                   {correctAnswers.join(", ")}
                                 </p>
                               </div>
@@ -294,46 +297,46 @@ export const ExamBodyQuestionsSection = ({
                           </div>
                         )}
 
-                        {/* Question Metadata */}
-                        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-brand-border">
-                          <Badge variant="outline" className="text-xs">
+                        {/* Question Metadata - Compact */}
+                        <div className="flex flex-wrap items-center gap-2 pt-1.5 border-t border-brand-border">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                             {question.questionType.replace(/_/g, " ")}
                           </Badge>
-                          <span className="text-xs text-brand-light-accent-1">
-                            {question.points} {question.points === 1 ? "point" : "points"}
+                          <span className="text-[10px] text-brand-light-accent-1">
+                            {question.points}pt
                           </span>
                           {hasOptions && (
-                            <span className="text-xs text-brand-light-accent-1">
-                              {question.options!.length} options
+                            <span className="text-[10px] text-brand-light-accent-1">
+                              {question.options!.length} opts
                             </span>
                           )}
                           {question.explanation && (
-                            <div className="w-full mt-2 pt-2 border-t border-brand-border">
-                              <p className="text-xs font-medium text-brand-light-accent-1 mb-1">
+                            <div className="w-full mt-1.5 pt-1.5 border-t border-brand-border">
+                              <p className="text-[10px] font-medium text-brand-light-accent-1 mb-0.5">
                                 Explanation:
                               </p>
-                              <p className="text-xs text-brand-heading">{question.explanation}</p>
+                              <p className="text-xs text-brand-heading line-clamp-2">{question.explanation}</p>
                             </div>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setEditingQuestion(question)}
-                        className="h-9 w-9"
+                        className="h-7 w-7"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setDeletingQuestion(question)}
-                        className="h-9 w-9"
+                        className="h-7 w-7"
                       >
-                        <Trash2 className="h-4 w-4 text-red-600" />
+                        <Trash2 className="h-3.5 w-3.5 text-red-600" />
                       </Button>
                     </div>
                   </div>
