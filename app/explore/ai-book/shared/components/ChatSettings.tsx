@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search, X, Gauge, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import {
   Select,
@@ -113,6 +114,7 @@ export interface ChatSettingsData {
   typewriterSpeed: number; // Typing speed in milliseconds per character (lower = faster)
   ttsVoice: string; // TTS voice: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer'
   ttsSpeed: number; // TTS playback speed: 0.25 to 4.0 (default: 1.0)
+  autoPlayTTS?: boolean; // Auto-play TTS for new responses (default: false)
 }
 
 interface ChatSettingsProps {
@@ -126,7 +128,7 @@ const SETTINGS_STORAGE_KEY = "explore-chat-settings";
 
 export function getStoredSettings(): ChatSettingsData {
   if (typeof window === "undefined") {
-    return { language: "en", typewriterSpeed: 20, ttsVoice: "alloy", ttsSpeed: 1.0 };
+    return { language: "en", typewriterSpeed: 20, ttsVoice: "alloy", ttsSpeed: 1.0, autoPlayTTS: false };
   }
   
   try {
@@ -143,13 +145,16 @@ export function getStoredSettings(): ChatSettingsData {
       if (parsed.ttsSpeed === undefined) {
         parsed.ttsSpeed = 1.0;
       }
+      if (parsed.autoPlayTTS === undefined) {
+        parsed.autoPlayTTS = false;
+      }
       return parsed;
     }
   } catch (error) {
     console.error("[ChatSettings] Failed to load settings:", error);
   }
   
-  return { language: "en", typewriterSpeed: 20, ttsVoice: "alloy", ttsSpeed: 1.0 };
+  return { language: "en", typewriterSpeed: 20, ttsVoice: "alloy", ttsSpeed: 1.0, autoPlayTTS: false };
 }
 
 export function saveStoredSettings(settings: ChatSettingsData): void {
@@ -173,6 +178,7 @@ export function ChatSettings({
   const [typewriterSpeed, setTypewriterSpeed] = useState(settings.typewriterSpeed || 20);
   const [ttsVoice, setTtsVoice] = useState(settings.ttsVoice || "alloy");
   const [ttsSpeed, setTtsSpeed] = useState(settings.ttsSpeed || 1.0);
+  const [autoPlayTTS, setAutoPlayTTS] = useState(settings.autoPlayTTS ?? false);
 
   // Filter languages based on search query
   const filteredLanguages = useMemo(() => {
@@ -199,6 +205,7 @@ export function ChatSettings({
       typewriterSpeed: typewriterSpeed,
       ttsVoice: ttsVoice,
       ttsSpeed: ttsSpeed,
+      autoPlayTTS: autoPlayTTS,
     };
     onSettingsChange(newSettings);
     saveStoredSettings(newSettings);
@@ -418,6 +425,26 @@ export function ChatSettings({
                       Adjust the speech playback speed. Range: 0.25x (slow) to 4.0x (fast).
                     </p>
                   </div>
+                </div>
+
+                {/* Auto-Play TTS */}
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="autoPlayTTS"
+                      checked={autoPlayTTS}
+                      onCheckedChange={(checked) => setAutoPlayTTS(!!checked)}
+                    />
+                    <Label
+                      htmlFor="autoPlayTTS"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Auto-play TTS for responses
+                    </Label>
+                  </div>
+                  <p className="text-xs text-brand-light-accent-1 px-2">
+                    Automatically play text-to-speech when AI responses are received.
+                  </p>
                 </div>
               </AccordionContent>
             </AccordionItem>

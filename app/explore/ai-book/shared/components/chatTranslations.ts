@@ -33,6 +33,8 @@ export interface ChatTranslations {
     studyTricks: string;
     createDefinitions: string;
     createQuestionPaper: string;
+    createQuestionsAnswers: string;
+    createMcqs: string;
   };
 }
 
@@ -58,6 +60,8 @@ const translations: Record<string, ChatTranslations> = {
       studyTricks: "Study Tricks",
       createDefinitions: "Create Definitions / Concepts",
       createQuestionPaper: "Create Question Paper",
+      createQuestionsAnswers: "Create Questions and Answers",
+      createMcqs: "Create MCQs",
     },
   },
   yo: {
@@ -81,6 +85,8 @@ const translations: Record<string, ChatTranslations> = {
       studyTricks: "Awọn Eto Ikawe",
       createDefinitions: "Ṣẹda Awọn Itumọ / Awọn Erongba",
       createQuestionPaper: "Ṣẹda Iwe Ibeere",
+      createQuestionsAnswers: "Ṣẹda Awọn Ibeere ati Awọn Idahun",
+      createMcqs: "Ṣẹda Awọn Ibeere Yiyan Pupọ",
     },
   },
   ig: {
@@ -104,6 +110,8 @@ const translations: Record<string, ChatTranslations> = {
       studyTricks: "Atụmatụ Ọmụmụ",
       createDefinitions: "Mepụta Nkọwa / Echiche",
       createQuestionPaper: "Mepụta Akwụkwọ Ajụjụ",
+      createQuestionsAnswers: "Mepụta Ajụjụ na Azịza",
+      createMcqs: "Mepụta Ajụjụ Nhọrọ Ọtụtụ",
     },
   },
   ha: {
@@ -127,6 +135,8 @@ const translations: Record<string, ChatTranslations> = {
       studyTricks: "Dabarun Karatu",
       createDefinitions: "Ƙirƙiri Ma'anoni / Ra'ayoyi",
       createQuestionPaper: "Ƙirƙiri Takardar Tambaya",
+      createQuestionsAnswers: "Ƙirƙiri Tambayoyi da Amsoshi",
+      createMcqs: "Ƙirƙiri Tambayoyin Zaɓi da Yawa",
     },
   },
   fr: {
@@ -150,6 +160,8 @@ const translations: Record<string, ChatTranslations> = {
       studyTricks: "Astuces d'Étude",
       createDefinitions: "Créer des Définitions / Concepts",
       createQuestionPaper: "Créer un Questionnaire",
+      createQuestionsAnswers: "Créer des Questions et Réponses",
+      createMcqs: "Créer des QCM",
     },
   },
   es: {
@@ -173,6 +185,8 @@ const translations: Record<string, ChatTranslations> = {
       studyTricks: "Trucos de Estudio",
       createDefinitions: "Crear Definiciones / Conceptos",
       createQuestionPaper: "Crear Examen",
+      createQuestionsAnswers: "Crear Preguntas y Respuestas",
+      createMcqs: "Crear Preguntas de Opción Múltiple",
     },
   },
   sw: {
@@ -196,6 +210,8 @@ const translations: Record<string, ChatTranslations> = {
       studyTricks: "Hila za Kusoma",
       createDefinitions: "Unda Ufafanuzi / Dhana",
       createQuestionPaper: "Unda Karatasi ya Maswali",
+      createQuestionsAnswers: "Unda Maswali na Majibu",
+      createMcqs: "Unda Maswali ya Chaguo Nyingi",
     },
   },
   ar: {
@@ -219,6 +235,8 @@ const translations: Record<string, ChatTranslations> = {
       studyTricks: "حيل الدراسة",
       createDefinitions: "إنشاء التعريفات / المفاهيم",
       createQuestionPaper: "إنشاء ورقة أسئلة",
+      createQuestionsAnswers: "إنشاء أسئلة وأجوبة",
+      createMcqs: "إنشاء أسئلة الاختيار من متعدد",
     },
   },
   hi: {
@@ -242,6 +260,8 @@ const translations: Record<string, ChatTranslations> = {
       studyTricks: "अध्ययन ट्रिक्स",
       createDefinitions: "परिभाषाएं / अवधारणाएं बनाएं",
       createQuestionPaper: "प्रश्न पत्र बनाएं",
+      createQuestionsAnswers: "प्रश्न और उत्तर बनाएं",
+      createMcqs: "बहुविकल्पीय प्रश्न बनाएं",
     },
   },
 };

@@ -25,8 +25,10 @@ import {
 import { useExploreChatSocket, type MessageResponseData, type MessageErrorData } from "@/hooks/explore/use-explore-chat-socket";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { TypewriterText } from "./TypewriterText";
-import { ChatSettings, getStoredSettings, type ChatSettingsData } from "./ChatSettings";
+import { ChatSettings, getStoredSettings, saveStoredSettings, type ChatSettingsData } from "./ChatSettings";
 import { getChatTranslations } from "./chatTranslations";
+import { getStudyToolDisplayMessage, getStudyToolBackendMessage, studyToolRequiresDialog, type StudyToolDialogData } from "./studyToolMessages";
+import { StudyToolDialog } from "./StudyToolDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSession } from "next-auth/react";
@@ -113,6 +115,18 @@ const defaultStudyTools: StudyTool[] = [
     iconColor: "text-orange-500",
     icon: <FileText className="h-4 w-4" />,
   },
+  {
+    id: "create-questions-answers",
+    label: "Create Questions and Answers",
+    iconColor: "text-teal-500",
+    icon: <FileText className="h-4 w-4" />,
+  },
+  {
+    id: "create-mcqs",
+    label: "Create MCQs",
+    iconColor: "text-cyan-500",
+    icon: <FileText className="h-4 w-4" />,
+  },
 ];
 
 const MIN_WIDTH = 350;
@@ -137,6 +151,8 @@ export function ChatInterface({
   const [inputMessage, setInputMessage] = useState("");
   const [selectedStudyTool, setSelectedStudyTool] = useState<string>("");
   const [, setShowFeedback] = useState<string | null>(null);
+  const [studyToolDialogOpen, setStudyToolDialogOpen] = useState(false);
+  const [pendingToolId, setPendingToolId] = useState<string | null>(null);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
   const [internalMessages, setInternalMessages] = useState<ChatMessage[]>([]);
@@ -146,6 +162,9 @@ export function ChatInterface({
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const [loadingTtsMessageId, setLoadingTtsMessageId] = useState<string | null>(null);
+  const [autoPlayedMessageIds, setAutoPlayedMessageIds] = useState<Set<string>>(new Set());
+  const [preparedAudioRefs, setPreparedAudioRefs] = useState<Map<string, { audio: HTMLAudioElement; url: string }>>(new Map());
+  const [preparingTtsMessageIds, setPreparingTtsMessageIds] = useState<Set<string>>(new Set()); // Track messages being prepared
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
   const { toast } = useToast();
@@ -169,6 +188,8 @@ export function ChatInterface({
       "study-tricks": "studyTricks",
       "create-definitions": "createDefinitions",
       "create-question-paper": "createQuestionPaper",
+      "create-questions-answers": "createQuestionsAnswers",
+      "create-mcqs": "createMcqs",
     };
     
     return studyTools.map((tool) => {
@@ -211,6 +232,32 @@ export function ChatInterface({
       console.log("[ChatInterface] Chapter changed, clearing messages. New materialId:", materialId);
       setInternalMessages([]);
       setInternalIsLoading(false);
+      setAutoPlayedMessageIds(new Set()); // Clear auto-played tracking
+      
+      // Clean up prepared audio refs
+      setPreparedAudioRefs((prev) => {
+        prev.forEach(({ audio, url }) => {
+          audio.pause();
+          audio.currentTime = 0;
+          URL.revokeObjectURL(url);
+        });
+        return new Map();
+      });
+      
+      // Clear preparing set
+      setPreparingTtsMessageIds(new Set());
+      
+      // Stop any currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+          audioUrlRef.current = null;
+        }
+        audioRef.current = null;
+      }
+      setPlayingMessageId(null);
     }
   }, [materialId, useSocket]);
 
@@ -240,6 +287,17 @@ export function ChatInterface({
       };
       
       setInternalMessages((prev) => [...prev, aiMessage]);
+      
+      // If auto-play TTS is enabled, prepare audio immediately (while typewriter is typing)
+      // Only prepare if not already prepared or preparing
+      if (
+        settings.autoPlayTTS && 
+        !autoPlayedMessageIds.has(aiMessage.id) &&
+        !preparedAudioRefs.has(aiMessage.id) &&
+        !preparingTtsMessageIds.has(aiMessage.id)
+      ) {
+        prepareTTSAudio(aiMessage.id, data.data.response);
+      }
     });
 
     const cleanupError = onMessageError((error: MessageErrorData) => {
@@ -444,7 +502,178 @@ export function ChatInterface({
     }
   };
 
-  // Handle TTS playback
+  // Prepare TTS audio (call API immediately, but don't play yet)
+  const prepareTTSAudio = async (messageId: string, content: string) => {
+    // Prevent duplicate calls - check if already prepared or currently preparing
+    if (preparedAudioRefs.has(messageId) || preparingTtsMessageIds.has(messageId)) {
+      console.log('[ChatInterface] TTS already prepared or preparing for message:', messageId);
+      return; // Already prepared or in progress
+    }
+
+    // Mark as preparing to prevent duplicate calls
+    setPreparingTtsMessageIds((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(messageId);
+      return newSet;
+    });
+
+    try {
+      setLoadingTtsMessageId(messageId);
+      
+      // Convert markdown to plain text for TTS
+      const plainText = markdownToPlainText(content);
+      
+      // Truncate if too long (backend limit is 4096 characters)
+      const textToSpeak = plainText.length > 4096 ? plainText.substring(0, 4096) : plainText;
+
+      // Get backend URL and token
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      if (!backendUrl) {
+        throw new Error("Backend URL not configured");
+      }
+
+      if (!session?.user?.accessToken) {
+        throw new Error("Authentication required");
+      }
+
+      // Construct endpoint - check if backendUrl already includes /api/v1
+      const endpoint = backendUrl.includes('/api/v1') 
+        ? '/explore/chat/tts/speak'
+        : '/api/v1/explore/chat/tts/speak';
+      
+      // Call TTS API with streaming support
+      const response = await fetch(`${backendUrl}${endpoint}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.user.accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: textToSpeak,
+          voice: settings.ttsVoice || "alloy",
+          speed: settings.ttsSpeed || 1.0,
+          language: settings.language || "en",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "TTS request failed" }));
+        throw new Error(errorData.message || `TTS request failed: ${response.status}`);
+      }
+
+      const audioBlob = await response.blob();
+      
+      if (audioBlob.size === 0) {
+        throw new Error('Received empty audio blob');
+      }
+      
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+
+      // Store prepared audio for later playback
+      setPreparedAudioRefs((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(messageId, { audio, url: audioUrl });
+        return newMap;
+      });
+
+      setLoadingTtsMessageId(null);
+      
+      console.log('[ChatInterface] TTS audio prepared for message:', messageId);
+    } catch (error) {
+      console.error("TTS preparation error:", error);
+      setLoadingTtsMessageId(null);
+      // Don't show toast for auto-play failures, just log
+    } finally {
+      // Remove from preparing set
+      setPreparingTtsMessageIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(messageId);
+        return newSet;
+      });
+    }
+  };
+
+  // Play prepared TTS audio
+  const playPreparedAudio = async (messageId: string) => {
+    const prepared = preparedAudioRefs.get(messageId);
+    if (!prepared) {
+      console.warn('[ChatInterface] No prepared audio found for message:', messageId);
+      return;
+    }
+
+    // Stop any currently playing audio FIRST
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+      audioRef.current = null;
+    }
+    
+    // Also stop any other prepared audio that might be playing
+    preparedAudioRefs.forEach(({ audio: otherAudio }, otherId) => {
+      if (otherId !== messageId && !otherAudio.paused) {
+        otherAudio.pause();
+        otherAudio.currentTime = 0;
+      }
+    });
+
+    const { audio, url } = prepared;
+
+    try {
+      audioRef.current = audio;
+
+      // Handle audio events
+      audio.onplay = () => {
+        setPlayingMessageId(messageId);
+      };
+
+      audio.onended = () => {
+        setPlayingMessageId(null);
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+          audioUrlRef.current = null;
+        }
+        // Clean up prepared audio
+        setPreparedAudioRefs((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(messageId);
+          return newMap;
+        });
+        audioRef.current = null;
+      };
+
+      audio.onerror = (error) => {
+        console.error("Audio playback error:", error);
+        setPlayingMessageId(null);
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+          audioUrlRef.current = null;
+        }
+        // Clean up prepared audio
+        setPreparedAudioRefs((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(messageId);
+          return newMap;
+        });
+        audioRef.current = null;
+      };
+
+      audioUrlRef.current = url;
+
+      // Play the audio
+      await audio.play();
+      console.log('[ChatInterface] Playing prepared TTS audio for message:', messageId);
+    } catch (error) {
+      console.error("Error playing prepared audio:", error);
+      setPlayingMessageId(null);
+    }
+  };
+
+  // Handle TTS playback (manual or fallback)
   const handlePlayTTS = async (messageId: string, content: string) => {
     // If already playing this message, stop it
     if (playingMessageId === messageId && audioRef.current) {
@@ -455,10 +684,11 @@ export function ChatInterface({
         URL.revokeObjectURL(audioUrlRef.current);
         audioUrlRef.current = null;
       }
+      audioRef.current = null;
       return;
     }
 
-    // Stop any currently playing audio
+    // Stop any currently playing audio FIRST
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -466,7 +696,16 @@ export function ChatInterface({
         URL.revokeObjectURL(audioUrlRef.current);
         audioUrlRef.current = null;
       }
+      audioRef.current = null;
     }
+    
+    // Also stop any prepared audio that might be playing
+    preparedAudioRefs.forEach(({ audio: otherAudio }, otherId) => {
+      if (otherId !== messageId && !otherAudio.paused) {
+        otherAudio.pause();
+        otherAudio.currentTime = 0;
+      }
+    });
 
     try {
       setLoadingTtsMessageId(messageId);
@@ -708,34 +947,60 @@ export function ChatInterface({
     setSelectedStudyTool(toolId);
     onStudyToolClick?.(toolId);
     
-    const toolMessages: Record<string, string> = {
-      "chapter-summary": "Please provide a summary of this chapter.",
-      "important-notes": "What are the important notes for exams in this chapter?",
-      "revision-notes": "Generate revision notes for this chapter.",
-      "common-mistakes": "What are common mistakes students make in this chapter?",
-      "study-tricks": "Share some study tricks for this chapter.",
-      "create-definitions": "Create definitions and key concepts for this chapter.",
-      "create-question-paper": "Create a question paper based on this chapter.",
-    };
-    const message = toolMessages[toolId] || `Help me with ${toolId}`;
+    // Check if this tool requires a dialog
+    if (studyToolRequiresDialog(toolId)) {
+      setPendingToolId(toolId);
+      setStudyToolDialogOpen(true);
+      return;
+    }
+    
+    // For tools that don't require dialog, proceed with sending
+    sendStudyToolMessage(toolId);
+    setSelectedStudyTool(""); // Reset after sending
+  };
+
+  const sendStudyToolMessage = (toolId: string, dialogData?: StudyToolDialogData) => {
+    // Get display message (what user sees in UI) and backend message (what gets sent)
+    const displayMessage = getStudyToolDisplayMessage(toolId, dialogData);
+    const backendMessage = getStudyToolBackendMessage(toolId, bookTitle, chapterTitle, dialogData);
     
     // Auto-send message
     if (useSocketMessaging && materialId && session?.user?.id && canSendMessage) {
+      // Show the user-friendly display message in the UI
       const userMessage: ChatMessage = {
         id: `user-${Date.now()}`,
         role: "user",
-        content: message,
+        content: displayMessage,
         timestamp: new Date(),
       };
       
       setInternalMessages((prev) => [...prev, userMessage]);
       setInternalIsLoading(true);
-      socketSendMessage(message, materialId, session.user.id, settings.language);
+      
+      // Send the detailed backend message to the server
+      console.log("[ChatInterface] Sending study tool message:", {
+        toolId,
+        displayMessage,
+        backendMessage,
+        dialogData,
+        materialId,
+        userId: session.user.id,
+        language: settings.language,
+      });
+      
+      socketSendMessage(backendMessage, materialId, session.user.id, settings.language);
     } else if (externalOnSendMessage && canSendMessage) {
-      externalOnSendMessage(message);
+      // For external callbacks, send the backend message
+      externalOnSendMessage(backendMessage);
     }
-    
-    setSelectedStudyTool(""); // Reset after sending
+  };
+
+  const handleStudyToolDialogSubmit = (dialogData: StudyToolDialogData) => {
+    if (pendingToolId) {
+      sendStudyToolMessage(pendingToolId, dialogData);
+      setPendingToolId(null);
+      setSelectedStudyTool(""); // Reset after sending
+    }
   };
 
   // Use translated initial message if no custom initialMessage provided
@@ -789,7 +1054,28 @@ export function ChatInterface({
       {/* Header */}
       <div className="px-4 py-3 border-b border-brand-border bg-gradient-to-r from-brand-primary/5 to-brand-primary/10">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-brand-heading text-lg">iBookGPT®</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="font-semibold text-brand-heading text-lg">iBookGPT®</h2>
+            <button
+              onClick={() => {
+                const newSettings = { ...settings, autoPlayTTS: !settings.autoPlayTTS };
+                setSettings(newSettings);
+                saveStoredSettings(newSettings);
+              }}
+              className={`flex items-center justify-center h-9 w-9 rounded-lg transition-all duration-200 ${
+                settings.autoPlayTTS
+                  ? "bg-brand-primary text-white shadow-md hover:bg-brand-primary-hover hover:shadow-lg"
+                  : "bg-white border-2 border-brand-border text-brand-light-accent-1 hover:border-brand-primary hover:text-brand-primary hover:bg-brand-bg"
+              }`}
+              title={settings.autoPlayTTS ? "Disable auto-play TTS" : "Enable auto-play TTS"}
+            >
+              {settings.autoPlayTTS ? (
+                <Volume2 className="h-5 w-5" />
+              ) : (
+                <VolumeX className="h-5 w-5" />
+              )}
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             {/* Connection Status Indicator */}
             {connectionStatus === "connected" && (
@@ -935,6 +1221,29 @@ export function ChatInterface({
                           )
                         );
                       }
+                      
+                      // Auto-play TTS when typewriter completes (if enabled and audio is prepared)
+                      if (
+                        settings.autoPlayTTS && 
+                        !autoPlayedMessageIds.has(message.id) &&
+                        playingMessageId !== message.id
+                      ) {
+                        // Mark as auto-played to prevent duplicate playback
+                        setAutoPlayedMessageIds((prev) => new Set(prev).add(message.id));
+                        
+                        // Check if audio is already prepared
+                        const prepared = preparedAudioRefs.get(message.id);
+                        if (prepared) {
+                          // Play the prepared audio immediately
+                          playPreparedAudio(message.id);
+                        } else {
+                          // Fallback: if audio wasn't prepared, prepare and play now
+                          // (This shouldn't happen, but just in case)
+                          setTimeout(() => {
+                            handlePlayTTS(message.id, message.content);
+                          }, 300);
+                        }
+                      }
                     }}
                   />
                 ) : (
@@ -1077,6 +1386,26 @@ export function ChatInterface({
         settings={settings}
         onSettingsChange={setSettings}
       />
+
+      {/* Study Tool Dialog */}
+      {pendingToolId && (
+        <StudyToolDialog
+          open={studyToolDialogOpen}
+          onOpenChange={(open) => {
+            setStudyToolDialogOpen(open);
+            if (!open) {
+              setPendingToolId(null);
+              setSelectedStudyTool(""); // Reset selection when dialog closes
+            }
+          }}
+          toolId={pendingToolId}
+          toolLabel={
+            translatedStudyTools.find((tool) => tool.id === pendingToolId)?.label ||
+            pendingToolId
+          }
+          onSubmit={handleStudyToolDialogSubmit}
+        />
+      )}
     </div>
   );
 }
