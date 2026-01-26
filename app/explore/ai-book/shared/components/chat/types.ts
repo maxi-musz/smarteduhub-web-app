@@ -8,6 +8,8 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   isTyping?: boolean; // Whether this message is currently being typed
+  imageUrl?: string; // Base64 image data URL for user messages
+  imageCaption?: string; // Caption for the image
 }
 
 export interface StudyTool {
@@ -31,6 +33,12 @@ export interface ChatInterfaceProps {
   disclaimer?: string;
   materialId?: string; // Chapter ID for socket messaging
   useSocket?: boolean; // Whether to use socket for messaging (default: true)
-  programmaticMessage?: { message: string; displayContent?: string } | null; // Message to send programmatically
+  programmaticMessage?: { 
+    message: string; 
+    displayContent?: string; 
+    imageUrl?: string; 
+    imageCaption?: string;
+    metadata?: { page: number; coordinates?: { x: number; y: number; width: number; height: number } };
+  } | null; // Message to send programmatically
   onProgrammaticMessageSent?: () => void; // Callback when programmatic message is sent
 }

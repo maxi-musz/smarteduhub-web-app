@@ -22,6 +22,7 @@ export default function AIChatStudentBookPage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
+  const [programmaticMessage, setProgrammaticMessage] = useState<{ message: string; displayContent?: string; imageUrl?: string; imageCaption?: string; metadata?: { page: number; coordinates?: { x: number; y: number; width: number; height: number } } } | null>(null);
 
   // Fetch selected chapter details (only when a chapter is selected)
   const { data: selectedChapterData, isLoading: isChapterLoading } = useAIBookChapter(
@@ -108,6 +109,22 @@ export default function AIChatStudentBookPage() {
     setSelectedChapterId(chapterId);
     // Clear chat messages when chapter changes
     setChatMessages([]);
+  };
+
+  const handleProgrammaticMessageSent = () => {
+    // Clear the programmatic message after it's been sent
+    setProgrammaticMessage(null);
+  };
+
+  const handlePdfSnapshot = (imageDataUrl: string, caption?: string, metadata?: { page: number; coordinates?: { x: number; y: number; width: number; height: number } }) => {
+    // Send snapshot to chat with optional caption and metadata
+    setProgrammaticMessage({
+      message: caption || "Here's a snapshot from the PDF",
+      displayContent: caption || "PDF Snapshot",
+      imageUrl: imageDataUrl,
+      imageCaption: caption || "PDF Snapshot",
+      metadata: metadata, // Include metadata for backend processing
+    });
   };
 
   // Loading state
@@ -209,6 +226,7 @@ export default function AIChatStudentBookPage() {
         pdfUrl={pdfUrl || undefined}
         chapterPageStart={selectedChapterData?.pageStart || undefined}
         chapterPageEnd={selectedChapterData?.pageEnd || undefined}
+        onSnapshot={handlePdfSnapshot}
       >
         {/* Show message when no chapter is selected */}
         {!selectedChapterId && (
@@ -259,6 +277,8 @@ export default function AIChatStudentBookPage() {
         onStudyToolClick={handleStudyToolClick}
         materialId={selectedChapterId || undefined}
         useSocket={true}
+        programmaticMessage={programmaticMessage}
+        onProgrammaticMessageSent={handleProgrammaticMessageSent}
         // initialMessage will be auto-translated based on user's language preference
       />
     </div>

@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CustomPdfViewer } from "./CustomPdfViewer";
 
 export interface BookChapter {
   id: string;
@@ -34,6 +35,7 @@ export interface BookDisplayProps {
   chapterPageStart?: number; // Starting page for the selected chapter
   chapterPageEnd?: number; // Ending page for the selected chapter
   children?: React.ReactNode; // For custom content rendering (used if pdfUrl is not provided)
+  onSnapshot?: (imageDataUrl: string, caption?: string, metadata?: { page: number; coordinates?: { x: number; y: number; width: number; height: number } }) => void; // Callback for PDF snapshots
 }
 
 export function BookDisplay({
@@ -51,6 +53,7 @@ export function BookDisplay({
   pdfUrl,
   chapterPageStart,
   children,
+  onSnapshot,
 }: BookDisplayProps) {
   const [isConnectionWarningDismissed, setIsConnectionWarningDismissed] = useState(false);
 
@@ -150,18 +153,13 @@ export function BookDisplay({
 
         {/* Book Content */}
         {pdfUrl ? (
-          /* PDF Viewer */
+          /* Custom PDF Viewer */
           <div className="h-full w-full">
-            <iframe
-              src={
-                chapterPageStart
-                  ? `${pdfUrl}#page=${chapterPageStart}`
-                  : currentPage
-                    ? `${pdfUrl}#page=${currentPage}`
-                    : pdfUrl
-              }
-              className="w-full h-full border-0"
-              title="Book PDF Viewer"
+            <CustomPdfViewer
+              pdfUrl={pdfUrl}
+              initialPage={chapterPageStart || 1}
+              onSnapshot={onSnapshot}
+              className="h-full w-full"
             />
           </div>
         ) : (

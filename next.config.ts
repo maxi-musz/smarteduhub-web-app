@@ -104,7 +104,7 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  webpack(config) {
+  webpack(config, { isServer }) {
     // Ensure that the SVGR loader is applied to SVG files
     // when they are imported in JavaScript or TypeScript files.
     // This allows you to use SVGs as React components.

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { MarkdownRenderer } from "../MarkdownRenderer";
 import { TypewriterText } from "../TypewriterText";
 import { MessageActions } from "./MessageActions";
@@ -9,7 +10,6 @@ import type { ChatSettingsData } from "../ChatSettings";
 interface ChatMessageItemProps {
   message: ChatMessage;
   settings: ChatSettingsData;
-  useSocketMessaging: boolean;
   copiedMessageId: string | null;
   playingMessageId: string | null;
   loadingTtsMessageId: string | null;
@@ -26,7 +26,6 @@ interface ChatMessageItemProps {
 export function ChatMessageItem({
   message,
   settings,
-  useSocketMessaging,
   copiedMessageId,
   playingMessageId,
   loadingTtsMessageId,
@@ -86,7 +85,29 @@ export function ChatMessageItem({
             <MarkdownRenderer content={message.content} />
           )
         ) : (
-          <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+          <div className="space-y-2">
+            {message.imageUrl && (
+              <div className="rounded-lg overflow-hidden border border-white/20 max-w-full">
+                <Image
+                  src={message.imageUrl}
+                  alt={message.imageCaption || "PDF Snapshot"}
+                  width={800}
+                  height={600}
+                  className="max-w-full h-auto object-contain"
+                  style={{ maxHeight: "400px" }}
+                  unoptimized={message.imageUrl.startsWith("data:")}
+                />
+                {message.imageCaption && (
+                  <p className="text-xs text-white/80 mt-1 px-2 pb-1">
+                    {message.imageCaption}
+                  </p>
+                )}
+              </div>
+            )}
+            {message.content && (
+              <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+            )}
+          </div>
         )}
         {message.role === "assistant" && !isInitial && (
           <MessageActions

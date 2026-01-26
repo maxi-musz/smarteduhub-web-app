@@ -10,7 +10,6 @@ interface ChatMessagesProps {
   messages: ChatMessage[];
   settings: ChatSettingsData;
   useSocket: boolean;
-  useSocketMessaging: boolean;
   hasChapterSelected: boolean;
   isConnected: boolean;
   isLoading: boolean;
@@ -33,14 +32,12 @@ interface ChatMessagesProps {
   onFeedback: (messageId: string) => void;
   onPlayPreparedAudio: (messageId: string) => void;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
-  settings: ChatSettingsData;
 }
 
 export function ChatMessages({
   messages,
   settings,
   useSocket,
-  useSocketMessaging,
   hasChapterSelected,
   isConnected,
   isLoading,
@@ -80,7 +77,6 @@ export function ChatMessages({
           key={message.id}
           message={message}
           settings={settings}
-          useSocketMessaging={useSocketMessaging}
           copiedMessageId={copiedMessageId}
           playingMessageId={playingMessageId}
           loadingTtsMessageId={loadingTtsMessageId}

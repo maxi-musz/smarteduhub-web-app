@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { Loader2, AlertCircle, BookOpen, ArrowLeft } from "lucide-react";
-import { BookDisplay, ChatInterface, type BookChapter, type ChatMessage } from "../../shared/components";
+import { BookDisplay, ChatInterface, type BookChapter } from "../../shared/components";
 import { TeacherDashboard } from "../../shared/components/TeacherDashboard";
 import { useAIBookChapters, useAIBookChapter } from "@/hooks/explore/use-ai-book-chapters";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
@@ -25,7 +25,7 @@ export default function AIChatNonStudentBookPage() {
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [showChatUI, setShowChatUI] = useState(false);
   const [showBookView, setShowBookView] = useState(false);
-  const [programmaticMessage, setProgrammaticMessage] = useState<{ message: string; displayContent?: string } | null>(null);
+  const [programmaticMessage, setProgrammaticMessage] = useState<{ message: string; displayContent?: string; imageUrl?: string; imageCaption?: string; metadata?: { page: number; coordinates?: { x: number; y: number; width: number; height: number } } } | null>(null);
 
   // Fetch selected chapter details (only when a chapter is selected)
   const { data: selectedChapterData, isLoading: isChapterLoading } = useAIBookChapter(
@@ -115,6 +115,22 @@ export default function AIChatNonStudentBookPage() {
   const handleProgrammaticMessageSent = () => {
     // Clear the programmatic message after it's been sent
     setProgrammaticMessage(null);
+  };
+
+  const handlePdfSnapshot = (imageDataUrl: string, caption?: string, metadata?: { page: number; coordinates?: { x: number; y: number; width: number; height: number } }) => {
+    // Ensure chat UI is open
+    if (!showChatUI) {
+      setShowChatUI(true);
+    }
+
+    // Send snapshot to chat with optional caption and metadata
+    setProgrammaticMessage({
+      message: caption || "Here's a snapshot from the PDF",
+      displayContent: caption || "PDF Snapshot",
+      imageUrl: imageDataUrl,
+      imageCaption: caption || "PDF Snapshot",
+      metadata: metadata, // Include metadata for backend processing
+    });
   };
 
   const handleBack = () => {
@@ -259,6 +275,7 @@ export default function AIChatNonStudentBookPage() {
             pdfUrl={pdfUrl || undefined}
             chapterPageStart={selectedChapterData?.pageStart || undefined}
             chapterPageEnd={selectedChapterData?.pageEnd || undefined}
+            onSnapshot={handlePdfSnapshot}
           >
             {!selectedChapterId && (
               <div className="flex items-center justify-center h-full min-h-[400px]">

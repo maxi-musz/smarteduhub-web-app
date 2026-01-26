@@ -334,7 +334,6 @@ export function useTTS(settings: ChatSettingsData) {
   // Cleanup on unmount
   useEffect(() => {
     return cleanup;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

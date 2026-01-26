@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useExploreChatSocket, type MessageResponseData, type MessageErrorData } from "@/hooks/explore/use-explore-chat-socket";
-import { ChatSettings, getStoredSettings, saveStoredSettings, type ChatSettingsData } from "./ChatSettings";
+import { ChatSettings, getStoredSettings, type ChatSettingsData } from "./ChatSettings";
 import { getChatTranslations } from "./chatTranslations";
 import { getStudyToolDisplayMessage, getStudyToolBackendMessage, studyToolRequiresDialog, type StudyToolDialogData } from "./studyToolMessages";
 import { StudyToolDialog } from "./StudyToolDialog";
@@ -60,7 +60,6 @@ export function ChatInterface({
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const resizeRef = useRef<HTMLDivElement>(null);
 
   // Use TTS hook
   const {
@@ -196,9 +195,9 @@ export function ChatInterface({
       cleanupResponse();
       cleanupError();
     };
-  }, [useSocketMessaging, onMessageResponse, onMessageError, settings.autoPlayTTS, prepareTTSAudio]);
+  }, [useSocketMessaging, onMessageResponse, onMessageError, settings.autoPlayTTS, prepareTTSAudio, autoPlayedMessageIds]);
 
-  // Handle programmatic messages (from TeacherDashboard tools)
+  // Handle programmatic messages (from TeacherDashboard tools or PDF snapshots)
   const prevProgrammaticMessageRef = useRef<typeof programmaticMessage>(null);
   useEffect(() => {
     // Only send if programmaticMessage changed and is not null
@@ -209,22 +208,49 @@ export function ChatInterface({
       materialId && 
       session?.user?.id
     ) {
-      const { message, displayContent } = programmaticMessage;
+      const { message, displayContent, imageUrl, imageCaption, metadata } = programmaticMessage;
       const contentToShow = displayContent || message;
       
-      // Add user message to chat
+      // Add user message to chat (with image if provided)
       const userMessage: ChatMessage = {
         id: `user-${Date.now()}`,
         role: "user",
         content: contentToShow,
         timestamp: new Date(),
+        imageUrl: imageUrl,
+        imageCaption: imageCaption,
       };
       
       setInternalMessages((prev) => [...prev, userMessage]);
       setInternalIsLoading(true);
       
       // Send the actual backend message via socket
-      socketSendMessage(message, materialId, session.user.id, settings.language);
+      // For images, send structured data that backend can parse
+      // This allows backend to:
+      // 1. Extract metadata (page, coordinates)
+      // 2. Process image separately
+      // 3. Chunk OCR text before generating embeddings (to avoid token limit errors)
+      let messageToSend = message;
+      if (imageUrl && metadata) {
+        // Send structured snapshot data that backend can parse
+        // Backend should:
+        // - Parse this JSON structure
+        // - Extract the image and run OCR
+        // - Chunk the OCR text into smaller pieces (max 8000 tokens each)
+        // - Generate embeddings for each chunk separately
+        messageToSend = `[SNAPSHOT_START]${JSON.stringify({
+          type: 'pdf_snapshot',
+          page: metadata.page,
+          coordinates: metadata.coordinates,
+          caption: imageCaption || "PDF Snapshot",
+          imageData: imageUrl, // Full base64 image
+        })}[SNAPSHOT_END]`;
+      } else if (imageUrl) {
+        // Fallback: send with image data
+        // Backend needs to chunk OCR text to avoid token limit errors
+        messageToSend = `${message}\n\n[Image: ${imageCaption || "PDF Snapshot"}]\n${imageUrl}`;
+      }
+      socketSendMessage(messageToSend, materialId, session.user.id, settings.language);
       
       // Update ref to prevent duplicate sends
       prevProgrammaticMessageRef.current = programmaticMessage;
@@ -240,9 +266,6 @@ export function ChatInterface({
   // Use internal messages if using socket, otherwise use external messages
   const messages = useSocketMessaging ? internalMessages : externalMessages;
   const isLoading = useSocketMessaging ? internalIsLoading || socketIsTyping : externalIsLoading;
-  
-  // Check if chat should be disabled (no chapter selected)
-  const isChatDisabled = useSocketMessaging && !materialId;
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -513,7 +536,7 @@ export function ChatInterface({
     if (settings.autoPlayTTS && !autoPlayedMessageIds.has(messageId)) {
       setAutoPlayedMessageIds((prev) => new Set(prev).add(messageId));
     }
-  }, [useSocketMessaging, settings.autoPlayTTS, autoPlayedMessageIds]);
+  }, [useSocketMessaging, settings.autoPlayTTS, autoPlayedMessageIds, setAutoPlayedMessageIds]);
 
   // Use translated initial message if no custom initialMessage provided
   const defaultInitialMessage = chapterTitle
@@ -582,7 +605,6 @@ export function ChatInterface({
         messages={displayMessages}
         settings={settings}
         useSocket={useSocket}
-        useSocketMessaging={useSocketMessaging}
         hasChapterSelected={hasChapterSelected}
         isConnected={isConnected}
         isLoading={isLoading}
