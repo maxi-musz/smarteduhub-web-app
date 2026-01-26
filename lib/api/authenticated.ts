@@ -162,8 +162,14 @@ export async function makeAuthenticatedRequest<T = unknown>(
       );
     }
 
-    // Handle other errors
-    if (!response.ok) {
+    // Check if the response indicates success
+    // Some APIs use data.success flag even with non-200 status codes
+    const isSuccessByData = data && typeof data === "object" && data.success === true;
+    const isSuccessByStatus = response.ok; // 200-299 range
+
+    // Handle errors - only log and throw if it's actually an error
+    // If data.success is true, treat it as success even if status is not 200-299
+    if (!isSuccessByStatus && !isSuccessByData) {
       console.error(`[API Error] Request failed: ${method} ${fullUrl}`, {
         status: response.status,
         statusText: response.statusText,

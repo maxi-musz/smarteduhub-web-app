@@ -157,8 +157,19 @@ const ExplorePage = () => {
         `
       }} />
       <div className="py-6 space-y-6 bg-brand-bg relative">
-        {/* Explore AI Books Button - Top Right */}
-        <div className="absolute top-6 right-6 z-10">
+        {/* Explore Buttons - Top Right */}
+        <div className="absolute top-6 right-6 z-10 flex items-center gap-3">
+          <Button
+            onClick={() => router.push("/explore/exam-bodies")}
+            className="group relative overflow-hidden bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:from-blue-700 hover:via-cyan-700 hover:to-teal-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
+          >
+            <div className="absolute inset-0 shimmer-effect"></div>
+            <div className="relative flex items-center gap-3 z-10">
+              <span className="text-base font-semibold tracking-wide">
+                Explore Exam Bodies
+              </span>
+            </div>
+          </Button>
           <Button
             onClick={() => router.push("/explore/ai-book")}
             className="group relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"

@@ -27,6 +27,7 @@ const libraryOwnerTabs = [
     label: "AI Books",
     icon: FileText,
   },
+  { href: "/library-owner/exam-body", label: "Exam Body", icon: BookOpen },
   // { href: "/library-owner/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
@@ -107,6 +108,8 @@ export default function LibraryOwnerShell({
                   ? pathname.startsWith("/library-owner/subjects")
                   : tab.href === "/library-owner/general-materials"
                   ? pathname.startsWith("/library-owner/general-materials")
+                  : tab.href === "/library-owner/exam-body"
+                  ? pathname.startsWith("/library-owner/exam-body")
                   : pathname === tab.href;
               return (
                 <Link
@@ -174,6 +177,8 @@ export default function LibraryOwnerShell({
                 ? pathname.startsWith("/library-owner/subjects")
                 : href === "/library-owner/general-materials"
                 ? pathname.startsWith("/library-owner/general-materials")
+                : href === "/library-owner/exam-body"
+                ? pathname.startsWith("/library-owner/exam-body")
                 : pathname === href;
             return (
               <Link
