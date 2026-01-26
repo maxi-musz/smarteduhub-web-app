@@ -302,6 +302,108 @@ export const teacherToolMessages: Record<string, TeacherToolMessageConfig> = {
       }
     },
   },
+  "create-mcqs-teacher": {
+    displayMessage: "Create MCQs",
+    requiresDialog: true,
+    getDisplayMessage: (dialogData) => {
+      if (!dialogData) return "Create MCQs";
+      const numQuestions = dialogData.numberOfQuestions || 10;
+      const difficulty = dialogData.difficulty || "mixed";
+      let message = `Create MCQs with ${numQuestions} question${numQuestions !== 1 ? "s" : ""}`;
+      if (difficulty !== "mixed") {
+        message += `, difficulty: ${difficulty}`;
+      }
+      return message;
+    },
+    getBackendMessage: (bookTitle, chapterTitle, dialogData) => {
+      const numQuestions = dialogData?.numberOfQuestions || 10;
+      const difficulty = dialogData?.difficulty || "mixed";
+      const additionalNotes = dialogData?.additionalNotes;
+      
+      let message = "";
+      if (bookTitle && chapterTitle) {
+        message = `I am a teacher creating multiple choice questions (MCQs) for the book "${bookTitle}" in the chapter "${chapterTitle}". `;
+      } else if (chapterTitle) {
+        message = `I am a teacher creating multiple choice questions (MCQs) for the chapter "${chapterTitle}". `;
+      } else {
+        message = `I am a teacher creating multiple choice questions (MCQs) for the current chapter. `;
+      }
+      
+      message += `Please create ${numQuestions} professional MCQs. Each question should have 4 options (A, B, C, D) with only one correct answer. `;
+      
+      if (difficulty !== "mixed") {
+        message += `The questions should be of ${difficulty} difficulty level. `;
+      } else {
+        message += `Include a mix of easy, medium, and hard difficulty questions. `;
+      }
+      
+      if (additionalNotes) {
+        message += `Additional requirements: ${additionalNotes}. `;
+      }
+      
+      message += `Include the correct answer and clear explanations for why the correct answer is right and why the incorrect options are wrong. Ensure all questions are relevant, accurate, and appropriate for the chapter content.`;
+      
+      return message;
+    },
+  },
+  "create-questions-answers-teacher": {
+    displayMessage: "Create Question and Answers",
+    requiresDialog: true,
+    getDisplayMessage: (dialogData) => {
+      if (!dialogData) return "Create Question and Answers";
+      const numQuestions = dialogData.numberOfQuestions || 10;
+      const difficulty = dialogData.difficulty || "mixed";
+      const questionType = dialogData.questionType || "mixed";
+      let message = `Create Questions and Answers with ${numQuestions} question${numQuestions !== 1 ? "s" : ""}`;
+      if (difficulty !== "mixed") {
+        message += `, difficulty: ${difficulty}`;
+      }
+      if (questionType !== "mixed") {
+        const typeLabel = questionType === "short-answer" ? "short answer" : "long answer";
+        message += `, type: ${typeLabel}`;
+      }
+      return message;
+    },
+    getBackendMessage: (bookTitle, chapterTitle, dialogData) => {
+      const numQuestions = dialogData?.numberOfQuestions || 10;
+      const difficulty = dialogData?.difficulty || "mixed";
+      const questionType = dialogData?.questionType || "mixed";
+      const additionalNotes = dialogData?.additionalNotes;
+      
+      let message = "";
+      if (bookTitle && chapterTitle) {
+        message = `I am a teacher creating questions and answers for the book "${bookTitle}" in the chapter "${chapterTitle}". `;
+      } else if (chapterTitle) {
+        message = `I am a teacher creating questions and answers for the chapter "${chapterTitle}". `;
+      } else {
+        message = `I am a teacher creating questions and answers for the current chapter. `;
+      }
+      
+      message += `Please create ${numQuestions} professional question(s) with detailed answers. `;
+      
+      if (difficulty !== "mixed") {
+        message += `The questions should be of ${difficulty} difficulty level. `;
+      } else {
+        message += `Include a mix of easy, medium, and hard difficulty questions. `;
+      }
+      
+      if (questionType === "short-answer") {
+        message += `All questions should be short answer questions. `;
+      } else if (questionType === "long-answer") {
+        message += `All questions should be long answer/essay questions. `;
+      } else {
+        message += `Include a mix of short answer and long answer questions. `;
+      }
+      
+      if (additionalNotes) {
+        message += `Additional requirements: ${additionalNotes}. `;
+      }
+      
+      message += `Include detailed answers and explanations for each question. Ensure all questions are relevant, accurate, and appropriate for the chapter content.`;
+      
+      return message;
+    },
+  },
 };
 
 /**

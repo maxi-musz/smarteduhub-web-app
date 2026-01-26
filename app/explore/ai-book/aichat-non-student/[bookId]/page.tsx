@@ -22,11 +22,10 @@ export default function AIChatNonStudentBookPage() {
   const { data: chaptersData, isLoading: isChaptersLoading, error: chaptersError } = useAIBookChapters(bookId);
 
   // State
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [showChatUI, setShowChatUI] = useState(false);
   const [showBookView, setShowBookView] = useState(false);
+  const [programmaticMessage, setProgrammaticMessage] = useState<{ message: string; displayContent?: string } | null>(null);
 
   // Fetch selected chapter details (only when a chapter is selected)
   const { data: selectedChapterData, isLoading: isChapterLoading } = useAIBookChapter(
@@ -81,30 +80,10 @@ export default function AIChatNonStudentBookPage() {
     ? Math.round(((currentPage - selectedChapterData.pageStart + 1) / (selectedChapterData.pageEnd - selectedChapterData.pageStart + 1)) * 100)
     : 0;
 
-  const handleSendMessage = (message: string, displayContent?: string) => {
-    // Use display content if provided, otherwise use the message itself
-    const contentToShow = displayContent || message;
-    
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: "user",
-      content: contentToShow,
-      timestamp: new Date(),
-    };
-    setChatMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
-    // TODO: Replace with actual API call using the backend message
-    setTimeout(() => {
-      const aiMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "I'm here to help you with teaching this chapter. This is a placeholder response.",
-        timestamp: new Date(),
-      };
-      setChatMessages((prev) => [...prev, aiMessage]);
-      setIsLoading(false);
-    }, 1500);
+  const handleSendMessage = (message: string) => {
+    // This is only used when useSocket is false
+    // When useSocket is true, ChatInterface handles everything internally via socket
+    console.log("Message would be sent (non-socket mode):", message);
   };
 
   const handleStudyToolClick = (toolId: string) => {
@@ -112,13 +91,30 @@ export default function AIChatNonStudentBookPage() {
   };
 
   const handleToolClick = (backendMessage: string, displayMessage: string) => {
+    // Ensure a chapter is selected first
+    if (!selectedChapterId) {
+      // Show chat UI anyway so user can see they need to select a chapter
+      if (!showChatUI) {
+        setShowChatUI(true);
+      }
+      return;
+    }
+    
     // Ensure chat UI is open
     if (!showChatUI) {
       setShowChatUI(true);
     }
     
-    // Send message with display content (user sees displayMessage, backend receives backendMessage)
-    handleSendMessage(backendMessage, displayMessage);
+    // Trigger programmatic message send via ChatInterface
+    setProgrammaticMessage({
+      message: backendMessage,
+      displayContent: displayMessage,
+    });
+  };
+
+  const handleProgrammaticMessageSent = () => {
+    // Clear the programmatic message after it's been sent
+    setProgrammaticMessage(null);
   };
 
   const handleBack = () => {
@@ -127,7 +123,7 @@ export default function AIChatNonStudentBookPage() {
 
   const handleChapterChange = (chapterId: string) => {
     setSelectedChapterId(chapterId);
-    setChatMessages([]);
+    setProgrammaticMessage(null); // Clear any pending programmatic messages
   };
 
   // Get book title (using default like student page)
@@ -210,13 +206,26 @@ export default function AIChatNonStudentBookPage() {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Label htmlFor="ai-tutor-toggle" className="text-sm font-medium text-brand-heading cursor-pointer">
+            <Label 
+              htmlFor="ai-tutor-toggle" 
+              className={`text-sm font-medium ${
+                selectedChapterId 
+                  ? "text-brand-heading cursor-pointer" 
+                  : "text-gray-400 cursor-not-allowed"
+              }`}
+            >
               AI Tutor
             </Label>
             <Switch
               id="ai-tutor-toggle"
               checked={showChatUI}
-              onCheckedChange={setShowChatUI}
+              onCheckedChange={(checked) => {
+                // Only allow toggle if chapter is selected
+                if (selectedChapterId) {
+                  setShowChatUI(checked);
+                }
+              }}
+              disabled={!selectedChapterId}
             />
           </div>
           <Button
@@ -307,12 +316,12 @@ export default function AIChatNonStudentBookPage() {
           <ChatInterface
             bookTitle={bookTitle}
             chapterTitle={selectedChapterData?.title}
-            messages={chatMessages}
             onSendMessage={handleSendMessage}
-            isLoading={isLoading}
             onStudyToolClick={handleStudyToolClick}
             materialId={selectedChapterId || undefined}
             useSocket={true}
+            programmaticMessage={programmaticMessage}
+            onProgrammaticMessageSent={handleProgrammaticMessageSent}
           />
         )}
       </div>

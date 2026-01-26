@@ -42,6 +42,8 @@ export function ChatInterface({
   disclaimer,
   materialId,
   useSocket = true,
+  programmaticMessage,
+  onProgrammaticMessageSent,
 }: ChatInterfaceProps) {
   const { data: session } = useSession();
   const [inputMessage, setInputMessage] = useState("");
@@ -196,9 +198,51 @@ export function ChatInterface({
     };
   }, [useSocketMessaging, onMessageResponse, onMessageError, settings.autoPlayTTS, prepareTTSAudio]);
 
+  // Handle programmatic messages (from TeacherDashboard tools)
+  const prevProgrammaticMessageRef = useRef<typeof programmaticMessage>(null);
+  useEffect(() => {
+    // Only send if programmaticMessage changed and is not null
+    if (
+      programmaticMessage && 
+      programmaticMessage !== prevProgrammaticMessageRef.current &&
+      useSocketMessaging && 
+      materialId && 
+      session?.user?.id
+    ) {
+      const { message, displayContent } = programmaticMessage;
+      const contentToShow = displayContent || message;
+      
+      // Add user message to chat
+      const userMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        role: "user",
+        content: contentToShow,
+        timestamp: new Date(),
+      };
+      
+      setInternalMessages((prev) => [...prev, userMessage]);
+      setInternalIsLoading(true);
+      
+      // Send the actual backend message via socket
+      socketSendMessage(message, materialId, session.user.id, settings.language);
+      
+      // Update ref to prevent duplicate sends
+      prevProgrammaticMessageRef.current = programmaticMessage;
+      
+      // Notify parent that message was sent
+      onProgrammaticMessageSent?.();
+    } else if (!programmaticMessage) {
+      // Reset ref when message is cleared
+      prevProgrammaticMessageRef.current = null;
+    }
+  }, [programmaticMessage, useSocketMessaging, materialId, session?.user?.id, socketSendMessage, settings.language, onProgrammaticMessageSent]);
+
   // Use internal messages if using socket, otherwise use external messages
   const messages = useSocketMessaging ? internalMessages : externalMessages;
   const isLoading = useSocketMessaging ? internalIsLoading || socketIsTyping : externalIsLoading;
+  
+  // Check if chat should be disabled (no chapter selected)
+  const isChatDisabled = useSocketMessaging && !materialId;
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

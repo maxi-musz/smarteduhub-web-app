@@ -31,4 +31,6 @@ export interface ChatInterfaceProps {
   disclaimer?: string;
   materialId?: string; // Chapter ID for socket messaging
   useSocket?: boolean; // Whether to use socket for messaging (default: true)
+  programmaticMessage?: { message: string; displayContent?: string } | null; // Message to send programmatically
+  onProgrammaticMessageSent?: () => void; // Callback when programmatic message is sent
 }

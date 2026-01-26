@@ -17,6 +17,9 @@ import {
   Wrench,
   Sparkles,
   BookOpen,
+  ClipboardCheck,
+  HelpCircle,
+  ChevronRight,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -153,6 +156,37 @@ const teachTools: Tool[] = [
   },
 ];
 
+const assessTools: Tool[] = [
+  {
+    id: "create-mcqs-teacher",
+    label: "Create MCQs",
+    icon: <ClipboardCheck className="h-4 w-4" />,
+    accentColor: "text-gray-600",
+    gradient: "from-gray-500 to-gray-600",
+  },
+  {
+    id: "create-questions-answers-teacher",
+    label: "Create Question and Answers",
+    icon: <ClipboardCheck className="h-4 w-4" />,
+    accentColor: "text-red-500",
+    gradient: "from-red-500 to-red-600",
+  },
+  {
+    id: "question-bank",
+    label: "Question Bank",
+    icon: <HelpCircle className="h-4 w-4" />,
+    accentColor: "text-red-500",
+    gradient: "from-red-500 to-red-600",
+  },
+  {
+    id: "analytics",
+    label: "Analytics",
+    icon: <BarChart3 className="h-4 w-4" />,
+    accentColor: "text-purple-500",
+    gradient: "from-purple-500 to-purple-600",
+  },
+];
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -183,6 +217,11 @@ export function TeacherDashboard({
   const [pendingToolId, setPendingToolId] = useState<string | null>(null);
 
   const handleToolClick = (toolId: string) => {
+    // Require chapter selection first
+    if (!selectedChapterId) {
+      return; // Don't allow tool clicks without chapter selection
+    }
+
     // Check if this tool requires a dialog
     if (teacherToolRequiresDialog(toolId)) {
       setPendingToolId(toolId);
@@ -214,28 +253,44 @@ export function TeacherDashboard({
     return getTeacherToolDisplayMessage(toolId);
   };
 
-  const ToolCard = ({ tool, index }: { tool: Tool; index?: number }) => (
+  const isChapterSelected = !!selectedChapterId;
+
+  const ToolCard = ({ tool, index }: { tool: Tool; index?: number }) => {
+    const isDisabled = !isChapterSelected;
+    
+    return (
     <motion.button
       initial="hidden"
       animate="visible"
       variants={itemVariants}
       transition={{ duration: 0.5, ease: "easeOut" }}
       custom={index}
-      onClick={() => handleToolClick(tool.id)}
-      className="group relative flex flex-col items-center justify-center gap-2 p-3 bg-white rounded-lg border border-brand-border shadow-sm hover:shadow-md transition-all duration-300 min-h-[90px] overflow-hidden"
+      onClick={() => !isDisabled && handleToolClick(tool.id)}
+      disabled={isDisabled}
+      className={`group relative flex flex-col items-center justify-center gap-1.5 p-2 bg-white rounded-lg border border-brand-border shadow-sm transition-all duration-300 min-h-[70px] w-full overflow-hidden ${
+        isDisabled 
+          ? "opacity-50 cursor-not-allowed" 
+          : "hover:shadow-md cursor-pointer"
+      }`}
     >
-      {/* Gradient background on hover */}
-      <div
-        className={`absolute inset-0 bg-gradient-to-br ${tool.gradient || "from-brand-primary to-brand-primary"} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
-      />
+      {/* Gradient background on hover - only when enabled */}
+      {!isDisabled && (
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${tool.gradient || "from-brand-primary to-brand-primary"} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
+        />
+      )}
       
-      {/* Icon container with gradient */}
+      {/* Icon container with solid background for better visibility */}
       <div
-        className={`relative z-10 p-2 rounded-lg bg-gradient-to-br ${tool.gradient || "from-brand-primary/10 to-brand-primary/5"} group-hover:from-brand-primary/20 group-hover:to-brand-primary/10 transition-all duration-300`}
+        className={`relative z-10 p-1.5 rounded-lg ${
+          isDisabled 
+            ? "bg-gray-100" 
+            : "bg-brand-primary/10 group-hover:bg-brand-primary/15"
+        } transition-all duration-300`}
       >
         <motion.div
           className={`${tool.accentColor || "text-brand-primary"}`}
-          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileHover={!isDisabled ? { scale: 1.1, rotate: 5 } : {}}
           transition={{ type: "spring", stiffness: 300 }}
         >
           {tool.icon}
@@ -243,68 +298,81 @@ export function TeacherDashboard({
       </div>
       
       {/* Label */}
-      <span className="relative z-10 text-xs font-semibold text-brand-heading text-center leading-tight">
+      <span className={`relative z-10 text-[11px] font-semibold text-center leading-tight ${
+        isDisabled ? "text-gray-400" : "text-brand-heading"
+      }`}>
         {tool.label}
       </span>
       
       {/* Description for start here tools */}
       {tool.description && (
-        <span className="relative z-10 text-[10px] text-gray-500 text-center mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 line-clamp-2">
+        <span className={`relative z-10 text-[9px] text-center mt-0.5 transition-opacity duration-300 line-clamp-2 ${
+          isDisabled 
+            ? "text-gray-400 opacity-60" 
+            : "text-gray-500 opacity-0 group-hover:opacity-100"
+        }`}>
           {tool.description}
         </span>
       )}
       
-      {/* Hover border effect */}
-      <div className="absolute inset-0 rounded-lg border-2 border-transparent group-hover:border-brand-primary/30 transition-all duration-300" />
+      {/* Hover border effect - only when enabled */}
+      {!isDisabled && (
+        <div className="absolute inset-0 rounded-lg border-2 border-transparent group-hover:border-brand-primary/30 transition-all duration-300" />
+      )}
     </motion.button>
-  );
+    );
+  };
 
   return (
     <div className="flex-1 overflow-y-auto h-full bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
-        {/* Hero Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-6"
-        >
-          <div className="flex flex-col items-center justify-center gap-2 mb-3">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-              className="relative"
-            >
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-brand-primary via-brand-primary to-purple-600 flex items-center justify-center shadow-md shadow-brand-primary/20">
-                <GraduationCap className="h-6 w-6 text-white" />
-              </div>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
+        {/* Hero Header Section - Centered */}
+        <div className="max-w-7xl mx-auto mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            <div className="flex flex-col items-center justify-center gap-2 mb-3">
               <motion.div
-                className="absolute -top-0.5 -right-0.5"
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                className="relative"
               >
-                <Sparkles className="h-4 w-4 text-yellow-400" />
+                <div className="h-12 w-12 rounded-xl bg-brand-primary flex items-center justify-center shadow-md shadow-brand-primary/20">
+                  <GraduationCap className="h-6 w-6 text-white" />
+                </div>
+                <motion.div
+                  className="absolute -top-0.5 -right-0.5"
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  <Sparkles className="h-4 w-4 text-yellow-400" />
+                </motion.div>
               </motion.div>
-            </motion.div>
-            
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-brand-heading mb-1 bg-gradient-to-r from-brand-primary to-purple-600 bg-clip-text text-transparent">
-                Teacher AI Assistant
-              </h1>
-              <p className="text-gray-600 text-sm">
-                Empower your teaching with AI-powered tools
-              </p>
+              
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-brand-heading mb-1 bg-gradient-to-r from-brand-primary to-purple-600 bg-clip-text text-transparent">
+                  Teacher AI Assistant
+                </h1>
+                <p className="text-gray-600 text-sm">
+                  Empower your teaching with AI-powered tools
+                </p>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
+        {/* All content below header is left-aligned - starts from left edge */}
+        <div className="w-full">
         {/* Chapter Selection Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-6"
+          className="mb-6 w-full"
         >
           <Card className="p-3 bg-white/80 backdrop-blur-sm border-brand-border shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -314,10 +382,12 @@ export function TeacherDashboard({
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-brand-heading block">
-                    Select Chapter
+                    Select Chapter <span className="text-red-500">*</span>
                   </label>
                   <p className="text-[10px] text-gray-500 mt-0.5">
-                    Choose a chapter to get started
+                    {isChapterSelected 
+                      ? "Chapter selected - tools are now available"
+                      : "Choose a chapter to enable all tools"}
                   </p>
                 </div>
               </div>
@@ -335,6 +405,19 @@ export function TeacherDashboard({
               </select>
             </div>
           </Card>
+          
+          {/* Warning message when no chapter selected */}
+          {!isChapterSelected && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg w-full"
+            >
+              <p className="text-xs text-amber-800 font-medium text-left">
+                ⚠️ Please select a chapter first to access all teaching tools
+              </p>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Start Here Section */}
@@ -342,30 +425,36 @@ export function TeacherDashboard({
           initial="hidden"
           animate="visible"
           variants={containerVariants}
-          className="mb-6"
+          className="mb-6 w-full"
         >
-          <motion.div
-            variants={itemVariants}
-            className="flex items-center gap-2 mb-3"
-          >
-            <div className="p-1.5 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 shadow-sm">
-              <Rocket className="h-4 w-4 text-white" />
+          <Card className="p-4 bg-gradient-to-br from-orange-50 via-orange-50/50 to-white border-2 border-orange-200/50 shadow-md">
+            <div className="flex items-center gap-2 mb-4 w-full">
+              <div className="p-1.5 rounded-lg bg-orange-500 shadow-sm">
+                <Rocket className="h-4 w-4 text-white" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-bold text-brand-heading flex items-center gap-2">
+                  Start Here
+                  <ChevronRight className="h-4 w-4 text-orange-500" />
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Essential tools to begin your teaching journey
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-brand-heading">
-                Start Here
-              </h2>
-              <p className="text-xs text-gray-600 mt-0.5">
-                Essential tools to begin your teaching journey
-              </p>
+            
+            {/* Visual connector line */}
+            <div className="relative mb-3">
+              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-orange-400 to-transparent"></div>
+              <div className="pl-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 gap-2 lg:gap-2">
+                  {startHereTools.map((tool, index) => (
+                    <ToolCard key={tool.id} tool={tool} index={index} />
+                  ))}
+                </div>
+              </div>
             </div>
-          </motion.div>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 gap-2 lg:gap-3">
-            {startHereTools.map((tool, index) => (
-              <ToolCard key={tool.id} tool={tool} index={index} />
-            ))}
-          </div>
+          </Card>
         </motion.div>
 
         {/* Advanced Tools Section */}
@@ -383,7 +472,7 @@ export function TeacherDashboard({
             <AccordionItem value="advanced" className="border-none">
               <AccordionTrigger className="hover:no-underline py-3 px-3 rounded-lg bg-white/80 backdrop-blur-sm border border-brand-border shadow-sm hover:shadow-md transition-all">
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-gradient-to-br from-brand-primary to-purple-600">
+                  <div className="p-1.5 rounded-lg bg-brand-primary">
                     <Wrench className="h-4 w-4 text-white" />
                   </div>
                   <div className="text-left">
@@ -402,23 +491,35 @@ export function TeacherDashboard({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
+                  className="relative"
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="p-1.5 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-500">
-                      <Lightbulb className="h-4 w-4 text-white" />
+                  <Card className="p-4 bg-gradient-to-br from-amber-50 via-amber-50/30 to-white border-2 border-amber-200/50 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="p-1.5 rounded-lg bg-amber-500 shadow-sm">
+                        <Lightbulb className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-base font-bold text-brand-heading flex items-center gap-2">
+                          Plan
+                          <ChevronRight className="h-3.5 w-3.5 text-amber-500" />
+                        </h3>
+                        <p className="text-xs text-gray-600 mt-0.5">
+                          Tools for lesson planning and preparation
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-base font-bold text-brand-heading">Plan</h3>
-                      <p className="text-xs text-gray-600 mt-0.5">
-                        Tools for lesson planning and preparation
-                      </p>
+                    {/* Visual connector line */}
+                    <div className="relative mb-3">
+                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-amber-400 to-transparent"></div>
+                      <div className="pl-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2 lg:gap-2">
+                          {planTools.map((tool, index) => (
+                            <ToolCard key={tool.id} tool={tool} index={index} />
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2 lg:gap-3">
-                    {planTools.map((tool, index) => (
-                      <ToolCard key={tool.id} tool={tool} index={index} />
-                    ))}
-                  </div>
+                  </Card>
                 </motion.div>
 
                 {/* Teach Sub-section */}
@@ -426,28 +527,77 @@ export function TeacherDashboard({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
+                  className="relative"
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500">
-                      <Monitor className="h-4 w-4 text-white" />
+                  <Card className="p-4 bg-gradient-to-br from-blue-50 via-blue-50/30 to-white border-2 border-blue-200/50 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="p-1.5 rounded-lg bg-blue-500 shadow-sm">
+                        <Monitor className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-base font-bold text-brand-heading flex items-center gap-2">
+                          Teach
+                          <ChevronRight className="h-3.5 w-3.5 text-blue-500" />
+                        </h3>
+                        <p className="text-xs text-gray-600 mt-0.5">
+                          Resources for engaging classroom instruction
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-base font-bold text-brand-heading">Teach</h3>
-                      <p className="text-xs text-gray-600 mt-0.5">
-                        Resources for engaging classroom instruction
-                      </p>
+                    {/* Visual connector line */}
+                    <div className="relative mb-3">
+                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 to-transparent"></div>
+                      <div className="pl-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2 lg:gap-2">
+                          {teachTools.map((tool, index) => (
+                            <ToolCard key={tool.id} tool={tool} index={index} />
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2 lg:gap-3">
-                    {teachTools.map((tool, index) => (
-                      <ToolCard key={tool.id} tool={tool} index={index} />
-                    ))}
-                  </div>
+                  </Card>
+                </motion.div>
+
+                {/* Assess Sub-section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="relative"
+                >
+                  <Card className="p-4 bg-gradient-to-br from-purple-50 via-purple-50/30 to-white border-2 border-purple-200/50 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="p-1.5 rounded-lg bg-purple-500 shadow-sm">
+                        <ClipboardCheck className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-base font-bold text-brand-heading flex items-center gap-2">
+                          Assess
+                          <ChevronRight className="h-3.5 w-3.5 text-purple-500" />
+                        </h3>
+                        <p className="text-xs text-gray-600 mt-0.5">
+                          Tools for assessment and evaluation
+                        </p>
+                      </div>
+                    </div>
+                    {/* Visual connector line */}
+                    <div className="relative mb-3">
+                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 to-transparent"></div>
+                      <div className="pl-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2 lg:gap-2">
+                          {assessTools.map((tool, index) => (
+                            <ToolCard key={tool.id} tool={tool} index={index} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
                 </motion.div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
         </motion.div>
+        </div>
       </div>
 
       {/* Teacher Tool Dialog */}
