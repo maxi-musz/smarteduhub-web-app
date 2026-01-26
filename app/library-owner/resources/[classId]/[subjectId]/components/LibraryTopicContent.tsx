@@ -161,17 +161,7 @@ export const LibraryTopicContent = ({ topicId, subjectId, canUpload = true }: Li
                 Upload Material
               </Button>
             )}
-            {canUpload && activeTab === "links" && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setIsLinkCreateModalOpen(true)}
-                className="ml-4"
-              >
-                <ExternalLink className="h-4 w-4 mr-1" />
-                Add Link
-              </Button>
-            )}
+            {/* Link attachment feature coming soon - button removed */}
           </div>
 
           <TabsContent value="videos" className="space-y-3 mt-4">
@@ -322,66 +312,11 @@ export const LibraryTopicContent = ({ topicId, subjectId, canUpload = true }: Li
           </TabsContent>
 
           <TabsContent value="links" className="space-y-3 mt-4">
-            {content.links.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">No links available</p>
-                {canUpload && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setIsLinkCreateModalOpen(true)}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    Add Your First Link
-                  </Button>
-                )}
-              </div>
-            ) : (
-              content.links.map((link: LibraryTopicLink) => (
-                <Card key={link.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="p-3 bg-green-100 rounded-lg">
-                          <ExternalLink className="h-6 w-6 text-green-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-lg mb-1 truncate">{link.title}</h4>
-                          {link.description && (
-                            <p className="text-sm text-gray-600 mb-2 line-clamp-2">{link.description}</p>
-                          )}
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <a
-                              href={link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline truncate max-w-xs"
-                            >
-                              {link.domain}
-                            </a>
-                            {link.linkType && <Badge variant="outline">{link.linkType}</Badge>}
-                          </div>
-                        </div>
-                      </div>
-                      {canUpload && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setLinkToDelete(link);
-                              setIsDeleteLinkModalOpen(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-600" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
+            <div className="text-center py-12">
+              <ExternalLink className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600 text-lg font-medium mb-2">Link Attachment Coming Soon</p>
+              <p className="text-sm text-gray-500">This feature is currently under development</p>
+            </div>
           </TabsContent>
         </Tabs>
 
