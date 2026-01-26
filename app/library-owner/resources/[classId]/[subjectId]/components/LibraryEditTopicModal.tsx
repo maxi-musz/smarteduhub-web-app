@@ -24,6 +24,7 @@ interface LibraryEditTopicModalProps {
   onClose: () => void;
   topicId: string;
   subjectId: string;
+  classId?: string;
   totalTopics: number;
   currentOrder: number;
 }
@@ -33,6 +34,7 @@ export const LibraryEditTopicModal = ({
   onClose,
   topicId,
   subjectId: _subjectId,
+  classId,
   totalTopics,
   currentOrder,
 }: LibraryEditTopicModalProps) => {
@@ -162,6 +164,8 @@ export const LibraryEditTopicModal = ({
           order: order !== currentOrder ? order : undefined,
           is_active: isActive,
         },
+        classId, // Pass classId for proper query invalidation
+        subjectId: _subjectId, // Pass subjectId for proper query invalidation
       });
 
       toast.success("Topic updated successfully");
@@ -205,6 +209,12 @@ export const LibraryEditTopicModal = ({
                     setErrors((prev) => ({ ...prev, title: undefined }));
                   }
                 }}
+                onBlur={(e) => {
+                  const formatted = formatTopicTitle(e.target.value);
+                  if (formatted !== e.target.value) {
+                    setTitle(formatted);
+                  }
+                }}
                 placeholder="e.g., Introduction to Variables"
                 maxLength={200}
                 required
@@ -227,6 +237,12 @@ export const LibraryEditTopicModal = ({
                   setDescription(e.target.value);
                   if (errors.description) {
                     setErrors((prev) => ({ ...prev, description: undefined }));
+                  }
+                }}
+                onBlur={(e) => {
+                  const formatted = formatDescription(e.target.value);
+                  if (formatted !== e.target.value) {
+                    setDescription(formatted);
                   }
                 }}
                 placeholder="Brief description of what this topic covers..."

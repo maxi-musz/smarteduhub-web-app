@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { authenticatedApi, AuthenticatedApiError } from "@/lib/api/authenticated";
 import { logger } from "@/lib/logger";
 import { useLibraryClassResources, Subject, Topic } from "./use-library-class-resources";
+import { useLibrarySubjectTopics } from "./use-library-topics";
 
 // Types matching teacher comprehensive subject structure
 export interface LibrarySubjectTopic {
@@ -41,7 +43,7 @@ export interface LibrarySubjectData {
 export function useLibrarySubject(classId: string, subjectId: string) {
   const { data: classResources, isLoading, error } = useLibraryClassResources(classId);
 
-  return useQuery<LibrarySubjectData, AuthenticatedApiError>({
+  const query = useQuery<LibrarySubjectData, AuthenticatedApiError>({
     queryKey: ["library-owner", "subject", classId, subjectId],
     queryFn: async () => {
       if (!classResources) {
@@ -105,4 +107,6 @@ export function useLibrarySubject(classId: string, subjectId: string) {
     retry: 1,
     refetchOnWindowFocus: false,
   });
+
+  return query;
 }

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authenticatedApi, AuthenticatedApiError } from "@/lib/api/authenticated";
 import { logger } from "@/lib/logger";
 
@@ -13,6 +13,13 @@ export interface LibraryTopicData {
   is_active: boolean;
   createdAt: string;
   updatedAt: string;
+  resourceCounts?: {
+    totalVideos: number;
+    totalMaterials: number;
+    totalLinks: number;
+    totalAssignments: number;
+    totalResources: number;
+  };
   subject?: {
     id: string;
     name: string;
@@ -24,12 +31,32 @@ export interface LibraryTopicData {
   };
 }
 
+// Response type for GET /library/subject/topic?subjectId={subjectId}
+export interface GetTopicsBySubjectResponse {
+  success: boolean;
+  message: string;
+  data: {
+    subject: {
+      id: string;
+      name: string;
+      code: string | null;
+      class: {
+        id: string;
+        name: string;
+      };
+    };
+    topics: LibraryTopicData[];
+    count: number;
+  };
+}
+
 export interface CreateLibraryTopicDto {
   subjectId: string;
   title: string;
   description?: string;
   order?: number;
   is_active?: boolean;
+  classId?: string; // Optional classId for proper query invalidation
 }
 
 export interface UpdateLibraryTopicDto {
@@ -39,8 +66,51 @@ export interface UpdateLibraryTopicDto {
   is_active?: boolean;
 }
 
+export interface UpdateLibraryTopicVariables {
+  topicId: string;
+  data: UpdateLibraryTopicDto;
+  classId?: string; // Optional classId for proper query invalidation
+  subjectId?: string; // Optional subjectId for proper query invalidation
+}
+
 // Inner data type for the authenticated API response
 export type LibraryTopicApiResponse = LibraryTopicData;
+
+/**
+ * Hook to fetch topics for a specific subject
+ * GET /library/subject/topic?subjectId={subjectId}
+ */
+export function useLibrarySubjectTopics(subjectId: string) {
+  return useQuery<GetTopicsBySubjectResponse["data"], AuthenticatedApiError>({
+    queryKey: ["library-owner", "subject-topics", subjectId],
+    queryFn: async () => {
+      console.log("📥 [FETCH TOPICS] GET /library/subject/topic?subjectId=" + subjectId);
+
+      const response = await authenticatedApi.get<GetTopicsBySubjectResponse["data"]>(
+        `/library/subject/topic?subjectId=${subjectId}`
+      );
+
+      if (response.success && response.data) {
+        console.log("📥 [FETCH TOPICS] Response:", {
+          status: response.statusCode || 200,
+          topicsCount: response.data.count || response.data.topics?.length || 0,
+        });
+        return response.data;
+      }
+
+      throw new AuthenticatedApiError(
+        response.message || "Failed to fetch topics",
+        response.statusCode || 400,
+        response
+      );
+    },
+    enabled: !!subjectId,
+    staleTime: 0, // Always refetch to get latest data
+    gcTime: 5 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
 
 // Create Topic Mutation (new API - no chapters)
 export function useCreateLibraryTopic() {
@@ -48,17 +118,19 @@ export function useCreateLibraryTopic() {
 
   return useMutation<LibraryTopicApiResponse, AuthenticatedApiError, CreateLibraryTopicDto>({
     mutationFn: async (data) => {
-      logger.info("[useCreateLibraryTopic] Creating topic", { data });
+      console.log("🔵 [CREATE TOPIC] POST /library/subject/topic/createtopic");
       
       const response = await authenticatedApi.post<LibraryTopicApiResponse>(
         "/library/subject/topic/createtopic",
         data
       );
 
+      console.log("🟢 [CREATE TOPIC] Response:", {
+        status: response.statusCode,
+        topicId: response.data?.id,
+      });
+
       if (response.success && response.data) {
-        logger.info("[useCreateLibraryTopic] Topic created successfully", {
-          topicId: response.data.id,
-        });
         return response.data;
       }
 
@@ -68,30 +140,53 @@ export function useCreateLibraryTopic() {
         response
       );
     },
-    onSuccess: (_, variables) => {
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner"],
-      });
-      // Specifically invalidate subject detail query
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner", "subject-detail", variables.subjectId],
-      });
-      // Invalidate resources query (used by subject detail)
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner", "resources"],
-      });
-      // Invalidate class resources
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner", "class-resources"],
-      });
-      // Invalidate subject query
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner", "subject", variables.subjectId],
-      });
-      logger.info("[useCreateLibraryTopic] Cache invalidated", {
-        subjectId: variables.subjectId,
-      });
+    onSuccess: async (response, variables) => {
+      // Get classId from variables (passed explicitly) or from response
+      let classId = variables.classId || response?.subject?.class?.id;
+      
+      // If classId is still undefined, try to find it from active queries
+      if (!classId) {
+        const allQueries = queryClient.getQueryCache().getAll();
+        // Look for class-resources queries to extract classId
+        const classResourcesQuery = allQueries.find(q => 
+          q.queryKey[0] === "library-owner" && 
+          q.queryKey[1] === "class-resources" &&
+          q.queryKey[2] // has classId
+        );
+        if (classResourcesQuery && classResourcesQuery.queryKey[2]) {
+          classId = classResourcesQuery.queryKey[2] as string;
+        }
+        
+        // Also try to find from subject queries
+        if (!classId) {
+          const subjectQuery = allQueries.find(q => 
+            q.queryKey[0] === "library-owner" && 
+            q.queryKey[1] === "subject" &&
+            q.queryKey[3] === variables.subjectId &&
+            q.queryKey[2] // has classId
+          );
+          if (subjectQuery && subjectQuery.queryKey[2]) {
+            classId = subjectQuery.queryKey[2] as string;
+          }
+        }
+      }
+      
+      // Simple approach: invalidate and refetch the topics query
+      const queryKey = ["library-owner", "subject-topics", variables.subjectId];
+      console.log("🔄 [CREATE TOPIC] Refetching topics list", { subjectId: variables.subjectId });
+      
+      // Invalidate to mark as stale
+      queryClient.invalidateQueries({ queryKey });
+      
+      // Force refetch
+      await queryClient.refetchQueries({ queryKey });
+      
+      console.log("✅ [CREATE TOPIC] Topics list refetched - reloading page to ensure UI updates");
+      
+      // Reload the page to ensure UI updates (simple and reliable)
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     },
   });
 }
@@ -103,20 +198,22 @@ export function useUpdateLibraryTopic() {
   return useMutation<
     LibraryTopicApiResponse,
     AuthenticatedApiError,
-    { topicId: string; data: UpdateLibraryTopicDto }
+    UpdateLibraryTopicVariables
   >({
     mutationFn: async ({ topicId, data }) => {
-      logger.info("[useUpdateLibraryTopic] Updating topic", { topicId, data });
+      console.log(`🟡 [UPDATE TOPIC] PATCH /library/subject/topic/updatetopic/${topicId}`);
       
       const response = await authenticatedApi.patch<LibraryTopicApiResponse>(
         `/library/subject/topic/updatetopic/${topicId}`,
         data
       );
 
+      console.log("🟢 [UPDATE TOPIC] Response:", {
+        status: response.statusCode,
+        topicId: response.data?.id,
+      });
+
       if (response.success && response.data) {
-        logger.info("[useUpdateLibraryTopic] Topic updated successfully", {
-          topicId: response.data.id,
-        });
         return response.data;
       }
 
@@ -126,46 +223,108 @@ export function useUpdateLibraryTopic() {
         response
       );
     },
-    onSuccess: (_, variables) => {
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner"],
-      });
-      // Invalidate resources query
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner", "resources"],
-      });
-      // Invalidate class resources
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner", "class-resources"],
-      });
-      logger.info("[useUpdateLibraryTopic] Cache invalidated");
+    onSuccess: async (response, variables) => {
+      // Get subjectId from variables, response, or extract from response subject
+      let subjectId = variables.subjectId || response?.subjectId || response?.subject?.id;
+      
+      // If still no subjectId, try to find it from active queries
+      if (!subjectId) {
+        const allQueries = queryClient.getQueryCache().getAll();
+        // Look for subject-topics queries to extract subjectId
+        const topicsQuery = allQueries.find(q => 
+          q.queryKey[0] === "library-owner" && 
+          q.queryKey[1] === "subject-topics" &&
+          q.queryKey[2] // has subjectId
+        );
+        if (topicsQuery && topicsQuery.queryKey[2]) {
+          subjectId = topicsQuery.queryKey[2] as string;
+        }
+      }
+      
+      if (!subjectId) {
+        console.warn("🟡 [UPDATE TOPIC] No subjectId found, cannot refetch topics");
+        return;
+      }
+      
+      // Simple approach: invalidate and refetch the topics query
+      const queryKey = ["library-owner", "subject-topics", subjectId];
+      console.log("🔄 [UPDATE TOPIC] Refetching topics list", { subjectId });
+      
+      // Invalidate to mark as stale
+      queryClient.invalidateQueries({ queryKey });
+      
+      // Force refetch
+      await queryClient.refetchQueries({ queryKey });
+      
+      console.log("✅ [UPDATE TOPIC] Topics list refetched - reloading page to ensure UI updates");
+      
+      // Reload the page to ensure UI updates (simple and reliable)
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     },
   });
 }
 
 // Delete Topic Mutation
-// Note: Check API docs for correct delete endpoint - may not be available
 export function useDeleteLibraryTopic() {
   const queryClient = useQueryClient();
 
-  return useMutation<void, AuthenticatedApiError, string>({
-    mutationFn: async (topicId) => {
-      logger.info("[useDeleteLibraryTopic] Deleting topic", { topicId });
+  return useMutation<
+    {
+      success: boolean;
+      message?: string;
+      data?: {
+        deletedTopic: {
+          id: string;
+          title: string;
+          subject: {
+            id: string;
+            name: string;
+            code: string;
+            class: {
+              id: string;
+              name: string;
+            };
+          };
+        };
+        deletedResourcesCount: number;
+      };
+    },
+    AuthenticatedApiError,
+    { topicId: string; subjectId?: string; classId?: string }
+  >({
+    mutationFn: async ({ topicId }) => {
+      console.log(`🔴 [DELETE TOPIC] DELETE /library/subject/topic/deletetopic/${topicId}`);
       
-      // Note: Check API docs for correct delete endpoint
-      // Assuming it follows pattern: DELETE /library/subject/topic/:topicId
       const response = await authenticatedApi.delete<{
-        success: boolean;
-        message: string;
-        data: null;
-      }>(`/library/subject/topic/${topicId}`);
+        deletedTopic: {
+          id: string;
+          title: string;
+          subject: {
+            id: string;
+            name: string;
+            code: string;
+            class: {
+              id: string;
+              name: string;
+            };
+          };
+        };
+        deletedResourcesCount: number;
+      }>(`/library/subject/topic/deletetopic/${topicId}`);
+
+      console.log("🟢 [DELETE TOPIC] Response:", {
+        status: response.statusCode,
+        deletedResourcesCount: response.data?.deletedResourcesCount,
+      });
 
       if (response.success === true || (response.success === undefined && !response.message)) {
-        logger.info("[useDeleteLibraryTopic] Topic deleted successfully", {
-          topicId,
-        });
-        return;
+        return {
+          success: response.success ?? true,
+          message: response.message,
+          data: response.data,
+        };
       }
 
       throw new AuthenticatedApiError(
@@ -174,31 +333,61 @@ export function useDeleteLibraryTopic() {
         response
       );
     },
-    onSuccess: (_, topicId) => {
-      // Invalidate relevant queries
+    onSuccess: async (response, { topicId, subjectId, classId }) => {
+      // Get subjectId from variables or extract from response
+      let finalSubjectId = subjectId || response?.data?.deletedTopic?.subject?.id;
+      
+      // If still no subjectId, try to find it from active queries
+      if (!finalSubjectId) {
+        const allQueries = queryClient.getQueryCache().getAll();
+        // Look for subject-topics queries to extract subjectId
+        const topicsQuery = allQueries.find(q => 
+          q.queryKey[0] === "library-owner" && 
+          q.queryKey[1] === "subject-topics" &&
+          q.queryKey[2] // has subjectId
+        );
+        if (topicsQuery && topicsQuery.queryKey[2]) {
+          finalSubjectId = topicsQuery.queryKey[2] as string;
+        }
+      }
+      
+      if (!finalSubjectId) {
+        console.warn("🔴 [DELETE TOPIC] No subjectId found, cannot refetch topics");
+        return;
+      }
+      
+      // Simple approach: invalidate and refetch the topics query
+      const queryKey = ["library-owner", "subject-topics", finalSubjectId];
+      console.log("🔄 [DELETE TOPIC] Refetching topics list", { subjectId: finalSubjectId });
+      
+      // Invalidate to mark as stale
+      queryClient.invalidateQueries({ queryKey });
+      
+      // Force refetch
+      await queryClient.refetchQueries({ queryKey });
+      
+      console.log("✅ [DELETE TOPIC] Topics list refetched - reloading page to ensure UI updates");
+      
+      // Reload the page to ensure UI updates (simple and reliable)
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+      
+      // Also invalidate other related queries
       queryClient.invalidateQueries({
-        queryKey: ["library-owner"],
+        queryKey: ["library-owner", "subject-detail", finalSubjectId],
       });
-      // Invalidate resources query
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner", "resources"],
-      });
-      // Invalidate class resources
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner", "class-resources"],
-      });
-      // Invalidate topic materials
+      
+      if (classId) {
+        queryClient.invalidateQueries({
+          queryKey: ["library-owner", "subject", classId, finalSubjectId],
+        });
+      }
+      
+      // Invalidate topic materials for this specific topic
       queryClient.invalidateQueries({
         queryKey: ["library-owner", "topic-materials", topicId],
       });
-      // Invalidate subject queries
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner", "subject"],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["library-owner", "subject-detail"],
-      });
-      logger.info("[useDeleteLibraryTopic] Cache invalidated", { topicId });
     },
   });
 }

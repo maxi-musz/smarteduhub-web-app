@@ -3,7 +3,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Video, BookOpen } from "lucide-react";
 
 // Color palette for order badges - cycles through appealing colors
 const getOrderBadgeColors = (order: number) => {
@@ -29,6 +29,13 @@ interface Topic {
   title: string;
   order: number;
   status: string;
+  resourceCounts?: {
+    totalVideos: number;
+    totalMaterials: number;
+    totalLinks: number;
+    totalAssignments: number;
+    totalResources: number;
+  };
 }
 
 interface TopicsListProps {
@@ -86,6 +93,33 @@ export const TopicsList = ({
                       >
                         {topic.title}
                       </p>
+                      {/* Resource counts - tiny icons */}
+                      {topic.resourceCounts && (
+                        <div className="flex items-center gap-1.5 ml-1 flex-shrink-0">
+                          {topic.resourceCounts.totalVideos > 0 && (
+                            <div 
+                              className={`flex items-center gap-0.5 ${
+                                selectedTopicId === topic.id ? "text-white/80" : "text-gray-500"
+                              }`}
+                              title={`${topic.resourceCounts.totalVideos} videos`}
+                            >
+                              <Video className="h-2.5 w-2.5" />
+                              <span className="text-[10px] leading-none">{topic.resourceCounts.totalVideos}</span>
+                            </div>
+                          )}
+                          {topic.resourceCounts.totalMaterials > 0 && (
+                            <div 
+                              className={`flex items-center gap-0.5 ${
+                                selectedTopicId === topic.id ? "text-white/80" : "text-gray-500"
+                              }`}
+                              title={`${topic.resourceCounts.totalMaterials} materials`}
+                            >
+                              <BookOpen className="h-2.5 w-2.5" />
+                              <span className="text-[10px] leading-none">{topic.resourceCounts.totalMaterials}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {/* Status badge */}

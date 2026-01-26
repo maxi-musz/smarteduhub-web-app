@@ -165,34 +165,12 @@ export function useLibraryClassResources(classId: string | null) {
         throw new AuthenticatedApiError("Class ID is required", 400);
       }
 
-      logger.info(`[useLibraryClassResources] Fetching resources for class: ${classId}`);
       const response = await authenticatedApi.get<ClassResourcesResponse>(
         `/library/resources/getresourcesbyclass/${classId}`
       );
 
-      // The backend returns: { success, message, data: ClassResourcesResponse }
-      // authenticatedApi.get<ClassResourcesResponse> returns ApiResponse<ClassResourcesResponse>
-      // So response.data is ClassResourcesResponse directly
       if (response.success && response.data) {
-        const classResourcesData = response.data;
-        logger.info(`[useLibraryClassResources] Class resources fetched successfully`, {
-          classId,
-          className: classResourcesData.class.name,
-          subjectsCount: classResourcesData.subjects.length,
-          statistics: classResourcesData.statistics,
-          subjects: classResourcesData.subjects.map((s) => ({
-            id: s.id,
-            name: s.name,
-            code: s.code,
-            thumbnailUrl: s.thumbnailUrl,
-            thumbnailKey: s.thumbnailKey,
-            chaptersCount: s.chaptersCount,
-            topicsCount: s.topicsCount,
-            totalVideos: s.totalVideos,
-            totalMaterials: s.totalMaterials,
-          })),
-        });
-        return classResourcesData;
+        return response.data;
       }
 
       throw new AuthenticatedApiError(

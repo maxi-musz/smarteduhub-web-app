@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,13 +22,16 @@ interface LibraryCreateTopicModalProps {
   isOpen: boolean;
   onClose: () => void;
   subjectId: string;
+  classId?: string;
 }
 
 export const LibraryCreateTopicModal = ({
   isOpen,
   onClose,
   subjectId,
+  classId,
 }: LibraryCreateTopicModalProps) => {
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isActive, setIsActive] = useState(true);
@@ -79,6 +82,7 @@ export const LibraryCreateTopicModal = ({
         title: formatTopicTitle(title.trim()),
         description: description.trim() ? formatDescription(description.trim()) : undefined,
         is_active: isActive,
+        classId, // Pass classId for proper query invalidation
       });
 
       toast.success("Topic created successfully");
@@ -121,6 +125,12 @@ export const LibraryCreateTopicModal = ({
                   setErrors((prev) => ({ ...prev, title: undefined }));
                 }
               }}
+              onBlur={(e) => {
+                const formatted = formatTopicTitle(e.target.value);
+                if (formatted !== e.target.value) {
+                  setTitle(formatted);
+                }
+              }}
               placeholder="e.g., Introduction to Variables"
               maxLength={200}
               required
@@ -143,6 +153,12 @@ export const LibraryCreateTopicModal = ({
                 setDescription(e.target.value);
                 if (errors.description) {
                   setErrors((prev) => ({ ...prev, description: undefined }));
+                }
+              }}
+              onBlur={(e) => {
+                const formatted = formatDescription(e.target.value);
+                if (formatted !== e.target.value) {
+                  setDescription(formatted);
                 }
               }}
               placeholder="Brief description of what this topic covers..."

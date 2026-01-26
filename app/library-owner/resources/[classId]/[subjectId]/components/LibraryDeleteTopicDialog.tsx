@@ -20,6 +20,8 @@ interface LibraryDeleteTopicDialogProps {
   onClose: () => void;
   topicId: string;
   topicTitle: string;
+  subjectId?: string;
+  classId?: string;
 }
 
 export const LibraryDeleteTopicDialog = ({
@@ -27,12 +29,14 @@ export const LibraryDeleteTopicDialog = ({
   onClose,
   topicId,
   topicTitle,
+  subjectId,
+  classId,
 }: LibraryDeleteTopicDialogProps) => {
   const deleteTopic = useDeleteLibraryTopic();
 
   const handleDelete = async () => {
     try {
-      await deleteTopic.mutateAsync(topicId);
+      await deleteTopic.mutateAsync({ topicId, subjectId, classId });
       toast.success("Topic deleted successfully");
       onClose();
     } catch (error: unknown) {

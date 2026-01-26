@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useLibrarySubjectTopics } from "@/hooks/library-owner/use-library-topics";
 import { useLibrarySubject } from "@/hooks/library-owner/use-library-subject";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 // Import shared components from general-pages
 import { SubjectHeader } from "@/app/general-pages/subjects/[id]/components/SubjectHeader";
@@ -12,6 +12,7 @@ import { SubjectDescription } from "@/app/general-pages/subjects/[id]/components
 import { SubjectStatsCards } from "@/app/general-pages/subjects/[id]/components/SubjectStatsCards";
 import { LibraryTopicsContentSection } from "./components/LibraryTopicsContentSection";
 import { LibraryCreateTopicModal } from "./components/LibraryCreateTopicModal";
+import { SubjectDetailSkeleton } from "./components/SubjectDetailSkeleton";
 
 const LibraryOwnerSubjectDetailPage = () => {
   const params = useParams();
@@ -21,19 +22,18 @@ const LibraryOwnerSubjectDetailPage = () => {
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [isCreateTopicModalOpen, setIsCreateTopicModalOpen] = useState(false);
 
-  const { data, isLoading, error } = useLibrarySubject(classId, subjectId);
+  // Use the new hook that fetches topics with resource counts
+  const { data: topicsData, isLoading: topicsLoading, error: topicsError } = useLibrarySubjectTopics(subjectId);
+  // Still use the old hook for subject info and stats
+  const { data: subjectData, isLoading: subjectLoading, error: subjectError } = useLibrarySubject(classId, subjectId);
+  
+  const isLoading = topicsLoading || subjectLoading;
+  const error = topicsError || subjectError;
 
-  if (isLoading) {
-    return (
-      <div className="py-6 space-y-6 bg-brand-bg">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-brand-primary mx-auto mb-4" />
-            <p className="text-brand-light-accent-1">Loading subject details...</p>
-          </div>
-        </div>
-      </div>
-    );
+  // Show skeleton while loading OR if we don't have data yet and there's no error
+  // This prevents showing "No data" message during page reload before queries complete
+  if (isLoading || ((!topicsData && !topicsError) || (!subjectData && !subjectError))) {
+    return <SubjectDetailSkeleton />;
   }
 
   if (error) {
@@ -60,7 +60,8 @@ const LibraryOwnerSubjectDetailPage = () => {
     );
   }
 
-  if (!data) {
+  // Only show "No data" if we're not loading AND both queries completed but returned no data
+  if (!subjectData || !topicsData) {
     return (
       <div className="py-6 space-y-6 bg-brand-bg">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -73,7 +74,25 @@ const LibraryOwnerSubjectDetailPage = () => {
     );
   }
 
-  const { subject, topics, stats } = data;
+  const { subject, stats } = subjectData;
+  // Transform topics from the new hook to match LibraryTopic interface
+  // Use topicsData.count or topics.length to get accurate count
+  const topics = topicsData.topics.map((topic) => ({
+    id: topic.id,
+    title: topic.title,
+    description: topic.description || null,
+    instructions: null,
+    order: topic.order,
+    status: topic.is_active ? "active" : "inactive",
+    is_active: topic.is_active,
+    resourceCounts: topic.resourceCounts,
+  }));
+  
+  // Update stats with actual topics count from topicsData
+  const updatedStats = {
+    ...stats,
+    totalTopics: topicsData.count || topics.length,
+  };
 
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
@@ -87,7 +106,7 @@ const LibraryOwnerSubjectDetailPage = () => {
       <SubjectDescription description={subject.description || ""} />
 
       <SubjectStatsCards
-        totalTopics={stats.totalTopics}
+        totalTopics={updatedStats.totalTopics}
         totalVideos={stats.totalVideos}
         totalMaterials={stats.totalMaterials}
         totalStudents={stats.totalStudents}
@@ -100,12 +119,14 @@ const LibraryOwnerSubjectDetailPage = () => {
         onTopicSelect={setSelectedTopicId}
         onAddTopic={() => setIsCreateTopicModalOpen(true)}
         subjectId={subjectId}
+        classId={classId}
       />
 
       <LibraryCreateTopicModal
         isOpen={isCreateTopicModalOpen}
         onClose={() => setIsCreateTopicModalOpen(false)}
         subjectId={subjectId}
+        classId={classId}
       />
     </div>
   );

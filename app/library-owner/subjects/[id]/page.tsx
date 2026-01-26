@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useLibrarySubjectDetail } from "@/hooks/library-owner/use-library-subject-detail";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 // Import shared components from general-pages
 import { SubjectHeader } from "@/app/general-pages/subjects/[id]/components/SubjectHeader";
@@ -12,6 +11,7 @@ import { SubjectDescription } from "@/app/general-pages/subjects/[id]/components
 import { SubjectStatsCards } from "@/app/general-pages/subjects/[id]/components/SubjectStatsCards";
 import { LibraryTopicsContentSection } from "@/app/library-owner/resources/[classId]/[subjectId]/components/LibraryTopicsContentSection";
 import { LibraryCreateTopicModal } from "@/app/library-owner/resources/[classId]/[subjectId]/components/LibraryCreateTopicModal";
+import { SubjectDetailSkeleton } from "@/app/library-owner/resources/[classId]/[subjectId]/components/SubjectDetailSkeleton";
 
 const LibraryOwnerSubjectDetailPage = () => {
   const params = useParams();
@@ -22,17 +22,10 @@ const LibraryOwnerSubjectDetailPage = () => {
 
   const { data, isLoading, error } = useLibrarySubjectDetail(subjectId);
 
-  if (isLoading) {
-    return (
-      <div className="py-6 space-y-6 bg-brand-bg">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-brand-primary mx-auto mb-4" />
-            <p className="text-brand-light-accent-1">Loading subject details...</p>
-          </div>
-        </div>
-      </div>
-    );
+  // Show skeleton while loading OR if we don't have data yet and there's no error
+  // This prevents showing "No data" message during page reload before query completes
+  if (isLoading || (!data && !error)) {
+    return <SubjectDetailSkeleton />;
   }
 
   if (error) {
@@ -59,6 +52,7 @@ const LibraryOwnerSubjectDetailPage = () => {
     );
   }
 
+  // Only show "No data" if we're not loading AND query completed but returned no data
   if (!data) {
     return (
       <div className="py-6 space-y-6 bg-brand-bg">

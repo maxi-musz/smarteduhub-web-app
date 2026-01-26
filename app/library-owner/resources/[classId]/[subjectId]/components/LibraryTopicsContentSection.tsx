@@ -17,6 +17,13 @@ interface LibraryTopic {
   order: number;
   status: string;
   is_active: boolean;
+  resourceCounts?: {
+    totalVideos: number;
+    totalMaterials: number;
+    totalLinks: number;
+    totalAssignments: number;
+    totalResources: number;
+  };
 }
 
 interface LibraryTopicsContentSectionProps {
@@ -25,6 +32,7 @@ interface LibraryTopicsContentSectionProps {
   onTopicSelect: (topicId: string | null) => void;
   onAddTopic?: () => void;
   subjectId: string;
+  classId?: string;
   canEdit?: boolean;
   canDelete?: boolean;
   canCreate?: boolean;
@@ -37,6 +45,7 @@ export const LibraryTopicsContentSection = ({
   onTopicSelect,
   onAddTopic,
   subjectId,
+  classId,
   canEdit = true,
   canDelete = true,
   canCreate = true,
@@ -76,6 +85,7 @@ export const LibraryTopicsContentSection = ({
     title: topic.title,
     order: topic.order,
     status: topic.is_active ? "active" : "inactive",
+    resourceCounts: topic.resourceCounts,
   }));
 
   return (
@@ -116,6 +126,7 @@ export const LibraryTopicsContentSection = ({
           onClose={() => setEditTopicId(null)}
           topicId={editTopicId}
           subjectId={subjectId}
+          classId={classId}
           totalTopics={topics.length}
           currentOrder={editingTopic.order}
         />
@@ -127,6 +138,8 @@ export const LibraryTopicsContentSection = ({
           onClose={handleDeleteClose}
           topicId={deleteTopic.id}
           topicTitle={deleteTopic.title}
+          subjectId={subjectId}
+          classId={classId}
         />
       )}
     </>
