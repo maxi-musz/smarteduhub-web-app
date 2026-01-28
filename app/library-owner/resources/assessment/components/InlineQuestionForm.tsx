@@ -442,6 +442,8 @@ export const InlineQuestionForm = ({
             newErrors.options = "At least one option must be correct";
           } else if (formData.questionType === "MULTIPLE_CHOICE_SINGLE" && correctOptions.length > 1) {
             newErrors.options = "Only one option can be correct";
+          } else if (formData.questionType === "MULTIPLE_CHOICE_MULTIPLE" && correctOptions.length < 2) {
+            newErrors.options = "Multiple select requires at least 2 correct answers";
           }
         }
       }
@@ -568,6 +570,34 @@ export const InlineQuestionForm = ({
 
   const requiresRatingScaleAnswers =
     formData.questionType === "RATING_SCALE";
+
+  /** Pure check used to disable Save – must match validateForm rules. */
+  const isFormValid = (): boolean => {
+    if (!formData.questionText.trim()) return false;
+    if (!formData.points || formData.points < 1 || formData.points > 10) return false;
+    if (formData.showHint && !hintText.trim()) return false;
+    if (requiresOptions) {
+      if (!formData.options || formData.options.length < 2) return false;
+      if (formData.options.some((opt) => !opt.optionText?.trim())) return false;
+      const correct = formData.options.filter((opt) => opt.isCorrect);
+      if (correct.length === 0) return false;
+      if (formData.questionType === "MULTIPLE_CHOICE_SINGLE" && correct.length > 1) return false;
+      if (formData.questionType === "MULTIPLE_CHOICE_MULTIPLE" && correct.length < 2) return false;
+    }
+    if (requiresTextAnswers) {
+      if (!formData.correctAnswers?.length) return false;
+      if (formData.correctAnswers.some((ans) => !ans.answerText?.trim())) return false;
+    }
+    if (requiresNumericAnswers || requiresRatingScaleAnswers) {
+      if (!formData.correctAnswers?.length) return false;
+      if (formData.correctAnswers.some((ans) => ans.answerNumber == null)) return false;
+    }
+    if (requiresDateAnswers) {
+      if (!formData.correctAnswers?.length) return false;
+      if (formData.correctAnswers.some((ans) => !ans.answerDate?.trim())) return false;
+    }
+    return true;
+  };
 
   const isSubmitting = createQuestion.isPending || updateQuestion.isPending;
 
@@ -1256,7 +1286,7 @@ export const InlineQuestionForm = ({
           <Button
             type="submit"
             size="sm"
-            disabled={isSubmitting || !formData.questionText.trim()}
+            disabled={isSubmitting || !isFormValid()}
             className="h-8 text-xs px-4"
           >
             {isSubmitting ? (

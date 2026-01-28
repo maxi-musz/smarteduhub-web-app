@@ -242,161 +242,174 @@ export const ManageQuestionsDialog = ({
                   <>
                     {questions
                       .sort((a: Question, b: Question) => a.order - b.order)
-                      .map((question: Question) => (
-                    <div
-                      key={question.id}
-                      className="bg-white border border-brand-border rounded-lg p-4 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 pt-1">
-                          <GripVertical className="h-5 w-5 text-brand-light-accent-1" />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-4 mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="outline" className="text-xs">
-                                  #{question.order}
-                                </Badge>
-                                <Badge
-                                  variant="outline"
-                                  className={`text-xs ${getDifficultyColor(question.difficultyLevel)}`}
-                                >
-                                  {question.difficultyLevel}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  {getQuestionTypeLabel(question.questionType)}
-                                </Badge>
-                                <span className="text-sm font-medium text-brand-heading">
-                                  {question.points} {question.points === 1 ? "point" : "points"}
-                                </span>
+                      .map((question: Question) =>
+                        editingInlineQuestion?.id === question.id ? (
+                          <InlineQuestionForm
+                            key={question.id}
+                            cbt={cbt}
+                            question={editingInlineQuestion}
+                            isEditing
+                            onSuccess={handleQuestionFormSuccess}
+                            onCancel={handleInlineFormCancel}
+                            questionNumber={question.order}
+                            onUnsavedChangesChange={(hasChanges) => {
+                              setHasUnsavedChanges(hasChanges);
+                            }}
+                            onRequestCleanup={async () => {}}
+                          />
+                        ) : (
+                          <div
+                            key={question.id}
+                            className="bg-white border border-brand-border rounded-lg p-4 hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start gap-4">
+                              <div className="flex-shrink-0 pt-1">
+                                <GripVertical className="h-5 w-5 text-brand-light-accent-1" />
                               </div>
 
-                              <p className="text-sm text-brand-heading font-medium mb-2">
-                                {question.questionText}
-                              </p>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-4 mb-2">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Badge variant="outline" className="text-xs">
+                                        #{question.order}
+                                      </Badge>
+                                      <Badge
+                                        variant="outline"
+                                        className={`text-xs ${getDifficultyColor(question.difficultyLevel)}`}
+                                      >
+                                        {question.difficultyLevel}
+                                      </Badge>
+                                      <Badge variant="outline" className="text-xs">
+                                        {getQuestionTypeLabel(question.questionType)}
+                                      </Badge>
+                                      <span className="text-sm font-medium text-brand-heading">
+                                        {question.points} {question.points === 1 ? "point" : "points"}
+                                      </span>
+                                    </div>
 
-                              {question.imageUrl && (
-                                <div className="mb-2">
-                                  <div className="relative w-32 h-32 border border-brand-border rounded overflow-hidden">
-                                    <Image
-                                      src={question.imageUrl}
-                                      alt="Question image"
-                                      fill
-                                      className="object-cover"
-                                      unoptimized={question.imageUrl.includes("s3.amazonaws.com")}
-                                    />
+                                    <p className="text-sm text-brand-heading font-medium mb-2">
+                                      {question.questionText}
+                                    </p>
+
+                                    {question.imageUrl && (
+                                      <div className="mb-2">
+                                        <div className="relative w-32 h-32 border border-brand-border rounded overflow-hidden">
+                                          <Image
+                                            src={question.imageUrl}
+                                            alt="Question image"
+                                            fill
+                                            className="object-cover"
+                                            unoptimized={question.imageUrl.includes("s3.amazonaws.com")}
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {question.questionType === "MULTIPLE_CHOICE_SINGLE" ||
+                                    question.questionType === "MULTIPLE_CHOICE_MULTIPLE" ||
+                                    question.questionType === "TRUE_FALSE" ? (
+                                      <div className="space-y-1 mt-2">
+                                        {question.options.map((option: QuestionOption) => (
+                                          <div
+                                            key={option.id}
+                                            className={`flex items-center gap-2 text-sm p-2 rounded ${
+                                              option.isCorrect
+                                                ? "bg-green-50 border border-green-200"
+                                                : "bg-gray-50 border border-gray-200"
+                                            }`}
+                                          >
+                                            <span
+                                              className={`w-2 h-2 rounded-full ${
+                                                option.isCorrect ? "bg-green-500" : "bg-gray-400"
+                                              }`}
+                                            />
+                                            <span className={option.isCorrect ? "font-medium" : ""}>
+                                              {option.optionText}
+                                            </span>
+                                            {option.isCorrect && (
+                                              <Badge variant="outline" className="text-xs ml-auto">
+                                                Correct
+                                              </Badge>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : question.questionType === "SHORT_ANSWER" ||
+                                      question.questionType === "LONG_ANSWER" ? (
+                                      <div className="mt-2 text-sm text-brand-light-accent-1">
+                                        {question.correctAnswers && question.correctAnswers.length > 0 ? (
+                                          <div>
+                                            <span className="font-medium">Correct answers: </span>
+                                            {question.correctAnswers
+                                              .map((ans: CorrectAnswer) => ans.answerText)
+                                              .filter(Boolean)
+                                              .join(", ")}
+                                          </div>
+                                        ) : (
+                                          <span>No correct answers specified</span>
+                                        )}
+                                      </div>
+                                    ) : null}
+
+                                    {question.explanation && (
+                                      <div className="mt-2 text-xs text-brand-light-accent-1 italic">
+                                        Explanation: {question.explanation}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleEditQuestion(question)}
+                                      title="Edit question"
+                                      disabled={!!editingInlineQuestion}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleDeleteQuestion(question)}
+                                      disabled={cbt._count.attempts > 0}
+                                      title={
+                                        cbt._count.attempts > 0
+                                          ? "Cannot delete questions when CBT has attempts"
+                                          : "Delete question"
+                                      }
+                                      className="text-red-600 hover:text-red-700"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
                                   </div>
                                 </div>
-                              )}
-
-                              {question.questionType === "MULTIPLE_CHOICE_SINGLE" ||
-                              question.questionType === "MULTIPLE_CHOICE_MULTIPLE" ||
-                              question.questionType === "TRUE_FALSE" ? (
-                                <div className="space-y-1 mt-2">
-                                  {question.options.map((option: QuestionOption) => (
-                                    <div
-                                      key={option.id}
-                                      className={`flex items-center gap-2 text-sm p-2 rounded ${
-                                        option.isCorrect
-                                          ? "bg-green-50 border border-green-200"
-                                          : "bg-gray-50 border border-gray-200"
-                                      }`}
-                                    >
-                                      <span
-                                        className={`w-2 h-2 rounded-full ${
-                                          option.isCorrect ? "bg-green-500" : "bg-gray-400"
-                                        }`}
-                                      />
-                                      <span className={option.isCorrect ? "font-medium" : ""}>
-                                        {option.optionText}
-                                      </span>
-                                      {option.isCorrect && (
-                                        <Badge variant="outline" className="text-xs ml-auto">
-                                          Correct
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : question.questionType === "SHORT_ANSWER" ||
-                                question.questionType === "LONG_ANSWER" ? (
-                                <div className="mt-2 text-sm text-brand-light-accent-1">
-                                  {question.correctAnswers && question.correctAnswers.length > 0 ? (
-                                    <div>
-                                      <span className="font-medium">Correct answers: </span>
-                                      {question.correctAnswers
-                                        .map((ans: CorrectAnswer) => ans.answerText)
-                                        .filter(Boolean)
-                                        .join(", ")}
-                                    </div>
-                                  ) : (
-                                    <span>No correct answers specified</span>
-                                  )}
-                                </div>
-                              ) : null}
-
-                              {question.explanation && (
-                                <div className="mt-2 text-xs text-brand-light-accent-1 italic">
-                                  Explanation: {question.explanation}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEditQuestion(question)}
-                                title="Edit question"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDeleteQuestion(question)}
-                                disabled={cbt._count.attempts > 0}
-                                title={
-                                  cbt._count.attempts > 0
-                                    ? "Cannot delete questions when CBT has attempts"
-                                    : "Delete question"
-                                }
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                      ))}
+                        )
+                      )}
                   </>
                 )}
 
-                {/* Inline Question Form - Appears at the bottom after last question */}
-                {isAddingInline && (
+                {/* Inline Question Form - At bottom only when adding new (not editing) */}
+                {isAddingInline && !isEditing && (
                   <InlineQuestionForm
                     cbt={cbt}
-                    question={editingInlineQuestion}
-                    isEditing={isEditing}
+                    question={null}
+                    isEditing={false}
                     onSuccess={handleQuestionFormSuccess}
                     onCancel={handleInlineFormCancel}
                     questionNumber={
-                      !isEditing && Array.isArray(questions) && questions.length > 0
-                        ? Math.max(...questions.map((q) => q.order)) + 1
-                        : Array.isArray(questions) && questions.length > 0
-                        ? questions.length + 1
+                      Array.isArray(questions) && questions.length > 0
+                        ? Math.max(...questions.map((q: Question) => q.order)) + 1
                         : 1
                     }
                     onUnsavedChangesChange={(hasChanges) => {
                       setHasUnsavedChanges(hasChanges);
                     }}
-                    onRequestCleanup={async () => {
-                      // This will be called by InlineQuestionForm to set up cleanup
-                    }}
+                    onRequestCleanup={async () => {}}
                   />
                 )}
 

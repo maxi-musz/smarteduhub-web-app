@@ -58,6 +58,49 @@ export interface LibraryTopicLink {
   updatedAt: string;
 }
 
+/** CBT (assessment) from topic materials API – compatible with CBT dialogs */
+export interface LibraryTopicCbt {
+  id: string;
+  title: string;
+  description: string | null;
+  instructions: string | null;
+  assessmentType?: string;
+  gradingType?: string;
+  status: string;
+  duration: number | null;
+  timeLimit: number | null;
+  startDate: string | null;
+  endDate: string | null;
+  maxAttempts?: number;
+  passingScore?: number;
+  totalPoints?: number;
+  shuffleQuestions?: boolean;
+  shuffleOptions?: boolean;
+  showCorrectAnswers?: boolean;
+  showFeedback?: boolean;
+  studentCanViewGrading?: boolean;
+  allowReview?: boolean;
+  autoSubmit?: boolean;
+  tags?: string[];
+  order: number;
+  isPublished?: boolean;
+  publishedAt?: string | null;
+  isResultReleased?: boolean;
+  resultReleasedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+  };
+  subject?: { id: string; name: string; code: string | null };
+  chapter?: { id: string; title: string } | null;
+  topic?: { id: string; title: string } | null;
+  _count?: { questions: number; attempts: number };
+}
+
 export interface LibraryTopicMaterialsStatistics {
   totalVideos: number;
   totalMaterials: number;
@@ -92,7 +135,7 @@ export interface LibraryTopicMaterialsContent {
   links: LibraryTopicLink[];
   assignments: any[];
   comments: any[];
-  cbts: any[];
+  cbts: LibraryTopicCbt[];
 }
 
 export interface LibraryTopicMaterialsResponse {
@@ -144,6 +187,7 @@ export function useLibraryTopicMaterials(topicId: string | null) {
           videosCount: materialsData.content?.videos?.length || 0,
           materialsCount: materialsData.content?.materials?.length || 0,
           linksCount: materialsData.content?.links?.length || 0,
+          cbtsCount: materialsData.content?.cbts?.length || 0,
           statistics: materialsData.statistics,
         });
         return materialsData;

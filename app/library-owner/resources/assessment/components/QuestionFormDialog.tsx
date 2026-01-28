@@ -296,13 +296,16 @@ export const QuestionFormDialog = ({
       if (hasEmptyOptions) return false;
       
       // Check at least one option is correct
-      const hasCorrect = formData.options.some((opt) => opt.isCorrect);
-      if (!hasCorrect) return false;
+      const correctCount = formData.options.filter((opt) => opt.isCorrect).length;
+      if (correctCount === 0) return false;
       
       // For single choice, ensure only one is correct
       if (formData.questionType === "MULTIPLE_CHOICE_SINGLE") {
-        const correctCount = formData.options.filter((opt) => opt.isCorrect).length;
         if (correctCount !== 1) return false;
+      }
+      // For multiple select, ensure at least 2 are correct
+      if (formData.questionType === "MULTIPLE_CHOICE_MULTIPLE") {
+        if (correctCount < 2) return false;
       }
     }
 
@@ -384,6 +387,8 @@ export const QuestionFormDialog = ({
             newErrors.options = "At least one option must be marked as correct";
           } else if (formData.questionType === "MULTIPLE_CHOICE_SINGLE" && correctOptions.length > 1) {
             newErrors.options = "Only one option can be marked as correct for single choice questions";
+          } else if (formData.questionType === "MULTIPLE_CHOICE_MULTIPLE" && correctOptions.length < 2) {
+            newErrors.options = "Multiple select requires at least 2 correct answers";
           }
         }
       }

@@ -28,7 +28,7 @@ export const TopicContent = ({ topicId, subjectId, canUpload = true }: TopicCont
       <div className="lg:col-span-2">
         <div className="text-center py-12">
           <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600">Select a topic to view its content</p>
+          <p className="text-gray-600">[General] - Select a topic to view its content</p>
         </div>
       </div>
     );
