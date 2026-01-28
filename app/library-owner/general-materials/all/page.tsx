@@ -22,6 +22,7 @@ import {
   ChevronRight,
   MoreVertical,
   Plus,
+  Sparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -245,8 +246,11 @@ const AllAiBooksPage = () => {
                       <td 
                         className="px-4 py-2.5 text-brand-heading max-w-xs"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="relative w-20 h-28 rounded-md overflow-hidden border-2 border-brand-border/50 bg-gray-100 flex-shrink-0 shadow-sm">
+                        <div 
+                          className="flex items-center gap-3 cursor-pointer group hover:opacity-80 transition-opacity"
+                          onClick={() => router.push(`/explore/ai-book/aichat-non-student/${item.id}`)}
+                        >
+                          <div className="relative w-20 h-28 rounded-md overflow-hidden border-2 border-brand-border/50 bg-gray-100 flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow">
                             {item.thumbnailUrl ? (
                               <Image
                                 src={item.thumbnailUrl}
@@ -263,10 +267,15 @@ const AllAiBooksPage = () => {
                                 {item.title.slice(0, 2).toUpperCase()}
                               </div>
                             )}
+                            {/* AI Chat Badge */}
+                            <div className="absolute top-1 right-1 bg-orange-500 text-white p-1 rounded-full shadow-lg">
+                              <Sparkles className="h-3 w-3" />
+                            </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium line-clamp-2">
+                            <div className="font-medium line-clamp-2 flex items-center gap-1.5">
                               {item.title}
+                              <Sparkles className="h-3.5 w-3.5 text-orange-500 flex-shrink-0" />
                             </div>
                             <div className="text-xs text-brand-light-accent-1 line-clamp-1">
                               {item.author || "Unknown author"}
