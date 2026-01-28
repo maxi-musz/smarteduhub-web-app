@@ -9,7 +9,7 @@ export interface LibraryPlatform {
   id: string;
   name: string;
   slug: string;
-  description: string;
+  description: string | null;
   status: string;
 }
 
@@ -17,12 +17,12 @@ export interface LibraryUser {
   id: string;
   platformId: string;
   email: string;
-  first_name: string;
-  last_name: string;
-  phone_number: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone_number?: string | null;
   role: string;
-  userType: string;
-  status: string;
+  userType?: string;
+  status?: string;
   createdAt: string;
   updatedAt: string;
   platform?: LibraryPlatform;
@@ -30,12 +30,19 @@ export interface LibraryUser {
   uploadedMaterialsCount?: number;
 }
 
+export interface UploadedBy {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+}
+
 export interface Video {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   videoUrl: string;
-  thumbnailUrl: string;
+  thumbnailUrl: string | null;
   durationSeconds: number;
   sizeBytes: number;
   status: string;
@@ -44,12 +51,14 @@ export interface Video {
   topicId: string;
   createdAt: string;
   updatedAt: string;
+  uploadedById?: string;
+  uploadedBy?: UploadedBy;
 }
 
 export interface Material {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   materialType: string;
   url: string;
   sizeBytes: number;
@@ -60,6 +69,8 @@ export interface Material {
   topicId: string;
   createdAt: string;
   updatedAt: string;
+  uploadedById?: string;
+  uploadedBy?: UploadedBy;
 }
 
 export interface LibraryOwnerProfileResponse {

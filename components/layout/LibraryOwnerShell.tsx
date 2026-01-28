@@ -47,6 +47,19 @@ export default function LibraryOwnerShell({
   const queryClient = useQueryClient();
 
   const handleNavClick = (href: string, label: string, e: React.MouseEvent) => {
+    // For profile, allow normal navigation without preventing default
+    // This ensures the sidebar stays open and navigation works smoothly
+    if (href === "/library-owner/profile") {
+      logger.info(`[Navigation] Switching to ${label} tab`, {
+        from: pathname,
+        to: href,
+        timestamp: new Date().toISOString(),
+      });
+      // Don't prevent default - allow normal Next.js navigation
+      // This ensures sidebar stays open
+      return;
+    }
+    
     if (pathname === href) {
       e.preventDefault();
       return;
@@ -86,7 +99,7 @@ export default function LibraryOwnerShell({
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col">
       {/* Desktop Sidebar - Always visible on desktop */}
-      <aside className="hidden sm:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-brand-border shadow-sm z-50">
+      <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-brand-border shadow-sm z-50">
         <div className="flex flex-col h-full w-full">
           {/* Logo */}
           <div className="p-6 border-b border-brand-border">
