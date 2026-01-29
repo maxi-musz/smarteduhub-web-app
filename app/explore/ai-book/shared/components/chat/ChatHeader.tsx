@@ -42,7 +42,7 @@ export function ChatHeader({
     <div className="px-4 py-3 border-b border-brand-border bg-gradient-to-r from-brand-primary/5 to-brand-primary/10">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="font-semibold text-brand-heading text-lg">iBookGPT®</h2>
+          <h2 className="font-semibold text-brand-heading text-lg">SmartEduGPT®</h2>
           <button
             onClick={handleAutoPlayToggle}
             className={`flex items-center justify-center h-9 w-9 rounded-lg transition-all duration-200 ${

@@ -51,7 +51,7 @@ const translations: Record<string, ChatTranslations> = {
     selectChapterFirst: "Please select a chapter first to start chatting...",
     aiTyping: "AI is typing...",
     thinking: "Thinking...",
-    disclaimer: "iBookGPT's answers are based on the provided book and might have errors.",
+    disclaimer: "SmartEduGPT's answers are based on the provided book and might have errors.",
     studyTools: {
       chapterSummary: "Chapter Summary",
       importantNotes: "Important Notes for Exams",
@@ -76,7 +76,7 @@ const translations: Record<string, ChatTranslations> = {
     selectChapterFirst: "Jọwọ yan isalẹ kan ni akọkọ lati bẹrẹ sọrọ...",
     aiTyping: "AI n kọ...",
     thinking: "N ronú...",
-    disclaimer: "Idahun iBookGPT da lori iwe ti a fun ati pe o le ni aṣiṣe.",
+    disclaimer: "Idahun SmartEduGPT da lori iwe ti a fun ati pe o le ni aṣiṣe.",
     studyTools: {
       chapterSummary: "Akojọ Isalẹ",
       importantNotes: "Awọn Akọsilẹ Pataki fun Awọn Idanwo",
@@ -101,7 +101,7 @@ const translations: Record<string, ChatTranslations> = {
     selectChapterFirst: "Biko họrọ isi mbụ ka ịmalite ịgba ajụjụ...",
     aiTyping: "AI na-ede...",
     thinking: "Na-eche...",
-    disclaimer: "Azịza iBookGPT dabere na akwụkwọ enyere ma nwee ike inwe njehie.",
+    disclaimer: "Azịza SmartEduGPT dabere na akwụkwọ enyere ma nwee ike inwe njehie.",
     studyTools: {
       chapterSummary: "Nchịkọta Isi",
       importantNotes: "Ihe Ndị Dị Mkpa Maka Ule",
@@ -126,7 +126,7 @@ const translations: Record<string, ChatTranslations> = {
     selectChapterFirst: "Don Allah zaɓi babi da farko don fara tattaunawa...",
     aiTyping: "AI yana rubutu...",
     thinking: "Tunani...",
-    disclaimer: "Amsoshin iBookGPT ya dogara ne akan littafin da aka bayar kuma yana iya samun kurakurai.",
+    disclaimer: "Amsoshin SmartEduGPT ya dogara ne akan littafin da aka bayar kuma yana iya samun kurakurai.",
     studyTools: {
       chapterSummary: "Taƙaitaccen Babi",
       importantNotes: "Bayanan Muhimmanci don Jarrabawa",
@@ -151,7 +151,7 @@ const translations: Record<string, ChatTranslations> = {
     selectChapterFirst: "Veuillez d'abord sélectionner un chapitre pour commencer à discuter...",
     aiTyping: "L'IA tape...",
     thinking: "Réflexion...",
-    disclaimer: "Les réponses d'iBookGPT sont basées sur le livre fourni et peuvent contenir des erreurs.",
+    disclaimer: "Les réponses d'SmartEduGPT sont basées sur le livre fourni et peuvent contenir des erreurs.",
     studyTools: {
       chapterSummary: "Résumé du Chapitre",
       importantNotes: "Notes Importantes pour les Examens",
@@ -176,7 +176,7 @@ const translations: Record<string, ChatTranslations> = {
     selectChapterFirst: "Por favor selecciona un capítulo primero para comenzar a chatear...",
     aiTyping: "La IA está escribiendo...",
     thinking: "Pensando...",
-    disclaimer: "Las respuestas de iBookGPT se basan en el libro proporcionado y pueden tener errores.",
+    disclaimer: "Las respuestas de SmartEduGPT se basan en el libro proporcionado y pueden tener errores.",
     studyTools: {
       chapterSummary: "Resumen del Capítulo",
       importantNotes: "Notas Importantes para Exámenes",
@@ -201,7 +201,7 @@ const translations: Record<string, ChatTranslations> = {
     selectChapterFirst: "Tafadhali chagua sura kwanza ili kuanza mazungumzo...",
     aiTyping: "AI inaandika...",
     thinking: "Inafikiri...",
-    disclaimer: "Majibu ya iBookGPT yanategemea kitabu kilichotolewa na yanaweza kuwa na makosa.",
+    disclaimer: "Majibu ya SmartEduGPT yanategemea kitabu kilichotolewa na yanaweza kuwa na makosa.",
     studyTools: {
       chapterSummary: "Muhtasari wa Sura",
       importantNotes: "Maelezo Muhimu kwa Mitihani",
@@ -226,7 +226,7 @@ const translations: Record<string, ChatTranslations> = {
     selectChapterFirst: "يرجى اختيار فصل أولاً لبدء الدردشة...",
     aiTyping: "الذكاء الاصطناعي يكتب...",
     thinking: "جاري التفكير...",
-    disclaimer: "إجابات iBookGPT مبنية على الكتاب المقدم وقد تحتوي على أخطاء.",
+    disclaimer: "إجابات SmartEduGPT مبنية على الكتاب المقدم وقد تحتوي على أخطاء.",
     studyTools: {
       chapterSummary: "ملخص الفصل",
       importantNotes: "ملاحظات مهمة للامتحانات",
@@ -251,7 +251,7 @@ const translations: Record<string, ChatTranslations> = {
     selectChapterFirst: "कृपया पहले एक अध्याय चुनें चैट शुरू करने के लिए...",
     aiTyping: "AI टाइप कर रहा है...",
     thinking: "सोच रहा है...",
-    disclaimer: "iBookGPT के उत्तर प्रदान की गई पुस्तक पर आधारित हैं और इसमें त्रुटियां हो सकती हैं।",
+    disclaimer: "SmartEduGPT के उत्तर प्रदान की गई पुस्तक पर आधारित हैं और इसमें त्रुटियां हो सकती हैं।",
     studyTools: {
       chapterSummary: "अध्याय सारांश",
       importantNotes: "परीक्षा के लिए महत्वपूर्ण नोट्स",

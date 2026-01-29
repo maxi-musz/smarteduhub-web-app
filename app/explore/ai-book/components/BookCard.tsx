@@ -133,9 +133,9 @@ export function BookCard({ book, platformName }: BookCardProps) {
           </div>
         )}
 
-        {/* iBookGPT Badge - Always show since these are AI books */}
+        {/* SmartEduGPT Badge - Always show since these are AI books */}
         <div className="absolute bottom-1 left-1 bg-orange-500 text-white px-1.5 py-0.5 rounded text-[10px] font-semibold">
-          iBookGPT
+          SmartEduGPT
         </div>
 
         {/* ACCESSIBLE Badge - Always show */}
