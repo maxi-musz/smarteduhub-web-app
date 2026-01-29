@@ -28,6 +28,7 @@ export interface TeacherSubject {
     order: number;
     is_active: boolean;
   }>;
+  topicsCount?: number; // Optional: used when topics array is not populated but count is available
   createdAt: string;
   updatedAt: string;
 }

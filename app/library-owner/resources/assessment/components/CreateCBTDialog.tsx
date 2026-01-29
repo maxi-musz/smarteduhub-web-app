@@ -277,7 +277,7 @@ export const CreateCBTDialog = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-visible">
         <DialogHeader>
-          <DialogTitle>Create New CBT Assessment</DialogTitle>
+          <DialogTitle>Create New Assessment</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -1098,7 +1098,7 @@ export const CreateCBTDialog = ({
                   Creating...
                 </>
               ) : (
-                "Create CBT"
+                "Create Assessment"
               )}
             </Button>
           </DialogFooter>

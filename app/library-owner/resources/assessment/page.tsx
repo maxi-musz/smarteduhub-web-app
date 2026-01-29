@@ -76,6 +76,12 @@ const AssessmentsPageContent = () => {
     refetch: refetchCBTs,
   } = useCBTs(selectedSubjectId, effectiveTopicId);
 
+  // Fetch all assessments for the subject (without topic filter) to check if one already exists
+  // Library owners can only have one assessment per subject
+  const {
+    data: allSubjectCBTs,
+  } = useCBTs(selectedSubjectId, null);
+
   const publishCBT = usePublishCBT();
   const unpublishCBT = useUnpublishCBT();
 
@@ -178,9 +184,18 @@ const AssessmentsPageContent = () => {
     }
   }, [searchParams, cbts, router]);
 
+  // Check if subject already has an assessment (library owners can only have one per subject)
+  const hasExistingAssessment = React.useMemo(() => {
+    return !!(selectedSubjectId && allSubjectCBTs && allSubjectCBTs.length > 0);
+  }, [selectedSubjectId, allSubjectCBTs]);
+
   const handleCreateCBT = () => {
     if (!selectedSubjectId) {
       toast.error("Please select a subject first");
+      return;
+    }
+    if (hasExistingAssessment) {
+      toast.error("This subject already has an assessment. Library owners can only create one assessment per subject.");
       return;
     }
     setIsCreateDialogOpen(true);
@@ -348,11 +363,12 @@ const AssessmentsPageContent = () => {
             </Button>
             <Button
               onClick={handleCreateCBT}
-              disabled={!selectedSubjectId}
+              disabled={!selectedSubjectId || !!hasExistingAssessment}
               className="flex items-center gap-2"
+              title={hasExistingAssessment ? "This subject already has an assessment. Library owners can only create one assessment per subject." : undefined}
             >
               <Plus className="h-4 w-4" />
-              Create CBT
+              Create Assessment
             </Button>
           </div>
         </div>
@@ -719,11 +735,11 @@ const AssessmentsPageContent = () => {
               No CBTs Found
             </p>
             <p className="text-sm text-brand-light-accent-1 mb-4">
-              Create your first CBT assessment to get started
+              Create your first assessment to get started
             </p>
-            <Button onClick={handleCreateCBT}>
+            <Button onClick={handleCreateCBT} disabled={!!hasExistingAssessment}>
               <Plus className="h-4 w-4 mr-2" />
-              Create CBT
+              Create Assessment
             </Button>
           </div>
         )}

@@ -190,10 +190,20 @@ export interface SubjectStatistics {
   totalQuestions: number;
 }
 
+export interface LibraryAssessmentInfo {
+  has_library_assessment: boolean;
+  assessment_id: string | null;
+  title: string | null;
+  description: string | null;
+  duration: number | null;
+  passingScore: number | null;
+}
+
 export interface SubjectResourcesResponse {
   subject: LibrarySubject;
   topics: LibraryTopic[];
   statistics: SubjectStatistics;
+  library_assessment?: LibraryAssessmentInfo;
 }
 
 // Legacy type for backward compatibility (old API structure)
@@ -365,7 +375,7 @@ export function useExploreVideos(params?: VideosParams) {
 // Subject Topics List Hook (returns only topic list without full content)
 // Uses authenticated API if available
 export function useExploreTopicsList(subjectId: string | null) {
-  return useQuery<{ subject: LibrarySubject; topics: Array<Omit<LibraryTopic, 'videos' | 'materials' | 'assessments' | 'submissions' | 'statistics'>>; statistics: SubjectStatistics }, PublicApiError | AuthenticatedApiError>({
+  return useQuery<{ subject: LibrarySubject; topics: Array<Omit<LibraryTopic, 'videos' | 'materials' | 'assessments' | 'submissions' | 'statistics'>>; statistics: SubjectStatistics; library_assessment?: LibraryAssessmentInfo }, PublicApiError | AuthenticatedApiError>({
     queryKey: ["explore", "topics-list", subjectId],
     queryFn: async () => {
       if (!subjectId) {
@@ -393,6 +403,7 @@ export function useExploreTopicsList(subjectId: string | null) {
               updatedAt: topic.updatedAt,
             })),
             statistics: response.data.statistics,
+            library_assessment: response.data.library_assessment,
           };
         }
       } catch (error) {
@@ -414,6 +425,7 @@ export function useExploreTopicsList(subjectId: string | null) {
                 updatedAt: topic.updatedAt,
               })),
               statistics: response.data.statistics,
+              library_assessment: response.data.library_assessment,
             };
           }
         } else {
@@ -439,6 +451,7 @@ export function useExploreTopicsList(subjectId: string | null) {
             updatedAt: topic.updatedAt,
           })),
           statistics: response.data.statistics,
+          library_assessment: response.data.library_assessment,
         };
       }
 

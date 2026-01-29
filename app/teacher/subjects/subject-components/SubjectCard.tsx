@@ -86,7 +86,7 @@ export const SubjectCard = ({ subject, onAIClick, onClick, basePath = "/teacher"
                 <span className="text-sm">Topics</span>
               </div>
               <span className="font-medium">
-                {subject.topics?.length ?? 0}
+                {subject.topicsCount ?? subject.topics?.length ?? 0}
               </span>
             </div>
           </div>

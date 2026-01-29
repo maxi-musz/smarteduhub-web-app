@@ -68,6 +68,7 @@ const ExplorePage = () => {
         term: "",
       },
       topics: [],
+      topicsCount: subject.topicsCount || 0, // Preserve topicsCount from API
       createdAt: subject.createdAt || new Date().toISOString(),
       updatedAt: subject.createdAt || new Date().toISOString(),
     }));

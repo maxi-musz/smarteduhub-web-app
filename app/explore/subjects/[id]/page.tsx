@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useExploreTopics } from "@/hooks/explore/use-explore";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, ClipboardList } from "lucide-react";
 import { PublicApiError } from "@/lib/api/public";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 // Import shared components from general-pages
@@ -71,7 +71,7 @@ const ExploreSubjectDetailPage = () => {
     );
   }
 
-  const { subject, topics, statistics } = data;
+  const { subject, topics, statistics, library_assessment } = data;
 
   // Transform LibraryTopic to ExploreTopic format
   const flatTopics = (topics || []).map((topic) => ({
@@ -113,6 +113,12 @@ const ExploreSubjectDetailPage = () => {
     progress: 0,
   };
 
+  const handleViewAssessment = () => {
+    if (library_assessment?.assessment_id) {
+      router.push(`/explore/assessments/${library_assessment.assessment_id}`);
+    }
+  };
+
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
       <SubjectHeader
@@ -120,6 +126,18 @@ const ExploreSubjectDetailPage = () => {
         code={subject.code}
         status="active"
         color={subject.color}
+        actionButton={
+          library_assessment?.has_library_assessment && library_assessment.assessment_id ? (
+            <Button
+              onClick={handleViewAssessment}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <ClipboardList className="h-4 w-4" />
+              View Assessment
+            </Button>
+          ) : undefined
+        }
       />
 
       <SubjectDescription description={subject.description || ""} />

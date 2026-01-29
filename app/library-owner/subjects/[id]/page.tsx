@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useLibrarySubjectDetail } from "@/hooks/library-owner/use-library-subject-detail";
 import { Button } from "@/components/ui/button";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
+import { ClipboardList } from "lucide-react";
 // Import shared components from general-pages
 import { SubjectHeader } from "@/app/general-pages/subjects/[id]/components/SubjectHeader";
 import { SubjectDescription } from "@/app/general-pages/subjects/[id]/components/SubjectDescription";
@@ -68,6 +69,10 @@ const LibraryOwnerSubjectDetailPage = () => {
 
   const { subject, topics, stats } = data;
 
+  const handleCreateAssessment = () => {
+    router.push(`/library-owner/resources/assessment?subjectId=${subjectId}`);
+  };
+
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
       <SubjectHeader
@@ -75,6 +80,16 @@ const LibraryOwnerSubjectDetailPage = () => {
         code={subject.code}
         status={subject.status}
         color={subject.color}
+        actionButton={
+          <Button
+            onClick={handleCreateAssessment}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <ClipboardList className="h-4 w-4" />
+            Create {subject.name} Assessment
+          </Button>
+        }
       />
 
       <SubjectDescription description={subject.description || ""} />

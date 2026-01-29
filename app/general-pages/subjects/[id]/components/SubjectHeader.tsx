@@ -10,6 +10,7 @@ interface SubjectHeaderProps {
   code: string;
   status: string;
   color: string;
+  actionButton?: React.ReactNode;
 }
 
 export const SubjectHeader = ({
@@ -17,6 +18,7 @@ export const SubjectHeader = ({
   code,
   status,
   color,
+  actionButton,
 }: SubjectHeaderProps) => {
   const router = useRouter();
 
@@ -41,6 +43,7 @@ export const SubjectHeader = ({
           </div>
         </div>
       </div>
+      {actionButton}
     </div>
   );
 };
