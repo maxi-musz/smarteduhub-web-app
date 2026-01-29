@@ -116,16 +116,7 @@ export default function AIChatStudentBookPage() {
     setProgrammaticMessage(null);
   };
 
-  const handlePdfSnapshot = (imageDataUrl: string, caption?: string, metadata?: { page: number; coordinates?: { x: number; y: number; width: number; height: number } }) => {
-    // Send snapshot to chat with optional caption and metadata
-    setProgrammaticMessage({
-      message: caption || "Here's a snapshot from the PDF",
-      displayContent: caption || "PDF Snapshot",
-      imageUrl: imageDataUrl,
-      imageCaption: caption || "PDF Snapshot",
-      metadata: metadata, // Include metadata for backend processing
-    });
-  };
+  
 
   // Loading state
   if (status === "loading" || isChaptersLoading) {
@@ -226,7 +217,6 @@ export default function AIChatStudentBookPage() {
         pdfUrl={pdfUrl || undefined}
         chapterPageStart={selectedChapterData?.pageStart || undefined}
         chapterPageEnd={selectedChapterData?.pageEnd || undefined}
-        onSnapshot={handlePdfSnapshot}
       >
         {/* Show message when no chapter is selected */}
         {!selectedChapterId && (

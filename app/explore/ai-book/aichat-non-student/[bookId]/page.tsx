@@ -117,21 +117,7 @@ export default function AIChatNonStudentBookPage() {
     setProgrammaticMessage(null);
   };
 
-  const handlePdfSnapshot = (imageDataUrl: string, caption?: string, metadata?: { page: number; coordinates?: { x: number; y: number; width: number; height: number } }) => {
-    // Ensure chat UI is open
-    if (!showChatUI) {
-      setShowChatUI(true);
-    }
-
-    // Send snapshot to chat with optional caption and metadata
-    setProgrammaticMessage({
-      message: caption || "Here's a snapshot from the PDF",
-      displayContent: caption || "PDF Snapshot",
-      imageUrl: imageDataUrl,
-      imageCaption: caption || "PDF Snapshot",
-      metadata: metadata, // Include metadata for backend processing
-    });
-  };
+  
 
   const handleBack = () => {
     router.push("/explore/ai-book");
@@ -275,7 +261,6 @@ export default function AIChatNonStudentBookPage() {
             pdfUrl={pdfUrl || undefined}
             chapterPageStart={selectedChapterData?.pageStart || undefined}
             chapterPageEnd={selectedChapterData?.pageEnd || undefined}
-            onSnapshot={handlePdfSnapshot}
           >
             {!selectedChapterId && (
               <div className="flex items-center justify-center h-full min-h-[400px]">
