@@ -97,7 +97,10 @@ const ExploreSubjectDetailPage = () => {
     })),
     materials: topic.materials,
     assessments: topic.assessments,
-    submissions: topic.submissions,
+    submissions: (topic.submissions || []).map((submission) => ({
+      // Preserve all fields from submission
+      ...submission,
+    })),
     statistics: topic.statistics,
   }));
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { LibraryOwnerProfileResponse } from "@/hooks/library-owner/use-library-owner-profile";
 

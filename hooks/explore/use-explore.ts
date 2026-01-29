@@ -460,7 +460,7 @@ export function useExploreTopicsList(subjectId: string | null) {
 export function useExploreTopicDetails(topicId: string | null) {
   return useQuery<LibraryTopic, PublicApiError | AuthenticatedApiError>({
     queryKey: ["explore", "topic-details", topicId],
-    queryFn: async () => {
+    queryFn: async (): Promise<LibraryTopic> => {
       if (!topicId) {
         throw new PublicApiError("Topic ID is required", 400);
       }
@@ -468,20 +468,14 @@ export function useExploreTopicDetails(topicId: string | null) {
       // Try authenticated API first (includes submissions if user is logged in)
       try {
         const { authenticatedApi } = await import("@/lib/api/authenticated");
-        const response = await authenticatedApi.get<{
-          success: boolean;
-          data: LibraryTopic;
-        }>(`/explore/topics/details/${topicId}`);
+        const response = await authenticatedApi.get<LibraryTopic>(`/explore/topics/details/${topicId}`);
 
         if (response.success && response.data) {
           return response.data;
         }
       } catch (error) {
         if (error instanceof AuthenticatedApiError && error.statusCode === 401) {
-          const response = await publicApi.get<{
-            success: boolean;
-            data: LibraryTopic;
-          }>(`/explore/topics/details/${topicId}`);
+          const response = await publicApi.get<LibraryTopic>(`/explore/topics/details/${topicId}`);
 
           if (response.success && response.data) {
             return response.data;
@@ -492,10 +486,7 @@ export function useExploreTopicDetails(topicId: string | null) {
       }
 
       // Fallback to public API
-      const response = await publicApi.get<{
-        success: boolean;
-        data: LibraryTopic;
-      }>(`/explore/topics/details/${topicId}`);
+      const response = await publicApi.get<LibraryTopic>(`/explore/topics/details/${topicId}`);
 
       if (response.success && response.data) {
         return response.data;

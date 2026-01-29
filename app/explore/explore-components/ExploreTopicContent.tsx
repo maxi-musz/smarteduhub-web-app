@@ -103,6 +103,29 @@ interface ExploreTopicContentProps {
 export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopicContentProps) => {
   const router = useRouter();
 
+  // Track active tab - moved to top level to comply with Rules of Hooks
+  const [activeTab, setActiveTab] = useState("videos");
+
+  // Find selected topic
+  const selectedTopic = topicId ? topics.find((t) => t.id === topicId) : null;
+
+  // Map submissions to assessments for display - moved to top level to comply with Rules of Hooks
+  const topicSubmissions = useMemo(() => {
+    if (!selectedTopic?.submissions || !Array.isArray(selectedTopic.submissions)) return [];
+    if (!selectedTopic?.assessments) return [];
+    return selectedTopic.submissions.map((submission) => {
+      // Debug: Log submission to check if id exists
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Submission object:', submission);
+      }
+      const assessment = selectedTopic.assessments.find((a) => a.id === submission.assessmentId);
+      return {
+        ...submission,
+        assessment,
+      };
+    }).filter((sub) => sub.assessment); // Only include submissions with matching assessments
+  }, [selectedTopic?.submissions, selectedTopic?.assessments]);
+
   const handleMaterialClick = (materialId: string) => {
     router.push(`/explore/subjects/${subjectId}/materials/${materialId}?topicId=${topicId}`);
   };
@@ -118,8 +141,6 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
     );
   }
 
-  const selectedTopic = topics.find((t) => t.id === topicId);
-
   if (!selectedTopic) {
     return (
       <div className="lg:col-span-2">
@@ -131,22 +152,7 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
     );
   }
 
-  const { title, description, videos, materials, assessments, submissions, statistics } = selectedTopic;
-
-  // Track active tab
-  const [activeTab, setActiveTab] = useState("videos");
-
-  // Map submissions to assessments for display
-  const topicSubmissions = useMemo(() => {
-    if (!submissions || !Array.isArray(submissions)) return [];
-    return submissions.map((submission) => {
-      const assessment = assessments.find((a) => a.id === submission.assessmentId);
-      return {
-        ...submission,
-        assessment,
-      };
-    }).filter((sub) => sub.assessment); // Only include submissions with matching assessments
-  }, [submissions, assessments]);
+  const { title, description, videos, materials, assessments, statistics } = selectedTopic;
 
   const formatDuration = (seconds: number | null): string => {
     if (!seconds) return "N/A";
@@ -347,8 +353,14 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
                 const assessment = submission.assessment;
                 if (!assessment) return null;
 
+                // Ensure we have a valid submission ID
+                if (!submission.id) {
+                  console.error("Submission missing ID:", submission);
+                  return null;
+                }
+
                 return (
-                  <Card key={submission.assessmentId} className="hover:shadow-md transition-shadow">
+                  <Card key={submission.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -392,7 +404,15 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => router.push(`/explore/assessments/${assessment.id}`)}
+                          onClick={() => {
+                            const attemptId = submission.id;
+                            if (!attemptId) {
+                              console.error("Submission ID is missing:", submission);
+                              alert("Unable to view details: Submission ID is missing");
+                              return;
+                            }
+                            router.push(`/explore/assessments/attempts/${attemptId}`);
+                          }}
                           className="flex-shrink-0"
                         >
                           <FileCheck className="h-4 w-4 mr-1" />
