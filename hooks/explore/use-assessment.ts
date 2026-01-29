@@ -369,6 +369,84 @@ export interface AttemptResultsResponse {
   responses: AttemptQuestionResponse[];
 }
 
+export interface AssessmentAttempt {
+  id: string;
+  attemptNumber: number;
+  status: string;
+  startedAt: string;
+  submittedAt: string;
+  timeSpent: number | null;
+  totalScore: number;
+  maxScore: number;
+  percentage: number;
+  passed: boolean;
+  isGraded: boolean;
+  gradedAt: string | null;
+  createdAt: string;
+  assessment: {
+    id: string;
+    title: string;
+    description: string | null;
+    totalPoints: number;
+    passingScore: number;
+    subject: {
+      id: string;
+      name: string;
+      code: string;
+    } | null;
+    topic: {
+      id: string;
+      title: string;
+    } | null;
+  };
+}
+
+export interface AssessmentAttemptsListResponse {
+  success: boolean;
+  message: string;
+  data: AssessmentAttempt[];
+}
+
+export function useAssessmentAttemptsList(assessmentId?: string | null, enabled: boolean = true) {
+  return useQuery<AssessmentAttempt[], AuthenticatedApiError>({
+    queryKey: ["explore", "assessments", "attempts", assessmentId || "all"],
+    queryFn: async (): Promise<AssessmentAttempt[]> => {
+      logger.info(`[useAssessmentAttemptsList] Fetching attempts`, { assessmentId });
+      
+      const queryParams = new URLSearchParams();
+      if (assessmentId) {
+        queryParams.append("assessmentId", assessmentId);
+      }
+      
+      const endpoint = `/explore/assessments/attempts${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+      const response = await authenticatedApi.get<{
+        success?: boolean;
+        message?: string;
+        data?: AssessmentAttempt[];
+      }>(endpoint);
+
+      if (response.success && response.data && Array.isArray(response.data)) {
+        logger.info(`[useAssessmentAttemptsList] Attempts fetched successfully`, {
+          count: response.data.length,
+          assessmentId,
+        });
+        return response.data;
+      }
+
+      throw new AuthenticatedApiError(
+        response.message || "Failed to fetch attempts",
+        response.statusCode || 400,
+        response
+      );
+    },
+    enabled: enabled,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
+
 export function useAttemptResults(attemptId: string | null) {
   return useQuery<AttemptResultsResponse, AuthenticatedApiError>({
     queryKey: ["explore", "assessments", "attempts", attemptId],

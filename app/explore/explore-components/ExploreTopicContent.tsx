@@ -1,13 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, FileText, PlayCircle, FileCheck } from "lucide-react";
+import { BookOpen, FileText, PlayCircle, FileCheck, History, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+// import { useExploreTopicDetails } from "@/hooks/explore/use-explore"; // Ready for when backend supports it
 
 interface ExploreTopicContentProps {
   topicId: string | null;
@@ -88,6 +89,7 @@ interface ExploreTopicContentProps {
       videosCount: number;
       materialsCount: number;
       assessmentsCount: number;
+      submissionsCount: number;
       totalViews: number;
       totalDuration: number;
       totalVideoSize: number;
@@ -129,7 +131,22 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
     );
   }
 
-  const { title, description, videos, materials, assessments, statistics } = selectedTopic;
+  const { title, description, videos, materials, assessments, submissions, statistics } = selectedTopic;
+
+  // Track active tab
+  const [activeTab, setActiveTab] = useState("videos");
+
+  // Map submissions to assessments for display
+  const topicSubmissions = useMemo(() => {
+    if (!submissions || !Array.isArray(submissions)) return [];
+    return submissions.map((submission) => {
+      const assessment = assessments.find((a) => a.id === submission.assessmentId);
+      return {
+        ...submission,
+        assessment,
+      };
+    }).filter((sub) => sub.assessment); // Only include submissions with matching assessments
+  }, [submissions, assessments]);
 
   const formatDuration = (seconds: number | null): string => {
     if (!seconds) return "N/A";
@@ -160,8 +177,8 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
           )}
         </div>
 
-        <Tabs defaultValue="videos" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-md mb-4">
+        <Tabs defaultValue="videos" className="w-full" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-2xl mb-4">
             <TabsTrigger value="videos">
               Videos ({statistics.videosCount})
             </TabsTrigger>
@@ -171,6 +188,9 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
             <TabsTrigger value="assessments">
               Assessments ({statistics.assessmentsCount})
             </TabsTrigger>
+            <TabsTrigger value="attempts">
+              Submissions ({statistics.submissionsCount})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="videos" className="space-y-3 mt-4">
@@ -179,7 +199,7 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
                 <p className="text-gray-500 mb-4">No videos available</p>
               </div>
             ) : (
-              videos.map((video) => (
+              videos.map((video: typeof videos[0]) => (
                 <Card 
                   key={video.id} 
                   className="hover:shadow-md transition-shadow cursor-pointer"
@@ -231,7 +251,7 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
                 <p className="text-gray-500 mb-4">No materials available</p>
               </div>
             ) : (
-              materials.map((material) => (
+              materials.map((material: typeof materials[0]) => (
                 <Card 
                   key={material.id} 
                   className="hover:shadow-md transition-shadow cursor-pointer"
@@ -270,9 +290,9 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
                 <p className="text-gray-500 mb-4">No assessments available</p>
               </div>
             ) : (
-              assessments.map((assessment) => {
+              assessments.map((assessment: typeof assessments[0]) => {
                 const submission = selectedTopic.submissions.find(
-                  (s) => s.assessmentId === assessment.id
+                  (s: typeof selectedTopic.submissions[0]) => s.assessmentId === assessment.id
                 );
                 return (
                   <Card key={assessment.id} className="hover:shadow-md transition-shadow">
@@ -306,6 +326,77 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
                         >
                           <PlayCircle className="h-4 w-4 mr-1" />
                           {submission ? "Retry" : "Take assessment"}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </TabsContent>
+
+          <TabsContent value="attempts" className="space-y-3 mt-4">
+            {topicSubmissions.length === 0 ? (
+              <div className="text-center py-8">
+                <History className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500 mb-4">No submissions found for assessments in this topic</p>
+                <p className="text-sm text-gray-400">Complete an assessment to see your submissions here</p>
+              </div>
+            ) : (
+              topicSubmissions.map((submission) => {
+                const assessment = submission.assessment;
+                if (!assessment) return null;
+
+                return (
+                  <Card key={submission.assessmentId} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-4 flex-1 min-w-0">
+                          <div className={`p-3 rounded-lg flex-shrink-0 ${
+                            submission.passed ? "bg-green-100" : "bg-red-100"
+                          }`}>
+                            {submission.passed ? (
+                              <CheckCircle2 className="h-6 w-6 text-green-600" />
+                            ) : (
+                              <XCircle className="h-6 w-6 text-red-600" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold text-lg truncate">{assessment.title}</h4>
+                            </div>
+                            {assessment.description && (
+                              <p className="text-sm text-gray-600 mb-2 line-clamp-1">{assessment.description}</p>
+                            )}
+                            <div className="flex flex-wrap items-center gap-4 text-xs">
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-500">Percentage:</span>
+                                <span className={`font-semibold ${
+                                  submission.passed ? "text-green-600" : "text-red-600"
+                                }`}>
+                                  {typeof submission.percentage === 'number' ? submission.percentage.toFixed(1) : submission.percentage}%
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-500">Passing Score:</span>
+                                <span className="font-semibold text-brand-heading">
+                                  {assessment.passingScore}%
+                                </span>
+                              </div>
+                              <Badge variant={submission.passed ? "default" : "destructive"} className="text-xs">
+                                {submission.passed ? "Passed" : "Failed"}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push(`/explore/assessments/${assessment.id}`)}
+                          className="flex-shrink-0"
+                        >
+                          <FileCheck className="h-4 w-4 mr-1" />
+                          View Details
                         </Button>
                       </div>
                     </CardContent>

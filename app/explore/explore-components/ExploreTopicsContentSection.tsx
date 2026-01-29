@@ -81,6 +81,7 @@ interface ExploreTopic {
     videosCount: number;
     materialsCount: number;
     assessmentsCount: number;
+    submissionsCount: number;
     totalViews: number;
     totalDuration: number;
     totalVideoSize: number;

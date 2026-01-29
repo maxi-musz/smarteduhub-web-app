@@ -142,6 +142,7 @@ export interface TopicStatistics {
   videosCount: number;
   materialsCount: number;
   assessmentsCount: number;
+  submissionsCount: number;
   totalViews: number;
   totalDuration: number; // seconds
   totalVideoSize: number; // bytes
@@ -361,8 +362,162 @@ export function useExploreVideos(params?: VideosParams) {
   });
 }
 
+// Subject Topics List Hook (returns only topic list without full content)
+// Uses authenticated API if available
+export function useExploreTopicsList(subjectId: string | null) {
+  return useQuery<{ subject: LibrarySubject; topics: Array<Omit<LibraryTopic, 'videos' | 'materials' | 'assessments' | 'submissions' | 'statistics'>>; statistics: SubjectStatistics }, PublicApiError | AuthenticatedApiError>({
+    queryKey: ["explore", "topics-list", subjectId],
+    queryFn: async () => {
+      if (!subjectId) {
+        throw new PublicApiError("Subject ID is required", 400);
+      }
+
+      // Try authenticated API first
+      try {
+        const { authenticatedApi } = await import("@/lib/api/authenticated");
+        const response = await authenticatedApi.get<SubjectResourcesResponse>(
+          `/explore/topics/${subjectId}?listOnly=true`
+        );
+
+        if (response.success && response.data) {
+          // Return only topic list without full content
+          return {
+            subject: response.data.subject,
+            topics: response.data.topics.map(topic => ({
+              id: topic.id,
+              title: topic.title,
+              description: topic.description,
+              order: topic.order,
+              is_active: topic.is_active,
+              createdAt: topic.createdAt,
+              updatedAt: topic.updatedAt,
+            })),
+            statistics: response.data.statistics,
+          };
+        }
+      } catch (error) {
+        if (error instanceof AuthenticatedApiError && error.statusCode === 401) {
+          const response = await publicApi.get<SubjectResourcesResponse>(
+            `/explore/topics/${subjectId}?listOnly=true`
+          );
+
+          if (response.success && response.data) {
+            return {
+              subject: response.data.subject,
+              topics: response.data.topics.map(topic => ({
+                id: topic.id,
+                title: topic.title,
+                description: topic.description,
+                order: topic.order,
+                is_active: topic.is_active,
+                createdAt: topic.createdAt,
+                updatedAt: topic.updatedAt,
+              })),
+              statistics: response.data.statistics,
+            };
+          }
+        } else {
+          throw error;
+        }
+      }
+
+      // Fallback to public API
+      const response = await publicApi.get<SubjectResourcesResponse>(
+        `/explore/topics/${subjectId}?listOnly=true`
+      );
+
+      if (response.success && response.data) {
+        return {
+          subject: response.data.subject,
+          topics: response.data.topics.map(topic => ({
+            id: topic.id,
+            title: topic.title,
+            description: topic.description,
+            order: topic.order,
+            is_active: topic.is_active,
+            createdAt: topic.createdAt,
+            updatedAt: topic.updatedAt,
+          })),
+          statistics: response.data.statistics,
+        };
+      }
+
+      throw new PublicApiError(
+        response.message || "Failed to fetch topics list",
+        response.statusCode || 400,
+        response
+      );
+    },
+    enabled: !!subjectId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
+
+// Single Topic Details Hook (fetches full topic content)
+export function useExploreTopicDetails(topicId: string | null) {
+  return useQuery<LibraryTopic, PublicApiError | AuthenticatedApiError>({
+    queryKey: ["explore", "topic-details", topicId],
+    queryFn: async () => {
+      if (!topicId) {
+        throw new PublicApiError("Topic ID is required", 400);
+      }
+
+      // Try authenticated API first (includes submissions if user is logged in)
+      try {
+        const { authenticatedApi } = await import("@/lib/api/authenticated");
+        const response = await authenticatedApi.get<{
+          success: boolean;
+          data: LibraryTopic;
+        }>(`/explore/topics/details/${topicId}`);
+
+        if (response.success && response.data) {
+          return response.data;
+        }
+      } catch (error) {
+        if (error instanceof AuthenticatedApiError && error.statusCode === 401) {
+          const response = await publicApi.get<{
+            success: boolean;
+            data: LibraryTopic;
+          }>(`/explore/topics/details/${topicId}`);
+
+          if (response.success && response.data) {
+            return response.data;
+          }
+        } else {
+          throw error;
+        }
+      }
+
+      // Fallback to public API
+      const response = await publicApi.get<{
+        success: boolean;
+        data: LibraryTopic;
+      }>(`/explore/topics/details/${topicId}`);
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+
+      throw new PublicApiError(
+        response.message || "Failed to fetch topic details",
+        response.statusCode || 400,
+        response
+      );
+    },
+    enabled: !!topicId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
+
 // Subject Resources Hook (New API - returns chapters, topics, and all resources)
 // Uses authenticated API if available to include user submissions
+// DEPRECATED: Use useExploreTopicsList + useExploreTopicDetails instead
 export function useExploreTopics(subjectId: string | null) {
   return useQuery<SubjectResourcesResponse, PublicApiError | AuthenticatedApiError>({
     queryKey: ["explore", "topics", subjectId],
