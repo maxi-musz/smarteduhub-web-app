@@ -215,7 +215,7 @@ export function AttemptResultsModal({ attemptId, isOpen, onClose }: AttemptResul
                 </p>
                 <p className="text-xs text-brand-light-accent-1">Score</p>
                 <p className="text-sm font-medium text-brand-heading">
-                  {attempt.percentage}%
+                  {typeof attempt.percentage === 'number' ? attempt.percentage.toFixed(1) : attempt.percentage}%
                 </p>
               </div>
               <div className="text-center">

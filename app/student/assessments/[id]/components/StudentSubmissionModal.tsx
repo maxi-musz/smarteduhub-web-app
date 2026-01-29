@@ -42,7 +42,7 @@ export const StudentSubmissionModal = ({
             <div className="p-4 bg-blue-50 rounded-lg">
               <p className="text-sm font-medium text-blue-900 mb-1">Best Attempt</p>
               <p className="text-lg font-bold text-blue-800">
-                Attempt {best_attempt.attempt_number}: {best_attempt.score}% ({best_attempt.percentage}%)
+                Attempt {best_attempt.attempt_number}: {best_attempt.score}% ({typeof best_attempt.percentage === 'number' ? best_attempt.percentage.toFixed(1) : best_attempt.percentage}%)
               </p>
             </div>
           )}

@@ -3,7 +3,8 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, FileText, PlayCircle } from "lucide-react";
+import { BookOpen, FileText, PlayCircle, FileCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
@@ -276,28 +277,36 @@ export const ExploreTopicContent = ({ topicId, subjectId, topics }: ExploreTopic
                 return (
                   <Card key={assessment.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-4 flex-1 min-w-0">
-                          <div className="p-3 bg-purple-100 rounded-lg">
-                            <FileText className="h-6 w-6 text-purple-600" />
+                          <div className="p-3 bg-purple-100 rounded-lg flex-shrink-0">
+                            <FileCheck className="h-6 w-6 text-purple-600" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-lg mb-1 truncate">{assessment.title}</h4>
                             {assessment.description && (
                               <p className="text-sm text-gray-600 mb-2 line-clamp-2">{assessment.description}</p>
                             )}
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
                               <span>{assessment.duration} min</span>
                               <span>{assessment.questionsCount} questions</span>
                               <span>Pass: {assessment.passingScore}%</span>
                               {submission && (
                                 <Badge variant={submission.passed ? "default" : "destructive"}>
-                                  {submission.percentage}% - {submission.passed ? "Passed" : "Failed"}
+                                  {typeof submission.percentage === 'number' ? submission.percentage.toFixed(1) : submission.percentage}% - {submission.passed ? "Passed" : "Failed"}
                                 </Badge>
                               )}
                             </div>
                           </div>
                         </div>
+                        <Button
+                          size="sm"
+                          onClick={() => router.push(`/explore/assessments/${assessment.id}`)}
+                          className="flex-shrink-0"
+                        >
+                          <PlayCircle className="h-4 w-4 mr-1" />
+                          {submission ? "Retry" : "Take assessment"}
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>

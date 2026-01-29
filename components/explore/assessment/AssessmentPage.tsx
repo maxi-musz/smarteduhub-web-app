@@ -429,7 +429,7 @@ export function AssessmentPage({ assessmentId, basePath }: AssessmentPageProps) 
                 <div>
                   <p className="text-sm text-brand-light-accent-1">Percentage</p>
                   <p className="text-2xl font-bold text-brand-heading">
-                    {results.percentage}%
+                    {typeof results.percentage === 'number' ? results.percentage.toFixed(1) : results.percentage}%
                   </p>
                 </div>
                 <div>

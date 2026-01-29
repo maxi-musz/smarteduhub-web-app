@@ -313,7 +313,7 @@ export function ExploreTopicCard({
           <div className="flex items-center justify-between">
             <span className="text-xs text-brand-light-accent-1">Score</span>
             <span className="text-sm font-semibold text-brand-heading">
-              {submission.userScore}/{submission.maxScore} ({submission.percentage}%)
+              {submission.userScore}/{submission.maxScore} ({typeof submission.percentage === 'number' ? submission.percentage.toFixed(1) : submission.percentage}%)
             </span>
           </div>
           <div className="flex items-center justify-between">

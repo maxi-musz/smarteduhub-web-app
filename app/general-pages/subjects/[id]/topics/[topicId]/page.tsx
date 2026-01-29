@@ -456,7 +456,13 @@ const TopicContentPage = () => {
                               </div>
                             </div>
                           </div>
-                          <Button size="sm">Start Quiz</Button>
+                          <Button
+                            size="sm"
+                            onClick={() => router.push(`/student/assessments/${quiz.id}/take`)}
+                          >
+                            <FileCheck className="h-4 w-4 mr-1" />
+                            Start Quiz
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>

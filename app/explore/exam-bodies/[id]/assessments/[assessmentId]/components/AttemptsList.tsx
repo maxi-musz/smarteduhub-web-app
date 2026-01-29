@@ -104,7 +104,7 @@ export const AttemptsList = ({ examBodyId, assessmentId }: AttemptsListProps) =>
                     </Badge>
                   )}
                   <Badge variant="outline" className="text-xs">
-                    {attempt.percentage}%
+                    {typeof attempt.percentage === 'number' ? attempt.percentage.toFixed(1) : attempt.percentage}%
                   </Badge>
                   <Badge variant="outline" className="text-xs">
                     {attempt.status}

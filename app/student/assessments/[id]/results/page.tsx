@@ -141,7 +141,7 @@ export default function AssessmentResultsPage() {
             <Trophy className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{submission_summary.best_percentage}%</div>
+            <div className="text-2xl font-bold">{typeof submission_summary.best_percentage === 'number' ? submission_summary.best_percentage.toFixed(1) : submission_summary.best_percentage}%</div>
             <p className="text-xs text-muted-foreground">
               {submission_summary.best_score} / {assessment.total_points} points
             </p>
@@ -214,7 +214,7 @@ export default function AssessmentResultsPage() {
                     variant={submission.passed ? "default" : "destructive"}
                     className="ml-1"
                   >
-                    {submission.percentage}%
+                    {typeof submission.percentage === 'number' ? submission.percentage.toFixed(1) : submission.percentage}%
                   </Badge>
                 </TabsTrigger>
               ))}
@@ -278,7 +278,7 @@ function SubmissionDetails({
                 {submission.total_score} / {assessment.total_points}
               </div>
               <div className="text-sm text-muted-foreground">
-                {submission.percentage}% • {submission.passed ? "Passed" : "Failed"}
+                {typeof submission.percentage === 'number' ? submission.percentage.toFixed(1) : submission.percentage}% • {submission.passed ? "Passed" : "Failed"}
               </div>
             </div>
 

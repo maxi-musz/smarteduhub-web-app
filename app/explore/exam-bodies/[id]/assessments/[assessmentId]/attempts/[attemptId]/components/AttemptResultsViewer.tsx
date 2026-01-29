@@ -55,7 +55,7 @@ export const AttemptResultsViewer = ({ results }: AttemptResultsViewerProps) => 
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-brand-heading">
-                {results.results.percentage}%
+                {typeof results.results.percentage === 'number' ? results.results.percentage.toFixed(1) : results.results.percentage}%
               </div>
               <Badge
                 variant="outline"
