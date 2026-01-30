@@ -14,24 +14,27 @@ import { Search, LayoutGrid, List } from "lucide-react";
 interface SubjectFiltersProps {
   searchQuery: string;
   selectedClass: string;
-  groupByClass: boolean;
+  groupByClass?: boolean;
   onSearchChange: (value: string) => void;
   onClassChange: (value: string) => void;
-  onViewToggle: (grouped: boolean) => void;
+  onViewToggle?: (grouped: boolean) => void;
   availableClasses: Array<{
     id: string;
     name: string;
   }>;
+  /** When false, hides the List / By Class toggle. Default true. */
+  showViewToggle?: boolean;
 }
 
 export const SubjectFilters = ({
   searchQuery,
   selectedClass,
-  groupByClass,
+  groupByClass = false,
   onSearchChange,
   onClassChange,
   onViewToggle,
   availableClasses,
+  showViewToggle = true,
 }: SubjectFiltersProps) => {
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -57,26 +60,28 @@ export const SubjectFilters = ({
           ))}
         </SelectContent>
       </Select>
-      <div className="flex items-center gap-1 border rounded-md">
-        <Button
-          variant={!groupByClass ? "default" : "ghost"}
-          size="sm"
-          onClick={() => onViewToggle(false)}
-          className="rounded-r-none"
-        >
-          <List className="h-4 w-4 mr-1" />
-          List
-        </Button>
-        <Button
-          variant={groupByClass ? "default" : "ghost"}
-          size="sm"
-          onClick={() => onViewToggle(true)}
-          className="rounded-l-none"
-        >
-          <LayoutGrid className="h-4 w-4 mr-1" />
-          By Class
-        </Button>
-      </div>
+      {showViewToggle && onViewToggle && (
+        <div className="flex items-center gap-1 border rounded-md">
+          <Button
+            variant={!groupByClass ? "default" : "ghost"}
+            size="sm"
+            onClick={() => onViewToggle(false)}
+            className="rounded-r-none"
+          >
+            <List className="h-4 w-4 mr-1" />
+            List
+          </Button>
+          <Button
+            variant={groupByClass ? "default" : "ghost"}
+            size="sm"
+            onClick={() => onViewToggle(true)}
+            className="rounded-l-none"
+          >
+            <LayoutGrid className="h-4 w-4 mr-1" />
+            By Class
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

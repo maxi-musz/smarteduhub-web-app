@@ -81,13 +81,21 @@ export const SubjectList = ({
         ) : subjects.length > 0 ? (
           subjects.map((subject) => (
             <TableRow key={subject.id}>
-              <TableCell>
-                <div className="flex items-center gap-3">
+              <TableCell className="p-0">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onViewSubject(subject.id);
+                  }}
+                  className="w-full cursor-pointer text-left p-4 border-0 bg-transparent hover:bg-muted/50 hover:text-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-inset rounded-none flex items-center gap-3 transition-colors font-inherit"
+                >
                   <div
-                    className="w-4 h-4 rounded-full"
+                    className="w-4 h-4 rounded-full flex-shrink-0"
                     style={{ backgroundColor: subject.color || "#6B7280" }}
                   />
-                  <div>
+                  <div className="min-w-0">
                     <div className="font-medium capitalize">{subject.name}</div>
                     {subject.description && (
                       <div className="text-sm text-gray-500 capitalize line-clamp-1">
@@ -95,7 +103,7 @@ export const SubjectList = ({
                       </div>
                     )}
                   </div>
-                </div>
+                </button>
               </TableCell>
               <TableCell>
                 {subject.code ? (
