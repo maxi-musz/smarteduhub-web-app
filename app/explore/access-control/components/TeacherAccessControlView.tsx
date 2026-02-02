@@ -107,6 +107,42 @@ export function TeacherAccessControlView() {
     [selectedClassId, localExcludedKeys, excludeMutation, includeMutation, refetch]
   );
 
+  const { data: exploreData } = useExplore();
+  const exploreClasses = exploreData?.classes ?? [];
+  const subjectIdToClassId = useMemo(() => {
+    const map = new Map<string, string>();
+    exploreData?.subjects?.forEach((s) => {
+      if (s.class?.id && s.id) map.set(s.id, s.class.id);
+    });
+    return map;
+  }, [exploreData?.subjects]);
+
+  const data = resourcesData as
+    | { items: TeacherAvailableResource[]; meta?: { totalItems: number; totalPages: number } }
+    | undefined;
+  const items = useMemo(() => data?.items ?? [], [data?.items]);
+  const meta = data?.meta;
+  const allSubjects = useMemo(() => {
+    const bySubject = new Map<string, TeacherAvailableResource>();
+    items.forEach((r) => {
+      const subj = r.libraryResourceAccess?.subject;
+      if (subj?.id && r.resourceType === "SUBJECT" && !bySubject.has(subj.id)) {
+        bySubject.set(subj.id, r);
+      }
+    });
+    return Array.from(bySubject.values());
+  }, [items]);
+
+  const subjects = useMemo(() => {
+    if (!selectedClassId) return allSubjects;
+    return allSubjects.filter((r) => {
+      const subjectId = r.libraryResourceAccess?.subject?.id;
+      if (!subjectId) return false;
+      const classId = subjectIdToClassId.get(subjectId);
+      return classId === selectedClassId;
+    });
+  }, [allSubjects, selectedClassId, subjectIdToClassId]);
+
   if (error) {
     const msg =
       error instanceof AuthenticatedApiError
@@ -134,42 +170,6 @@ export function TeacherAccessControlView() {
       </div>
     );
   }
-
-  const { data: exploreData } = useExplore();
-  const exploreClasses = exploreData?.classes ?? [];
-  const subjectIdToClassId = useMemo(() => {
-    const map = new Map<string, string>();
-    exploreData?.subjects?.forEach((s) => {
-      if (s.class?.id && s.id) map.set(s.id, s.class.id);
-    });
-    return map;
-  }, [exploreData?.subjects]);
-
-  const data = resourcesData as
-    | { items: TeacherAvailableResource[]; meta?: { totalItems: number; totalPages: number } }
-    | undefined;
-  const items = data?.items ?? [];
-  const meta = data?.meta;
-  const allSubjects = useMemo(() => {
-    const bySubject = new Map<string, TeacherAvailableResource>();
-    items.forEach((r) => {
-      const subj = r.libraryResourceAccess?.subject;
-      if (subj?.id && r.resourceType === "SUBJECT" && !bySubject.has(subj.id)) {
-        bySubject.set(subj.id, r);
-      }
-    });
-    return Array.from(bySubject.values());
-  }, [items]);
-
-  const subjects = useMemo(() => {
-    if (!selectedClassId) return allSubjects;
-    return allSubjects.filter((r) => {
-      const subjectId = r.libraryResourceAccess?.subject?.id;
-      if (!subjectId) return false;
-      const classId = subjectIdToClassId.get(subjectId);
-      return classId === selectedClassId;
-    });
-  }, [allSubjects, selectedClassId, subjectIdToClassId]);
 
   const isPending = excludeMutation.isPending || includeMutation.isPending;
 
@@ -399,6 +399,7 @@ function SubjectTopicsSection({
 function TopicResourcesSection({
   subjectId,
   topicId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- prop required by parent for API consistency
   selectedClassId,
   isExcluded,
   onToggle,

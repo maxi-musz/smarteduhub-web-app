@@ -81,41 +81,13 @@ export function SchoolAccessControlView() {
     refetch();
   }, [includeAllMutation, refetchExcluded, refetch]);
 
-  if (error) {
-    const msg =
-      error instanceof AuthenticatedApiError
-        ? error.message
-        : "Failed to load available resources";
-    return (
-      <div className="px-4 sm:px-6">
-        <Dialog open={true}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-red-600">
-                <AlertCircle className="h-5 w-5" />
-                Error
-              </DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <p className="text-brand-light-accent-1 mb-4">{msg}</p>
-              <Button onClick={() => refetch()}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Retry
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
-  }
-
+  const { data: exploreData } = useExplore();
   const data = resourcesData as
     | { items: AvailableResource[]; meta?: { totalItems: number; totalPages: number } }
     | undefined;
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data?.items]);
   const meta = data?.meta;
 
-  const { data: exploreData } = useExplore();
   const subjectIdToClass = useMemo(() => {
     const map = new Map<string, { id: string; name: string }>();
     exploreData?.subjects?.forEach((s) => {
@@ -145,6 +117,34 @@ export function SchoolAccessControlView() {
   }, [items, subjectIdToClass]);
 
   const [expandedSubjectId, setExpandedSubjectId] = useState<string | null>(null);
+
+  if (error) {
+    const msg =
+      error instanceof AuthenticatedApiError
+        ? error.message
+        : "Failed to load available resources";
+    return (
+      <div className="px-4 sm:px-6">
+        <Dialog open={true}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-600">
+                <AlertCircle className="h-5 w-5" />
+                Error
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-brand-light-accent-1 mb-4">{msg}</p>
+              <Button onClick={() => refetch()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 sm:px-6 space-y-6">
@@ -272,7 +272,7 @@ export function SchoolAccessControlView() {
                               <Accordion
                                 type="single"
                                 collapsible
-                                value={expandedSubjectId === subjectId ? subjectId : ""}
+                                value={isExpanded ? subjectId : ""}
                                 onValueChange={(v) => setExpandedSubjectId(v || null)}
                                 className="mt-3"
                               >
@@ -284,7 +284,7 @@ export function SchoolAccessControlView() {
                                     </span>
                                   </AccordionTrigger>
                                   <AccordionContent>
-                                    <SubjectTopicsExpandable subjectId={subjectId} isOpen={expandedSubjectId === subjectId} />
+                                    <SubjectTopicsExpandable subjectId={subjectId} isOpen={isExpanded} />
                                   </AccordionContent>
                                 </AccordionItem>
                               </Accordion>
