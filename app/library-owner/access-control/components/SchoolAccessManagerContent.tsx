@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import {
   Accordion,
@@ -13,8 +13,8 @@ import {
   useSchoolAccessDetails,
   useGrantSchoolAccess,
   useUpdateLibraryAccessById,
-  useExcludeResource,
-  useIncludeResource,
+  // useExcludeResource,
+  // useIncludeResource,
 } from "@/hooks/access-control";
 import type { ExcludeIncludeResourceType, ResourceExclusionRef, ExcludedResourceRecord } from "@/hooks/access-control";
 import { useLibraryOwnerResources } from "@/hooks/library-owner/use-library-owner-resources";
@@ -44,7 +44,7 @@ function getGrantForResource(
   });
 }
 
-/** Build a set of exclusion keys from API exclusions (ResourceExclusionRef or ExcludedResourceRecord) */
+/* Re-enable when topic/video/material switches are turned back on
 function buildExcludedKeys(
   exclusions: (ResourceExclusionRef | ExcludedResourceRecord)[] | undefined
 ): Set<string> {
@@ -58,10 +58,10 @@ function buildExcludedKeys(
   }
   return set;
 }
-
 function exclusionKey(type: ExcludeIncludeResourceType, id: string): string {
   return `${type}:${id}`;
 }
+*/
 
 interface SchoolAccessManagerContentProps {
   schoolId: string;
@@ -72,15 +72,16 @@ export function SchoolAccessManagerContent({ schoolId }: SchoolAccessManagerCont
   const { data: resourcesData, isLoading: isResourcesLoading } = useLibraryOwnerResources();
   const grantMutation = useGrantSchoolAccess();
   const updateMutation = useUpdateLibraryAccessById();
+  /* Topic/video/material switches disabled – library owner can view but not toggle (re-enable with hooks + handler below)
   const excludeMutation = useExcludeResource();
   const includeMutation = useIncludeResource();
-
   const [localExcludedKeys, setLocalExcludedKeys] = useState<Set<string>>(new Set());
-
+  */
   const schoolAccessData = accessData as
     | { accessGrants: Array<{ id: string; resourceType: string; subjectId: string | null; topicId: string | null; videoId: string | null; materialId: string | null; isActive: boolean }>; exclusions?: (ResourceExclusionRef | ExcludedResourceRecord)[] }
     | undefined;
   const grants = schoolAccessData?.accessGrants ?? [];
+  /* Re-enable when topic/video/material switches are turned back on
   const serverExcludedKeys = useMemo(
     () => buildExcludedKeys(schoolAccessData?.exclusions),
     [schoolAccessData?.exclusions]
@@ -90,7 +91,6 @@ export function SchoolAccessManagerContent({ schoolId }: SchoolAccessManagerCont
     localExcludedKeys.forEach((k) => merged.add(k));
     return merged;
   }, [serverExcludedKeys, localExcludedKeys]);
-
   const isExcluded = useCallback(
     (type: ExcludeIncludeResourceType, id: string) => excludedKeys.has(exclusionKey(type, id)),
     [excludedKeys]
@@ -104,6 +104,7 @@ export function SchoolAccessManagerContent({ schoolId }: SchoolAccessManagerCont
       return next;
     });
   }, []);
+  */
 
   const resourceTreeByClass = useMemo(() => {
     if (!resourcesData) return [];
@@ -158,7 +159,7 @@ export function SchoolAccessManagerContent({ schoolId }: SchoolAccessManagerCont
     refetchAccess();
   };
 
-  /** Under a subject grant: turn off = exclude, turn on = include (new API behavior) */
+  /* Topic/video/material toggle handler – re-enable when switches are turned back on (uncomment hooks/state above too)
   const handleExcludeIncludeToggle = async (
     resourceType: ExcludeIncludeResourceType,
     ids: { topicId?: string; videoId?: string; materialId?: string; assessmentId?: string }
@@ -170,7 +171,6 @@ export function SchoolAccessManagerContent({ schoolId }: SchoolAccessManagerCont
       : ids.assessmentId;
     if (!id) return;
     const currentlyExcluded = isExcluded(resourceType, id);
-
     if (currentlyExcluded) {
       await includeMutation.mutateAsync({ schoolId, resourceType, ...ids });
       setExcluded(resourceType, id, false);
@@ -180,6 +180,7 @@ export function SchoolAccessManagerContent({ schoolId }: SchoolAccessManagerCont
     }
     refetchAccess();
   };
+  */
 
   const isLoading = isAccessLoading || isResourcesLoading;
 
@@ -241,9 +242,7 @@ export function SchoolAccessManagerContent({ schoolId }: SchoolAccessManagerCont
                   {topics.length > 0 && (
                     <Accordion type="multiple" defaultValue={[]} className="px-5 pb-4">
                       {topics.map(({ topic, videos, materials }) => {
-                        const topicExcluded = isExcluded("TOPIC", topic.id);
                         const itemCount = videos.length + materials.length;
-                        const hasSubjectAccess = !!subjectGrant;
                         return (
                           <AccordionItem key={topic.id} value={topic.id} className="border-none">
                             <div className="flex items-center justify-between py-3">
@@ -258,50 +257,28 @@ export function SchoolAccessManagerContent({ schoolId }: SchoolAccessManagerCont
                                   )}
                                 </div>
                               </AccordionTrigger>
-                              {hasSubjectAccess && (
-                                <div onClick={(e) => e.stopPropagation()}>
-                                  <Switch
-                                    checked={!topicExcluded}
-                                    onCheckedChange={() => handleExcludeIncludeToggle("TOPIC", { topicId: topic.id })}
-                                    disabled={excludeMutation.isPending || includeMutation.isPending}
-                                  />
-                                </div>
-                              )}
+                              {/* Topic switch disabled – library owner can view only (re-enable with handleExcludeIncludeToggle) */}
                             </div>
                             <AccordionContent>
                               <div className="pl-8 space-y-2 pt-2 pb-2">
-                                {videos.map((v) => {
-                                  const vidExcluded = isExcluded("VIDEO", v.id);
-                                  return (
-                                    <div key={v.id} className="flex items-center justify-between py-2">
-                                      <div className="flex items-center gap-2">
-                                        <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                                        <span className="text-sm">{v.title}</span>
-                                      </div>
-                                      <Switch
-                                        checked={!vidExcluded}
-                                        onCheckedChange={() => handleExcludeIncludeToggle("VIDEO", { videoId: v.id })}
-                                        disabled={excludeMutation.isPending || includeMutation.isPending}
-                                      />
+                                {videos.map((v) => (
+                                  <div key={v.id} className="flex items-center justify-between py-2">
+                                    <div className="flex items-center gap-2">
+                                      <Video className="h-3.5 w-3.5 text-muted-foreground" />
+                                      <span className="text-sm">{v.title}</span>
                                     </div>
-                                  );
-                                })}
-                                {materials.map((m) => {
-                                  const matExcluded = isExcluded("MATERIAL", m.id);
-                                  return (
-                                    <div key={m.id} className="flex items-center justify-between py-2">
-                                      <div className="flex items-center gap-2">
-                                        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                                        <span className="text-sm">{m.title}</span>
-                                      </div>
-                                      <Switch
-                                        checked={!matExcluded}
-                                        onCheckedChange={() => handleExcludeIncludeToggle("MATERIAL", { materialId: m.id })}
-                                        disabled={excludeMutation.isPending || includeMutation.isPending}
-                                      />
+                                    {/* Video switch disabled – view only */}
+                                  </div>
+                                ))}
+                                {materials.map((m) => (
+                                  <div key={m.id} className="flex items-center justify-between py-2">
+                                    <div className="flex items-center gap-2">
+                                      <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                                      <span className="text-sm">{m.title}</span>
                                     </div>
-                                  );
-                                })}
+                                    {/* Material switch disabled – view only */}
+                                  </div>
+                                ))}
                               </div>
                             </AccordionContent>
                           </AccordionItem>
