@@ -238,11 +238,12 @@ export function SchoolAccessManagerContent({ schoolId }: SchoolAccessManagerCont
                       disabled={grantMutation.isPending}
                     />
                   </div>
-                  {topics.length > 0 && subjectGrant && (
+                  {topics.length > 0 && (
                     <Accordion type="multiple" defaultValue={[]} className="px-5 pb-4">
                       {topics.map(({ topic, videos, materials }) => {
                         const topicExcluded = isExcluded("TOPIC", topic.id);
                         const itemCount = videos.length + materials.length;
+                        const hasSubjectAccess = !!subjectGrant;
                         return (
                           <AccordionItem key={topic.id} value={topic.id} className="border-none">
                             <div className="flex items-center justify-between py-3">
@@ -257,13 +258,15 @@ export function SchoolAccessManagerContent({ schoolId }: SchoolAccessManagerCont
                                   )}
                                 </div>
                               </AccordionTrigger>
-                              <div onClick={(e) => e.stopPropagation()}>
-                                <Switch
-                                  checked={!topicExcluded}
-                                  onCheckedChange={() => handleExcludeIncludeToggle("TOPIC", { topicId: topic.id })}
-                                  disabled={excludeMutation.isPending || includeMutation.isPending}
-                                />
-                              </div>
+                              {hasSubjectAccess && (
+                                <div onClick={(e) => e.stopPropagation()}>
+                                  <Switch
+                                    checked={!topicExcluded}
+                                    onCheckedChange={() => handleExcludeIncludeToggle("TOPIC", { topicId: topic.id })}
+                                    disabled={excludeMutation.isPending || includeMutation.isPending}
+                                  />
+                                </div>
+                              )}
                             </div>
                             <AccordionContent>
                               <div className="pl-8 space-y-2 pt-2 pb-2">

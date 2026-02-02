@@ -7,7 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { SingleSchoolResponse } from "@/hooks/library-owner/use-library-owner-school";
+import { Button } from "@/components/ui/button";
+import { SingleSchoolResponse, useApproveSchool } from "@/hooks/library-owner/use-library-owner-school";
 import {
   Building2,
   Mail,
@@ -19,9 +20,12 @@ import {
   Calendar,
   FileText,
   ExternalLink,
+  CheckCircle,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 
 interface SchoolDetailsModalProps {
   schoolData: SingleSchoolResponse | null;
@@ -34,10 +38,30 @@ export const SchoolDetailsModal = ({
   isOpen,
   onClose,
 }: SchoolDetailsModalProps) => {
+  const { toast } = useToast();
+  const approveSchool = useApproveSchool();
+
   if (!schoolData) return null;
 
   const { school, details, documentsSubmitted } = schoolData;
   const docs = documentsSubmitted ?? { cac: null, taxClearance: null, utilityBill: null };
+
+  const handleApprove = async () => {
+    try {
+      await approveSchool.mutateAsync(school.id);
+      toast({
+        title: "School approved",
+        description: `${school.school_name} has been approved.`,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to approve school";
+      toast({
+        variant: "destructive",
+        title: "Approval failed",
+        description: message,
+      });
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -92,9 +116,26 @@ export const SchoolDetailsModal = ({
                 </p>
               </div>
             </div>
-            <Badge className={getStatusColor(school.status)}>
-              {school.status}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {school.status.toLowerCase() === "pending" && (
+                <Button
+                  size="sm"
+                  onClick={handleApprove}
+                  disabled={approveSchool.isPending}
+                  className="gap-2"
+                >
+                  {approveSchool.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4" />
+                  )}
+                  Approve
+                </Button>
+              )}
+              <Badge className={getStatusColor(school.status)}>
+                {school.status}
+              </Badge>
+            </div>
           </div>
         </DialogHeader>
 

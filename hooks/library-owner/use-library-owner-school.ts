@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   authenticatedApi,
   AuthenticatedApiError,
@@ -223,3 +223,24 @@ export function useLibraryOwnerSchool(schoolId: string | null) {
   });
 }
 
+/** PATCH /library/schools/:schoolId/approve – approve a pending school */
+export function useApproveSchool() {
+  const queryClient = useQueryClient();
+  return useMutation<{ success: boolean; message?: string }, AuthenticatedApiError, string>({
+    mutationFn: async (schoolId: string) => {
+      const response = await authenticatedApi.patch<{ success: boolean; message?: string }>(
+        `/library/schools/${schoolId}/approve`
+      );
+      if (response.success) return response;
+      throw new AuthenticatedApiError(
+        (response as { message?: string }).message ?? "Failed to approve school",
+        400,
+        response
+      );
+    },
+    onSuccess: (_, schoolId) => {
+      queryClient.invalidateQueries({ queryKey: ["library-owner", "school", schoolId] });
+      queryClient.invalidateQueries({ queryKey: ["library-owner", "schools"] });
+    },
+  });
+}
