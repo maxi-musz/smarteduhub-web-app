@@ -16,7 +16,7 @@ import {
   // useExcludeResource,
   // useIncludeResource,
 } from "@/hooks/access-control";
-import type { ExcludeIncludeResourceType, ResourceExclusionRef, ExcludedResourceRecord } from "@/hooks/access-control";
+import type { ResourceExclusionRef, ExcludedResourceRecord } from "@/hooks/access-control";
 import { useLibraryOwnerResources } from "@/hooks/library-owner/use-library-owner-resources";
 
 type ResourceType = "SUBJECT" | "TOPIC" | "VIDEO" | "MATERIAL";
