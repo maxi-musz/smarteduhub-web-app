@@ -23,6 +23,9 @@ interface SubjectListProps {
   onSubjectClick?: (subjectId: string) => void;
   basePath?: string;
   canManage?: boolean;
+  /** Custom empty state for explore/school context when no resources are granted */
+  emptyStateMessage?: string;
+  emptyStateDescription?: string;
 }
 
 export const SubjectList = ({
@@ -35,6 +38,8 @@ export const SubjectList = ({
   onSubjectClick,
   basePath = "/teacher",
   canManage = true,
+  emptyStateMessage: customEmptyMessage,
+  emptyStateDescription: customEmptyDescription,
 }: SubjectListProps) => {
   if (isLoading) {
     return (
@@ -73,8 +78,8 @@ export const SubjectList = ({
       message = "No subjects to display";
       description = "There are subjects in the system, but none are available on this page.";
     } else {
-      message = "No subjects found";
-      description = "You don't have any subjects assigned yet.";
+      message = customEmptyMessage ?? "No subjects found";
+      description = customEmptyDescription ?? "You don't have any subjects assigned yet.";
     }
 
     return (

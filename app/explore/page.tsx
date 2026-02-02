@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import { useExplore, useExploreSubjects, LibrarySubject } from "@/hooks/explore/use-explore";
 import { useRouter } from "next/navigation";
+import { canManageAccessControl } from "@/lib/role-permissions";
 import {
   SubjectHeader,
   SubjectFilters,
@@ -17,6 +19,9 @@ import { AIAgentLogo } from "@/components/AIAgentLogo";
 
 const ExplorePage = () => {
   const router = useRouter();
+  const { data: session } = useSession();
+  const role = session?.user?.role;
+  const showAccessControl = canManageAccessControl(role);
   const [page, setPage] = useState(1);
   const limit = 10;
   const [searchQuery, setSearchQuery] = useState("");
@@ -159,7 +164,7 @@ const ExplorePage = () => {
       }} />
       <div className="py-6 space-y-6 bg-brand-bg relative">
         {/* Explore Buttons - Top Right */}
-        <div className="absolute top-6 right-6 z-10 flex items-center gap-3">
+        <div className="absolute top-6 right-6 z-10 flex items-center gap-3 flex-wrap">
           <Button
             onClick={() => router.push("/explore/exam-bodies")}
             className="group relative overflow-hidden bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:from-blue-700 hover:via-cyan-700 hover:to-teal-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
@@ -171,6 +176,19 @@ const ExplorePage = () => {
               </span>
             </div>
           </Button>
+          {showAccessControl && (
+            <Button
+              onClick={() => router.push("/explore/access-control")}
+              className="group relative overflow-hidden bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 hover:from-amber-700 hover:via-orange-700 hover:to-red-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
+            >
+              <div className="absolute inset-0 shimmer-effect"></div>
+              <div className="relative flex items-center gap-3 z-10">
+                <span className="text-base font-semibold tracking-wide">
+                  Access Control
+                </span>
+              </div>
+            </Button>
+          )}
           <Button
             onClick={() => router.push("/explore/ai-book")}
             className="group relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0"
@@ -232,6 +250,8 @@ const ExplorePage = () => {
           onSubjectClick={handleSubjectClick}
           basePath="/explore"
           canManage={false}
+          emptyStateMessage="No library resources available"
+          emptyStateDescription="No subjects or resources have been granted to your school yet. Contact your school administrator or library owner to request access to the learning materials."
         />
 
         <SubjectPagination

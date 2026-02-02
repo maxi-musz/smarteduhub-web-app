@@ -56,7 +56,13 @@ export async function makeAuthenticatedRequest<T = unknown>(
       Authorization: `Bearer ${session!.user.accessToken}`,
       ...((options.headers as Record<string, string>) || {}),
     };
-    
+
+    // Pass school_id when user belongs to a school (teachers, school directors, students)
+    const schoolId = session?.user?.schoolId;
+    if (schoolId) {
+      headers["school_id"] = schoolId;
+    }
+
     // Only set Content-Type for non-FormData requests
     if (!isFormData) {
       headers["Content-Type"] = "application/json";

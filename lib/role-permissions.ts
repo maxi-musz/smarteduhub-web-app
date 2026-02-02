@@ -69,6 +69,22 @@ export function canViewAssessments(role?: UserRole | string): boolean {
 }
 
 /**
+ * Check if a role can manage access control (school/teacher level)
+ * School directors and teachers can manage access to resources for their school
+ */
+export function canManageAccessControl(role?: UserRole | string): boolean {
+  return role === "teacher" || role === "school_director";
+}
+
+/**
+ * Check if a role can manage library-level access control
+ * Only library owners can grant school access to library resources
+ */
+export function canManageLibraryAccessControl(role?: UserRole | string): boolean {
+  return role === "libraryresourceowner" || role === "library_owner";
+}
+
+/**
  * Get all permissions for a role
  */
 export function getRolePermissions(role?: UserRole | string) {

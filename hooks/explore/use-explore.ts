@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { publicApi, PublicApiError } from "@/lib/api/public";
-import { AuthenticatedApiError } from "@/lib/api/authenticated";
+import {
+  authenticatedApi,
+  AuthenticatedApiError,
+} from "@/lib/api/authenticated";
 
 // Types
 export interface LibraryClass {
@@ -240,18 +243,18 @@ export interface TopicsResponse {
   topics: LibraryTopicLegacy[];
 }
 
-// Main Explore Page Hook
+// Main Explore Page Hook - uses JWT auth (backend requires it)
 export function useExplore() {
-  return useQuery<ExploreData, PublicApiError>({
+  return useQuery<ExploreData, PublicApiError | AuthenticatedApiError>({
     queryKey: ["explore", "main"],
     queryFn: async () => {
-      const response = await publicApi.get<ExploreData>("/explore");
+      const response = await authenticatedApi.get<ExploreData>("/explore");
 
       if (response.success && response.data) {
         return response.data;
       }
 
-      throw new PublicApiError(
+      throw new AuthenticatedApiError(
         response.message || "Failed to fetch explore data",
         response.statusCode || 400,
         response
@@ -273,11 +276,14 @@ export interface SubjectsParams {
 }
 
 export function useExploreSubjects(params?: SubjectsParams) {
-  return useQuery<PaginatedResponse<LibrarySubject>, PublicApiError>({
+  return useQuery<
+    PaginatedResponse<LibrarySubject>,
+    PublicApiError | AuthenticatedApiError
+  >({
     queryKey: ["explore", "subjects", params],
     queryFn: async () => {
       const searchParams = new URLSearchParams();
-      
+
       if (params?.classId) {
         searchParams.append("classId", params.classId);
       }
@@ -294,13 +300,14 @@ export function useExploreSubjects(params?: SubjectsParams) {
       const queryString = searchParams.toString();
       const endpoint = `/explore/subjects${queryString ? `?${queryString}` : ""}`;
 
-      const response = await publicApi.get<PaginatedResponse<LibrarySubject>>(endpoint);
+      const response =
+        await authenticatedApi.get<PaginatedResponse<LibrarySubject>>(endpoint);
 
       if (response.success && response.data) {
         return response.data;
       }
 
-      throw new PublicApiError(
+      throw new AuthenticatedApiError(
         response.message || "Failed to fetch subjects",
         response.statusCode || 400,
         response
@@ -325,11 +332,14 @@ export interface VideosParams {
 }
 
 export function useExploreVideos(params?: VideosParams) {
-  return useQuery<PaginatedResponse<LibraryVideo>, PublicApiError>({
+  return useQuery<
+    PaginatedResponse<LibraryVideo>,
+    PublicApiError | AuthenticatedApiError
+  >({
     queryKey: ["explore", "videos", params],
     queryFn: async () => {
       const searchParams = new URLSearchParams();
-      
+
       if (params?.classId) {
         searchParams.append("classId", params.classId);
       }
@@ -352,13 +362,14 @@ export function useExploreVideos(params?: VideosParams) {
       const queryString = searchParams.toString();
       const endpoint = `/explore/videos${queryString ? `?${queryString}` : ""}`;
 
-      const response = await publicApi.get<PaginatedResponse<LibraryVideo>>(endpoint);
+      const response =
+        await authenticatedApi.get<PaginatedResponse<LibraryVideo>>(endpoint);
 
       if (response.success && response.data) {
         return response.data;
       }
 
-      throw new PublicApiError(
+      throw new AuthenticatedApiError(
         response.message || "Failed to fetch videos",
         response.statusCode || 400,
         response
