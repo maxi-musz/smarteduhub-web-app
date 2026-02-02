@@ -9,6 +9,8 @@ import type {
   GrantStudentAccessRequest,
   UpdateAccessRequest,
   TeacherAvailableResource,
+  TeacherExcludeIncludeRequest,
+  TeacherExclusionRecord,
 } from "./types";
 
 const API_BASE = "/school-access-control/teacher";
@@ -140,6 +142,50 @@ export function useRevokeTeacherAccess() {
       if (response.success) return response.data;
       throw new AuthenticatedApiError(
         response.message || "Failed to revoke access",
+        400,
+        response
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teacher-access-control"] });
+    },
+  });
+}
+
+/** Exclude resource (teacher – turn off for student/class). POST /school-access-control/teacher/exclude */
+export function useTeacherExcludeResource() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: TeacherExcludeIncludeRequest) => {
+      const response = await authenticatedApi.post<TeacherExclusionRecord>(
+        `${API_BASE}/exclude`,
+        data
+      );
+      if (response.success && response.data) return response.data;
+      throw new AuthenticatedApiError(
+        response.message || "Failed to exclude resource",
+        400,
+        response
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teacher-access-control"] });
+    },
+  });
+}
+
+/** Include resource (teacher – turn on). POST /school-access-control/teacher/include */
+export function useTeacherIncludeResource() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: TeacherExcludeIncludeRequest) => {
+      const response = await authenticatedApi.post<{ id: string; removed: boolean } | null>(
+        `${API_BASE}/include`,
+        data
+      );
+      if (response.success !== false) return response.data ?? null;
+      throw new AuthenticatedApiError(
+        response.message || "Failed to include resource",
         400,
         response
       );

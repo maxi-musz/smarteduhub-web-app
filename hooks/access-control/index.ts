@@ -16,5 +16,9 @@ export {
   useBulkGrantSchoolUserAccess,
   useUpdateSchoolAccess,
   useRevokeSchoolAccess,
+  useExcludeSubject,
+  useIncludeSubject,
+  useExcludedSubjects,
+  useIncludeAllSubjects,
 } from "./use-school-access-control";
 export * from "./use-teacher-access-control";

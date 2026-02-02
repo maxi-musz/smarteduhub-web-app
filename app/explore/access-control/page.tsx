@@ -32,11 +32,11 @@ export default function ExploreAccessControlPage() {
     return null; // Will redirect
   }
 
-  const isSchoolDirector = role === "school_director";
+  const isSchoolOwner = role === "school_director" || role === "school_admin";
 
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
-      {isSchoolDirector ? (
+      {isSchoolOwner ? (
         <SchoolAccessControlView />
       ) : (
         <TeacherAccessControlView />

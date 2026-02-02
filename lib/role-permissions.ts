@@ -70,10 +70,10 @@ export function canViewAssessments(role?: UserRole | string): boolean {
 
 /**
  * Check if a role can manage access control (school/teacher level)
- * School directors and teachers can manage access to resources for their school
+ * School directors, school admins, and teachers can manage access to resources for their school
  */
 export function canManageAccessControl(role?: UserRole | string): boolean {
-  return role === "teacher" || role === "school_director";
+  return role === "teacher" || role === "school_director" || role === "school_admin";
 }
 
 /**

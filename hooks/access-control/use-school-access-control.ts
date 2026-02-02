@@ -9,6 +9,10 @@ import type {
   GrantUserAccessRequest,
   UpdateAccessRequest,
   AvailableResource,
+  SchoolExcludeIncludeSubjectRequest,
+  SchoolSubjectExclusionRecord,
+  ExcludedSubjectsResponse,
+  IncludeAllSubjectsResponse,
 } from "./types";
 
 const API_BASE = "/school-access-control";
@@ -146,6 +150,91 @@ export function useRevokeSchoolAccess() {
       if (response.success) return response.data;
       throw new AuthenticatedApiError(
         response.message || "Failed to revoke access",
+        400,
+        response
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["school-access-control"] });
+    },
+  });
+}
+
+/** Exclude subject (turn off for school). POST /school-access-control/exclude-subject. School directors/admins only. */
+export function useExcludeSubject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: SchoolExcludeIncludeSubjectRequest) => {
+      const response = await authenticatedApi.post<SchoolSubjectExclusionRecord>(
+        `${API_BASE}/exclude-subject`,
+        data
+      );
+      if (response.success && response.data) return response.data;
+      throw new AuthenticatedApiError(
+        response.message || "Failed to exclude subject",
+        400,
+        response
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["school-access-control"] });
+    },
+  });
+}
+
+/** Include subject (turn on for school). POST /school-access-control/include-subject. School directors/admins only. */
+export function useIncludeSubject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: SchoolExcludeIncludeSubjectRequest) => {
+      const response = await authenticatedApi.post<{ id: string; removed: boolean } | null>(
+        `${API_BASE}/include-subject`,
+        data
+      );
+      if (response.success !== false) return response.data ?? null;
+      throw new AuthenticatedApiError(
+        response.message || "Failed to include subject",
+        400,
+        response
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["school-access-control"] });
+    },
+  });
+}
+
+/** Get excluded subjects (for "Visible to school" toggle state). GET /school-access-control/excluded-subjects. */
+export function useExcludedSubjects() {
+  return useQuery({
+    queryKey: ["school-access-control", "excluded-subjects"],
+    queryFn: async (): Promise<ExcludedSubjectsResponse> => {
+      const response = await authenticatedApi.get<ExcludedSubjectsResponse>(
+        `${API_BASE}/excluded-subjects`
+      );
+      if (response.success && response.data) return response.data;
+      throw new AuthenticatedApiError(
+        response.message || "Failed to fetch excluded subjects",
+        400,
+        response
+      );
+    },
+    staleTime: 1 * 60 * 1000,
+  });
+}
+
+/** Include all subjects (turn on all). POST /school-access-control/include-all-subjects. Clears stale exclusions. */
+export function useIncludeAllSubjects() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const response = await authenticatedApi.post<IncludeAllSubjectsResponse>(
+        `${API_BASE}/include-all-subjects`,
+        {}
+      );
+      if (response.success && response.data) return response.data;
+      throw new AuthenticatedApiError(
+        response.message || "Failed to include all subjects",
         400,
         response
       );

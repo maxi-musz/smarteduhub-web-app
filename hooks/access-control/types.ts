@@ -157,6 +157,8 @@ export interface AvailableResource {
   accessLevel: AccessLevel;
   expiresAt: string | null;
   isActive: boolean;
+  /** When true, subject is excluded (hidden from teachers/students in explore). Backend may include. */
+  isExcluded?: boolean;
   platform?: {
     id: string;
     name: string;
@@ -168,7 +170,39 @@ export interface AvailableResource {
     code: string;
     description?: string;
     thumbnailUrl?: string;
+    /** Backend may include class for grouping by class */
+    class?: { id: string; name: string } | null;
   };
+}
+
+/** Request for POST /school-access-control/exclude-subject and include-subject */
+export interface SchoolExcludeIncludeSubjectRequest {
+  subjectId: string;
+}
+
+/** Response from POST /school-access-control/exclude-subject */
+export interface SchoolSubjectExclusionRecord {
+  id: string;
+  schoolId: string;
+  platformId: string;
+  subjectId: string;
+  excludedById: string;
+  createdAt: string;
+  subject?: { id: string; name: string; code: string };
+}
+
+/** Response from GET /school-access-control/excluded-subjects */
+export interface ExcludedSubjectsResponse {
+  subjectIds: string[];
+  items?: Array<{
+    subjectId: string;
+    subject: { id: string; name: string; code: string };
+  }>;
+}
+
+/** Response from POST /school-access-control/include-all-subjects */
+export interface IncludeAllSubjectsResponse {
+  removedCount: number;
 }
 
 export interface GrantUserAccessRequest {
@@ -229,4 +263,30 @@ export interface GrantStudentAccessRequest {
   accessLevel?: AccessLevel;
   expiresAt?: string;
   notes?: string;
+}
+
+/** Request for POST /school-access-control/teacher/exclude and include */
+export interface TeacherExcludeIncludeRequest {
+  subjectId: string;
+  resourceType: ExcludeIncludeResourceType;
+  topicId?: string;
+  videoId?: string;
+  materialId?: string;
+  assessmentId?: string;
+  classId?: string;
+  studentId?: string;
+}
+
+/** Response from POST /school-access-control/teacher/exclude */
+export interface TeacherExclusionRecord {
+  id: string;
+  teacherId: string;
+  schoolId: string;
+  subjectId: string;
+  resourceType: ExcludeIncludeResourceType;
+  resourceId: string;
+  classId: string | null;
+  studentId: string | null;
+  createdAt: string;
+  subject?: { id: string; name: string; code: string };
 }
