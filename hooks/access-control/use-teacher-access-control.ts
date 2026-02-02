@@ -42,8 +42,8 @@ export function useTeacherAvailableResources(params?: {
 
   return useQuery<TeacherAvailableResourcesResponse, AuthenticatedApiError>({
     queryKey: ["teacher-access-control", "available-resources", params],
-    queryFn: async () => {
-      const response = await authenticatedApi.get<ApiResponse<TeacherAvailableResourcesResponse>>(
+    queryFn: async (): Promise<TeacherAvailableResourcesResponse> => {
+      const response = await authenticatedApi.get<TeacherAvailableResourcesResponse>(
         `${API_BASE}/available-resources${queryString ? `?${queryString}` : ""}`
       );
       if (response.success && response.data) return response.data;

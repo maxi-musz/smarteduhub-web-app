@@ -74,8 +74,8 @@ export function useSchoolAccessDetails(schoolId: string | null, params?: {
 
   return useQuery({
     queryKey: ["library-access-control", "schools", schoolId, params],
-    queryFn: async () => {
-      const response = await authenticatedApi.get<ApiResponse<SchoolAccessDetailsResponse>>(
+    queryFn: async (): Promise<SchoolAccessDetailsResponse> => {
+      const response = await authenticatedApi.get<SchoolAccessDetailsResponse>(
         `${API_BASE}/schools/${schoolId}${queryString ? `?${queryString}` : ""}`
       );
       if (response.success && response.data) return response.data;

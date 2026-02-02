@@ -48,8 +48,8 @@ export function useAvailableResources(params?: {
 
   return useQuery<AvailableResourcesResponse, AuthenticatedApiError>({
     queryKey: ["school-access-control", "available-resources", params],
-    queryFn: async () => {
-      const response = await authenticatedApi.get<ApiResponse<AvailableResourcesResponse>>(
+    queryFn: async (): Promise<AvailableResourcesResponse> => {
+      const response = await authenticatedApi.get<AvailableResourcesResponse>(
         `${API_BASE}/available-resources${queryString ? `?${queryString}` : ""}`
       );
       if (response.success && response.data) return response.data;
