@@ -17,6 +17,8 @@ import {
   GraduationCap,
   BookOpen,
   Calendar,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,7 +36,8 @@ export const SchoolDetailsModal = ({
 }: SchoolDetailsModalProps) => {
   if (!schoolData) return null;
 
-  const { school, details } = schoolData;
+  const { school, details, documentsSubmitted } = schoolData;
+  const docs = documentsSubmitted ?? { cac: null, taxClearance: null, utilityBill: null };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -112,6 +115,64 @@ export const SchoolDetailsModal = ({
                 <div className="flex items-start gap-2 text-brand-light-accent-1 md:col-span-2">
                   <MapPin className="h-4 w-4 mt-0.5" />
                   <span>{school.school_address}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Documents Submitted – always show section; "View document" or "Not submitted" */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-brand-heading flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Documents submitted
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="p-3 rounded-lg border border-brand-border bg-gray-50">
+                  <p className="text-xs font-medium text-brand-light-accent-1 mb-1">CAC</p>
+                  {docs.cac?.secure_url ? (
+                    <a
+                      href={docs.cac.secure_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm text-brand-primary hover:underline"
+                    >
+                      View document
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  ) : (
+                    <span className="text-sm text-brand-light-accent-1">Not submitted</span>
+                  )}
+                </div>
+                <div className="p-3 rounded-lg border border-brand-border bg-gray-50">
+                  <p className="text-xs font-medium text-brand-light-accent-1 mb-1">Tax clearance</p>
+                  {docs.taxClearance?.secure_url ? (
+                    <a
+                      href={docs.taxClearance.secure_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm text-brand-primary hover:underline"
+                    >
+                      View document
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  ) : (
+                    <span className="text-sm text-brand-light-accent-1">Not submitted</span>
+                  )}
+                </div>
+                <div className="p-3 rounded-lg border border-brand-border bg-gray-50">
+                  <p className="text-xs font-medium text-brand-light-accent-1 mb-1">Utility bill</p>
+                  {docs.utilityBill?.secure_url ? (
+                    <a
+                      href={docs.utilityBill.secure_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm text-brand-primary hover:underline"
+                    >
+                      View document
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  ) : (
+                    <span className="text-sm text-brand-light-accent-1">Not submitted</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -244,8 +305,8 @@ export const SchoolDetailsModal = ({
                               {student.user.first_name} {student.user.last_name}
                             </p>
                             <p className="text-sm text-brand-light-accent-1">
-                              {student.user.email} • {student.student_id} •{" "}
-                              {student.admission_number}
+                              {student.user.email} • {student.student_id}
+                              {student.admission_number ? ` • ${student.admission_number}` : ""}
                             </p>
                           </div>
                           <Badge
@@ -284,7 +345,7 @@ export const SchoolDetailsModal = ({
                             {classItem.name}
                           </p>
                           <p className="text-xs text-brand-light-accent-1">
-                            ID: {classItem.classId}
+                            {classItem.classId}
                           </p>
                         </div>
                       ))}
@@ -313,7 +374,7 @@ export const SchoolDetailsModal = ({
                             {subject.name}
                           </p>
                           <p className="text-xs text-brand-light-accent-1">
-                            {subject.code}
+                            {subject.code ?? "—"}
                           </p>
                         </div>
                       ))}
@@ -362,8 +423,9 @@ export const SchoolDetailsModal = ({
                                   {session.academic_year} - {session.term} Term
                                 </p>
                                 <p className="text-xs text-brand-light-accent-1">
-                                  {new Date(session.start_date).toLocaleDateString()} -{" "}
-                                  {new Date(session.end_date).toLocaleDateString()}
+                                  {session.start_date && session.end_date
+                                    ? `${new Date(session.start_date).toLocaleDateString()} - ${new Date(session.end_date).toLocaleDateString()}`
+                                    : "—"}
                                 </p>
                               </div>
                               <Badge
@@ -414,19 +476,23 @@ export const SchoolDetailsModal = ({
                       {school.statistics.subscription.status}
                     </Badge>
                   </div>
-                  <div>
-                    <p className="text-brand-light-accent-1">Cost</p>
-                    <p className="font-medium text-brand-heading">
-                      {school.statistics.subscription.currency}{" "}
-                      {school.statistics.subscription.cost.toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-brand-light-accent-1">Billing Cycle</p>
-                    <p className="font-medium text-brand-heading">
-                      {school.statistics.subscription.billing_cycle}
-                    </p>
-                  </div>
+                  {school.statistics.subscription.cost != null && (
+                    <div>
+                      <p className="text-brand-light-accent-1">Cost</p>
+                      <p className="font-medium text-brand-heading">
+                        {school.statistics.subscription.currency ?? ""}{" "}
+                        {school.statistics.subscription.cost.toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                  {school.statistics.subscription.billing_cycle != null && (
+                    <div>
+                      <p className="text-brand-light-accent-1">Billing Cycle</p>
+                      <p className="font-medium text-brand-heading">
+                        {school.statistics.subscription.billing_cycle}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

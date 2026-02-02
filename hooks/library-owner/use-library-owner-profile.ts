@@ -23,6 +23,10 @@ export interface LibraryUser {
   role: string;
   userType?: string;
   status?: string;
+  /** Permissions granted to this library user (shape TBD when used). */
+  permissions: unknown[];
+  /** Permission level for platform management (e.g. admin, viewer). */
+  permissionLevel: number | null;
   createdAt: string;
   updatedAt: string;
   platform?: LibraryPlatform;

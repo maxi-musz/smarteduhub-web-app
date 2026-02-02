@@ -55,7 +55,8 @@ export function useSchoolsWithAccess(params?: {
         response
       );
     },
-    staleTime: 2 * 60 * 1000,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -86,6 +87,8 @@ export function useSchoolAccessDetails(schoolId: string | null, params?: {
       );
     },
     enabled: !!schoolId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 

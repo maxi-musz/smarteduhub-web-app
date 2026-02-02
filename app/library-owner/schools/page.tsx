@@ -56,12 +56,20 @@ const LibraryOwnerSchools = () => {
   // Fetch single school data when a school is selected
   const {
     data: schoolDetails,
+    refetch: refetchSchoolDetails,
   } = useLibraryOwnerSchool(selectedSchoolId);
 
   const handleViewDetails = (schoolId: string) => {
     setSelectedSchoolId(schoolId);
     setIsDetailsModalOpen(true);
   };
+
+  // Refetch school details when modal opens so we always get the latest data (including documentsSubmitted)
+  useEffect(() => {
+    if (isDetailsModalOpen && selectedSchoolId) {
+      refetchSchoolDetails();
+    }
+  }, [isDetailsModalOpen, selectedSchoolId, refetchSchoolDetails]);
 
   const handleCloseDetails = () => {
     setIsDetailsModalOpen(false);

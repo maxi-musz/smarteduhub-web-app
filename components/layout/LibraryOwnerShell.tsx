@@ -8,6 +8,7 @@ import {
   LogOut,
   School,
   ShieldCheck,
+  LayoutDashboard,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -30,6 +31,7 @@ const libraryOwnerTabs = [
   },
   { href: "/library-owner/exam-body", label: "Exam Body", icon: BookOpen },
   { href: "/library-owner/access-control", label: "Access Control", icon: ShieldCheck },
+  { href: "/library-owner/platform-management", label: "Management", icon: LayoutDashboard },
   // { href: "/library-owner/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
@@ -127,6 +129,8 @@ export default function LibraryOwnerShell({
                   ? pathname.startsWith("/library-owner/exam-body")
                   : tab.href === "/library-owner/access-control"
                   ? pathname.startsWith("/library-owner/access-control")
+                  : tab.href === "/library-owner/platform-management"
+                  ? pathname.startsWith("/library-owner/platform-management")
                   : pathname === tab.href;
               return (
                 <Link
@@ -198,6 +202,8 @@ export default function LibraryOwnerShell({
                 ? pathname.startsWith("/library-owner/exam-body")
                 : href === "/library-owner/access-control"
                 ? pathname.startsWith("/library-owner/access-control")
+                : href === "/library-owner/platform-management"
+                ? pathname.startsWith("/library-owner/platform-management")
                 : pathname === href;
             return (
               <Link

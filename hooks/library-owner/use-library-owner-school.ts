@@ -5,11 +5,12 @@ import {
 } from "@/lib/api/authenticated";
 import { logger } from "@/lib/logger";
 
-// Types for Single School Data
+// Types for Single School Data (GET /library/schools/getschoolbyid/:id)
 export interface SchoolIcon {
-  url: string;
-  key: string;
-  bucket: string;
+  url?: string;
+  key?: string;
+  bucket?: string;
+  [key: string]: unknown;
 }
 
 export interface SchoolStatistics {
@@ -28,8 +29,8 @@ export interface SchoolStatistics {
       academic_year: string;
       term: string;
       status: string;
-      start_date: string;
-      end_date: string;
+      start_date: string | null;
+      end_date: string | null;
     } | null;
   };
   content: {
@@ -41,9 +42,9 @@ export interface SchoolStatistics {
     name: string;
     status: string;
     is_active: boolean;
-    cost: number;
-    currency: string;
-    billing_cycle: string;
+    cost: number | null;
+    currency: string | null;
+    billing_cycle: string | null;
   } | null;
 }
 
@@ -58,9 +59,25 @@ export interface SchoolDetails {
   status: string;
   school_icon: SchoolIcon | null;
   platformId: string | null;
+  cacId: string | null;
+  utilityBillId: string | null;
+  taxClearanceId: string | null;
   createdAt: string;
   updatedAt: string;
   statistics: SchoolStatistics;
+}
+
+/** Document reference returned in documentsSubmitted (CAC, Tax Clearance, Utility Bill). */
+export interface SubmittedDocument {
+  id: string;
+  secure_url: string;
+  public_id: string;
+}
+
+export interface DocumentsSubmitted {
+  cac: SubmittedDocument | null;
+  taxClearance: SubmittedDocument | null;
+  utilityBill: SubmittedDocument | null;
 }
 
 export interface Teacher {
@@ -77,10 +94,10 @@ export interface Teacher {
 export interface Student {
   id: string;
   student_id: string;
-  admission_number: string;
-  current_class_id: string;
+  admission_number: string | null;
+  current_class_id: string | null;
   status: string;
-  admission_date: string;
+  admission_date: string | null;
   user: {
     id: string;
     first_name: string;
@@ -92,14 +109,14 @@ export interface Student {
 export interface Class {
   id: string;
   name: string;
-  classId: number;
+  classId: string;
   createdAt: string;
 }
 
 export interface Subject {
   id: string;
   name: string;
-  code: string;
+  code: string | null;
   color: string;
   createdAt: string;
 }
@@ -110,8 +127,8 @@ export interface AcademicSession {
   term: string;
   status: string;
   is_current: boolean;
-  start_date: string;
-  end_date: string;
+  start_date: string | null;
+  end_date: string | null;
   createdAt: string;
 }
 
@@ -161,6 +178,8 @@ export interface SchoolDetailsData {
 
 export interface SingleSchoolResponse {
   school: SchoolDetails;
+  /** Documents submitted by the school (CAC, tax clearance, utility bill). Omitted in older API versions. */
+  documentsSubmitted?: DocumentsSubmitted;
   details: SchoolDetailsData;
 }
 
