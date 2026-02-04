@@ -58,6 +58,10 @@ export const PlayVideoPage = () => {
   const [startedFromBeginning, setStartedFromBeginning] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [isHlsReady, setIsHlsReady] = useState(false);
+  const [qualityLevels, setQualityLevels] = useState<{ height: number; bitrate: number; index: number }[]>([]);
+  const [currentQuality, setCurrentQuality] = useState<number>(-1); // -1 = Auto
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [showQualityFeatureTooltip, setShowQualityFeatureTooltip] = useState(false);
 
   const { data: videoData, isLoading, error } = usePlayVideo(videoId);
   const trackProgress = useTrackWatchProgress();
@@ -69,6 +73,41 @@ export const PlayVideoPage = () => {
   useEffect(() => {
     console.log("[Video Player] isHlsReady changed to:", isHlsReady);
   }, [isHlsReady]);
+
+  // Feature discovery tooltip for quality selector
+  useEffect(() => {
+    if (qualityLevels.length === 0) return; // Only show when quality levels are available
+    
+    const STORAGE_KEY = "smarteduhub_quality_feature_tooltip";
+    const MAX_SHOWS = 3;
+    const MIN_INTERVAL_MS = 20 * 60 * 1000; // 20 minutes
+    
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const data = stored ? JSON.parse(stored) : { showCount: 0, lastShown: 0 };
+      
+      const now = Date.now();
+      const timeSinceLastShow = now - data.lastShown;
+      
+      // Show if: shown less than 3 times AND (never shown OR 20+ mins since last show)
+      if (data.showCount < MAX_SHOWS && (data.lastShown === 0 || timeSinceLastShow >= MIN_INTERVAL_MS)) {
+        // Delay showing to let the player load first
+        const timer = setTimeout(() => {
+          setShowQualityFeatureTooltip(true);
+          
+          // Update localStorage
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            showCount: data.showCount + 1,
+            lastShown: now
+          }));
+        }, 2000); // Show after 2 seconds
+        
+        return () => clearTimeout(timer);
+      }
+    } catch (e) {
+      console.error("[Video Player] Error reading feature tooltip storage:", e);
+    }
+  }, [qualityLevels.length]);
 
   // Initialize video player (supports both HLS and MP4)
   const initializePlayer = useCallback(() => {
@@ -133,7 +172,31 @@ export const PlayVideoPage = () => {
         
         hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
           console.log("[Video Player] HLS: MANIFEST_PARSED, levels:", data.levels.length);
+          
+          // Extract quality levels for manual selection
+          const levels = data.levels.map((level, index) => ({
+            height: level.height,
+            bitrate: level.bitrate,
+            index,
+          }));
+          // Sort by height (quality) descending
+          levels.sort((a, b) => b.height - a.height);
+          setQualityLevels(levels);
+          console.log("[Video Player] Available quality levels:", levels);
+          
           setIsHlsReady(true);
+        });
+        
+        // Track when quality level changes (for Auto mode display)
+        hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+          console.log("[Video Player] HLS: LEVEL_SWITCHED to", data.level);
+          if (currentQuality === -1) {
+            // In auto mode, just log the switch
+            const level = hls.levels[data.level];
+            if (level) {
+              console.log("[Video Player] Auto quality:", level.height + "p");
+            }
+          }
         });
         
         hls.on(Hls.Events.LEVEL_LOADED, () => {
@@ -612,6 +675,32 @@ export const PlayVideoPage = () => {
     }
   };
 
+  const handleQualityChange = (levelIndex: number) => {
+    if (hlsRef.current) {
+      // -1 means Auto (let HLS.js decide)
+      hlsRef.current.currentLevel = levelIndex;
+      setCurrentQuality(levelIndex);
+      setShowQualityMenu(false);
+      
+      if (levelIndex === -1) {
+        console.log("[Video Player] Quality set to Auto");
+      } else {
+        const level = hlsRef.current.levels[levelIndex];
+        console.log("[Video Player] Quality set to", level?.height + "p");
+      }
+    }
+  };
+
+  const getQualityLabel = (height: number): string => {
+    if (height >= 2160) return "4K";
+    if (height >= 1440) return "1440p";
+    if (height >= 1080) return "1080p";
+    if (height >= 720) return "720p";
+    if (height >= 480) return "480p";
+    if (height >= 360) return "360p";
+    return height + "p";
+  };
+
   const handleBack = () => {
     // Navigate back - router.back() preserves URL state including topicId
     router.back();
@@ -797,7 +886,10 @@ export const PlayVideoPage = () => {
                 ref={videoRef}
                 className="w-full aspect-video"
                 playsInline
-                onClick={handlePlayPause}
+                onClick={() => {
+                  setShowQualityMenu(false);
+                  handlePlayPause();
+                }}
                 onEnded={() => {
                   setIsPlaying(false);
                   // Track final progress when video ends
@@ -853,7 +945,39 @@ export const PlayVideoPage = () => {
                   />
 
                   {/* Control Buttons */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between relative">
+                    {/* Feature Discovery Tooltip for Quality Selector */}
+                    {showQualityFeatureTooltip && qualityLevels.length > 0 && (
+                      <div 
+                        className="absolute bottom-full right-0 mb-3 z-[100] animate-in fade-in slide-in-from-bottom-2 duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="bg-gradient-to-r from-brand-primary to-purple-600 text-white rounded-xl px-4 py-3 shadow-xl w-[260px] relative">
+                          {/* Close button */}
+                          <button
+                            onClick={() => setShowQualityFeatureTooltip(false)}
+                            className="absolute -top-2 -right-2 bg-white text-gray-700 hover:text-gray-900 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow-md hover:scale-110 transition-transform"
+                          >
+                            ×
+                          </button>
+                          
+                          {/* Content */}
+                          <div className="flex items-start gap-3">
+                            <span className="text-2xl flex-shrink-0">✨</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm">New Feature!</p>
+                              <p className="text-xs text-white/90 mt-1 leading-relaxed">
+                                You can now change video quality! Tap the quality button below to switch between {qualityLevels.length} quality options.
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Arrow pointing down to quality button */}
+                          <div className="absolute -bottom-2 right-8 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-purple-600"></div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-2">
                       <Button
                         size="icon"
@@ -906,6 +1030,58 @@ export const PlayVideoPage = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      {/* Quality Selector */}
+                      {qualityLevels.length > 0 && (
+                        <div className="relative">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="text-white hover:bg-white/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowQualityMenu(!showQualityMenu);
+                              setShowQualityFeatureTooltip(false); // Hide tooltip when menu is opened
+                            }}
+                          >
+                            <span className="text-xs font-medium">
+                              {currentQuality === -1 
+                                ? "Auto" 
+                                : getQualityLabel(qualityLevels.find(l => l.index === currentQuality)?.height || 0)}
+                            </span>
+                          </Button>
+                          {showQualityMenu && (
+                            <div 
+                              className="absolute bottom-full right-0 mb-2 bg-black/95 rounded-lg p-2 min-w-[140px] z-50"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <p className="text-white text-xs px-2 py-1 font-semibold border-b border-gray-700 mb-1">Quality</p>
+                              <button
+                                onClick={() => handleQualityChange(-1)}
+                                className={`w-full text-left text-white text-xs px-2 py-1.5 rounded hover:bg-white/20 flex items-center justify-between ${
+                                  currentQuality === -1 ? "bg-brand-primary" : ""
+                                }`}
+                              >
+                                <span>Auto</span>
+                                {currentQuality === -1 && <span className="text-green-400">✓</span>}
+                              </button>
+                              {qualityLevels.map((level) => (
+                                <button
+                                  key={level.index}
+                                  onClick={() => handleQualityChange(level.index)}
+                                  className={`w-full text-left text-white text-xs px-2 py-1.5 rounded hover:bg-white/20 flex items-center justify-between ${
+                                    currentQuality === level.index ? "bg-brand-primary" : ""
+                                  }`}
+                                >
+                                  <span>{getQualityLabel(level.height)}</span>
+                                  {currentQuality === level.index && <span className="text-green-400">✓</span>}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Settings (Playback Speed) */}
                       <div className="relative group/settings">
                         <Button
                           size="icon"
