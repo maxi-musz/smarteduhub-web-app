@@ -30,7 +30,9 @@ import {
   VolumeX,
   Maximize,
   Settings,
+  AlertCircle,
 } from "lucide-react";
+import Hls from "hls.js";
 
 export const PlayVideoPage = () => {
   const params = useParams();
@@ -38,6 +40,7 @@ export const PlayVideoPage = () => {
   const videoId = params.videoId as string;
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const sessionIdRef = useRef<string>(`session-${Date.now()}`);
   const isTrackingRef = useRef<boolean>(false);
@@ -53,34 +56,183 @@ export const PlayVideoPage = () => {
   const [showResumeDialog, setShowResumeDialog] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [startedFromBeginning, setStartedFromBeginning] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [isHlsReady, setIsHlsReady] = useState(false);
 
   const { data: videoData, isLoading, error } = usePlayVideo(videoId);
   const trackProgress = useTrackWatchProgress();
   
   // Type assertion to ensure videoData is properly typed
   const video = videoData as VideoPlaybackData | undefined;
+  
+  // Debug: log when isHlsReady changes
+  useEffect(() => {
+    console.log("[Video Player] isHlsReady changed to:", isHlsReady);
+  }, [isHlsReady]);
+
+  // Initialize video player (supports both HLS and MP4)
+  const initializePlayer = useCallback(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement || !video) {
+      console.log("[Video Player] initializePlayer called but missing:", { 
+        hasVideoElement: !!videoElement, 
+        hasVideoData: !!video 
+      });
+      return;
+    }
+
+    // Cleanup previous HLS instance
+    if (hlsRef.current) {
+      console.log("[Video Player] Destroying previous HLS instance");
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    setVideoError(null);
+    setIsHlsReady(false);
+
+    console.log("[Video Player] ========== INITIALIZING ==========");
+    console.log("[Video Player] Original Video URL:", video.videoUrl);
+    console.log("[Video Player] Streaming Type from API:", video.streamingType);
+
+    // Use video URL directly - CloudFront should have CORS configured
+    const videoUrl = video.videoUrl;
+    console.log("[Video Player] Using video URL:", videoUrl);
+
+    // Determine if this is HLS content
+    const isHls = video.streamingType === "hls" || videoUrl?.endsWith(".m3u8");
+    console.log("[Video Player] Detected as HLS:", isHls);
+    console.log("[Video Player] HLS.js supported:", Hls.isSupported());
+
+    if (isHls) {
+      if (Hls.isSupported()) {
+        console.log("[Video Player] Using HLS.js");
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: false,
+          backBufferLength: 90,
+          debug: false, // Disable debug logs in production
+        });
+        
+        // Log all HLS events for debugging
+        hls.on(Hls.Events.MEDIA_ATTACHING, () => {
+          console.log("[Video Player] HLS: MEDIA_ATTACHING");
+        });
+        
+        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+          console.log("[Video Player] HLS: MEDIA_ATTACHED");
+        });
+        
+        hls.on(Hls.Events.MANIFEST_LOADING, () => {
+          console.log("[Video Player] HLS: MANIFEST_LOADING");
+        });
+        
+        hls.on(Hls.Events.MANIFEST_LOADED, () => {
+          console.log("[Video Player] HLS: MANIFEST_LOADED");
+        });
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+          console.log("[Video Player] HLS: MANIFEST_PARSED, levels:", data.levels.length);
+          setIsHlsReady(true);
+        });
+        
+        hls.on(Hls.Events.LEVEL_LOADED, () => {
+          console.log("[Video Player] HLS: LEVEL_LOADED");
+        });
+        
+        hls.on(Hls.Events.FRAG_LOADED, () => {
+          console.log("[Video Player] HLS: FRAG_LOADED");
+        });
+        
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error("[Video Player] HLS ERROR:", data.type, data.details, data);
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                setVideoError(`Network error: ${data.details}`);
+                console.error("[Video Player] Fatal network error, trying to recover...");
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.error("[Video Player] Fatal media error, trying to recover...");
+                hls.recoverMediaError();
+                break;
+              default:
+                setVideoError(`Failed to load HLS stream: ${data.details}`);
+                hls.destroy();
+                break;
+            }
+          }
+        });
+
+        console.log("[Video Player] Calling hls.loadSource() with:", videoUrl);
+        hls.loadSource(videoUrl);
+        console.log("[Video Player] Calling hls.attachMedia()");
+        hls.attachMedia(videoElement);
+        
+        hlsRef.current = hls;
+      } else if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {
+        // Safari has native HLS support
+        console.log("[Video Player] Using native HLS support (Safari)");
+        videoElement.src = videoUrl;
+        setIsHlsReady(true);
+      } else {
+        console.error("[Video Player] HLS not supported in this browser");
+        setVideoError("Your browser does not support HLS video playback.");
+      }
+    } else {
+      // MP4 or other direct video - use regular src
+      console.log("[Video Player] Loading as MP4/direct video");
+      videoElement.src = videoUrl;
+      // For non-HLS, we still wait for canplay event, but set a fallback
+      console.log("[Video Player] Setting isHlsReady=true for non-HLS video");
+      setIsHlsReady(true);
+    }
+
+    // Set initial volume
+    videoElement.volume = volume;
+    videoElement.muted = isMuted;
+
+    // Set playback rate
+    videoElement.playbackRate = playbackRate;
+    
+    console.log("[Video Player] ========== INIT COMPLETE ==========");
+  }, [video, volume, isMuted, playbackRate]);
 
   // Initialize video when data loads
   useEffect(() => {
+    console.log("[Video Player] Init useEffect triggered:", {
+      hasVideo: !!video,
+      hasVideoRef: !!videoRef.current,
+      hasInitialized,
+      videoUrl: video?.videoUrl
+    });
+    
     if (video && videoRef.current && !hasInitialized) {
-      const videoElement = videoRef.current;
-      videoElement.src = video.videoUrl;
-
-      // Set initial volume
-      videoElement.volume = volume;
-      videoElement.muted = isMuted;
-
-      // Set playback rate
-      videoElement.playbackRate = playbackRate;
+      console.log("[Video Player] Calling initializePlayer()");
+      initializePlayer();
+      setHasInitialized(true); // Set immediately to prevent re-initialization
 
       // Show resume dialog if video was previously watched
       if (video.hasViewedBefore && video.lastWatchPosition > 0 && !video.isCompleted) {
         setShowResumeDialog(true);
-      } else {
-        setHasInitialized(true);
       }
     }
-  }, [video?.id, video?.videoUrl, volume, isMuted, playbackRate, hasInitialized, video]);
+    // NOTE: Cleanup moved to separate effect to prevent HLS destruction on re-render
+  }, [video?.id, video?.videoUrl, hasInitialized, video, initializePlayer]);
+
+  // Separate cleanup effect - only runs on unmount or video ID change
+  useEffect(() => {
+    const currentVideoId = video?.id;
+    return () => {
+      console.log("[Video Player] Cleanup effect running for video:", currentVideoId);
+      if (hlsRef.current) {
+        console.log("[Video Player] Destroying HLS instance on unmount/video change");
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [video?.id]); // Only cleanup when video ID changes or component unmounts
 
   // Attach event listeners to video element
   useEffect(() => {
@@ -91,6 +243,29 @@ export const PlayVideoPage = () => {
     const handleLoadedMetadata = () => {
       if (videoElement.duration) {
         setDuration(videoElement.duration);
+      }
+    };
+
+    // Video is ready to play - use as fallback for isHlsReady
+    const handleCanPlay = () => {
+      console.log("[Video Player] EVENT: canplay fired");
+      setIsHlsReady(true);
+    };
+    
+    // Additional debug events
+    const handleLoadStart = () => {
+      console.log("[Video Player] EVENT: loadstart");
+    };
+    
+    const handleProgress = () => {
+      console.log("[Video Player] EVENT: progress - buffered:", videoElement.buffered.length > 0 ? videoElement.buffered.end(0) : 0);
+    };
+    
+    const handleError = (e: Event) => {
+      const target = e.target as HTMLVideoElement;
+      console.error("[Video Player] EVENT: error", target.error);
+      if (target.error) {
+        setVideoError(`Video error: ${target.error.message} (code: ${target.error.code})`);
       }
     };
 
@@ -169,21 +344,31 @@ export const PlayVideoPage = () => {
       setIsPlaying(!videoElement.paused);
     }
 
+    videoElement.addEventListener("loadstart", handleLoadStart);
+    videoElement.addEventListener("progress", handleProgress);
     videoElement.addEventListener("loadedmetadata", handleLoadedMetadata);
+    videoElement.addEventListener("canplay", handleCanPlay);
     videoElement.addEventListener("timeupdate", handleTimeUpdate);
     videoElement.addEventListener("waiting", handleWaiting);
     videoElement.addEventListener("play", handlePlay);
     videoElement.addEventListener("pause", handlePause);
-    videoElement.addEventListener("playing", handlePlay); // Also listen to 'playing' event
+    videoElement.addEventListener("playing", handlePlay);
+    videoElement.addEventListener("error", handleError);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
+    
+    console.log("[Video Player] Event listeners attached");
 
     return () => {
+      videoElement.removeEventListener("loadstart", handleLoadStart);
+      videoElement.removeEventListener("progress", handleProgress);
       videoElement.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      videoElement.removeEventListener("canplay", handleCanPlay);
       videoElement.removeEventListener("timeupdate", handleTimeUpdate);
       videoElement.removeEventListener("waiting", handleWaiting);
       videoElement.removeEventListener("play", handlePlay);
       videoElement.removeEventListener("pause", handlePause);
       videoElement.removeEventListener("playing", handlePlay);
+      videoElement.removeEventListener("error", handleError);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, [video, duration, trackProgress, bufferingEvents]);
@@ -364,8 +549,17 @@ export const PlayVideoPage = () => {
   const handlePlayPause = () => {
     if (videoRef.current) {
       if (videoRef.current.paused) {
+        // Check if HLS is ready before attempting to play
+        if (!isHlsReady) {
+          console.log("[Video Player] Waiting for HLS to be ready...");
+          return;
+        }
         videoRef.current.play().catch((err) => {
           console.error("Error playing video:", err);
+          // Don't show error for AbortError as it's usually a race condition
+          if (err.name !== "AbortError") {
+            setVideoError(`Failed to play video: ${err.message}`);
+          }
         });
       } else {
         videoRef.current.pause();
@@ -541,9 +735,68 @@ export const PlayVideoPage = () => {
               onMouseLeave={() => setShowControls(false)}
               onMouseMove={() => setShowControls(true)}
             >
+              {/* HLS Loading Overlay */}
+              {!isHlsReady && !videoError && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70">
+                  <div className="text-center">
+                    <Loader2 className="h-10 w-10 animate-spin text-white mx-auto mb-2" />
+                    <p className="text-white text-sm mb-3">Loading video stream...</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        console.log("[Video Player] User clicked Skip Loading");
+                        setIsHlsReady(true);
+                      }}
+                      className="text-xs"
+                    >
+                      Skip Loading
+                    </Button>
+                    {video?.videoUrl && (
+                      <p className="text-xs text-gray-400 mt-2 max-w-md break-all">
+                        URL: {video.videoUrl}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Video Error Overlay */}
+              {videoError && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/90">
+                  <div className="text-center p-6 max-w-lg">
+                    <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                    <p className="text-white mb-2 font-medium">Video Playback Error</p>
+                    <p className="text-gray-300 text-sm mb-4 break-all">{videoError}</p>
+                    <div className="space-y-3">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setVideoError(null);
+                          initializePlayer();
+                        }}
+                        className="w-full"
+                      >
+                        Retry
+                      </Button>
+                      <p className="text-xs text-gray-400">
+                        Try opening the video URL directly in your browser to test if it&apos;s accessible.
+                      </p>
+                      {video?.videoUrl && (
+                        <div className="mt-2 p-2 bg-black/50 rounded border border-gray-600">
+                          <p className="text-xs text-gray-400 mb-1">Video URL:</p>
+                          <p className="text-xs text-blue-400 break-all select-all cursor-text">
+                            {video.videoUrl}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
               <video
                 ref={videoRef}
                 className="w-full aspect-video"
+                playsInline
                 onClick={handlePlayPause}
                 onEnded={() => {
                   setIsPlaying(false);

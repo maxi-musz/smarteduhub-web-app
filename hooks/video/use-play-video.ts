@@ -8,6 +8,7 @@ export interface VideoPlaybackData {
   title: string;
   description: string | null;
   videoUrl: string;
+  streamingType?: "hls" | "mp4";
   thumbnailUrl: string | null;
   durationSeconds: number;
   size?: string;

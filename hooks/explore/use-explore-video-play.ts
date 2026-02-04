@@ -7,6 +7,7 @@ export interface ExploreVideoPlayResponse {
   title: string;
   description: string | null;
   videoUrl: string;
+  streamingType: "hls" | "mp4";
   thumbnailUrl: string | null;
   durationSeconds: number | null;
   sizeBytes: number | null;

@@ -104,6 +104,16 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  // Rewrites to proxy CloudFront requests (bypasses CORS for HLS videos)
+  async rewrites() {
+    return [
+      {
+        source: "/video-proxy/:path*",
+        destination: "https://d1wbvo8wjy3qs1.cloudfront.net/:path*",
+      },
+    ];
+  },
+
   webpack(config, { isServer }) {
     // Ensure that the SVGR loader is applied to SVG files
     // when they are imported in JavaScript or TypeScript files.

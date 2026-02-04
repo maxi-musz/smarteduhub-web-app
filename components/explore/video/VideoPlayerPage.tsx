@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useExploreVideoPlay } from "@/hooks/explore/use-explore-video-play";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2, AlertCircle, Clock, Eye, CheckCircle2 } from "lucide-react";
@@ -11,6 +11,7 @@ import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import { formatDuration, formatFileSize } from "@/lib/utils/explore";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+import Hls from "hls.js";
 
 interface VideoPlayerPageProps {
   videoId: string;
@@ -21,13 +22,109 @@ export function VideoPlayerPage({ videoId, basePath }: VideoPlayerPageProps) {
   const router = useRouter();
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const [actualDuration, setActualDuration] = useState<number | null>(null);
+  const [hlsError, setHlsError] = useState<string | null>(null);
+  const [isHlsReady, setIsHlsReady] = useState(false);
 
   const {
     data: video,
     isLoading,
     error,
   } = useExploreVideoPlay(videoId);
+
+  // Initialize HLS player when video data is available
+  const initializePlayer = useCallback(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement || !video) return;
+
+    // Cleanup previous HLS instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    setHlsError(null);
+    setIsHlsReady(false);
+
+    // Use video URL directly - CloudFront should have CORS configured
+    const videoUrl = video.videoUrl;
+    console.log("[Video Player] Using video URL:", videoUrl);
+
+    // Determine if this is HLS content - check both streamingType and file extension
+    const isHls = video.streamingType === "hls" || videoUrl?.endsWith(".m3u8");
+
+    if (isHls) {
+      // HLS streaming
+      if (Hls.isSupported()) {
+        console.log("[Video Player] Initializing HLS.js for:", videoUrl);
+        // Use HLS.js for browsers that don't natively support HLS
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: false,
+          backBufferLength: 90,
+        });
+        
+        hls.loadSource(videoUrl);
+        hls.attachMedia(videoElement);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+          console.log("[Video Player] HLS manifest parsed, levels:", data.levels.length);
+          setIsHlsReady(true);
+        });
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error("[Video Player] HLS error:", data);
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                console.error("[Video Player] Fatal network error, trying to recover...");
+                // Try to recover from network error
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.error("[Video Player] Fatal media error, trying to recover...");
+                // Try to recover from media error
+                hls.recoverMediaError();
+                break;
+              default:
+                // Cannot recover, show error
+                setHlsError(`Failed to load video stream: ${data.details}`);
+                hls.destroy();
+                break;
+            }
+          }
+        });
+
+        hlsRef.current = hls;
+      } else if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {
+        // Safari has native HLS support
+        console.log("[Video Player] Using native HLS support (Safari)");
+        videoElement.src = videoUrl;
+        setIsHlsReady(true);
+      } else {
+        setHlsError("Your browser does not support HLS video playback.");
+      }
+    } else {
+      // MP4 or other direct video - use regular src
+      console.log("[Video Player] Loading MP4/direct video:", videoUrl);
+      videoElement.src = videoUrl;
+      setIsHlsReady(true);
+    }
+  }, [video]);
+
+  // Initialize player when video data changes
+  useEffect(() => {
+    initializePlayer();
+
+    // Cleanup on unmount
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [initializePlayer]);
 
   // Show toast if user has watched before
   useEffect(() => {
@@ -131,17 +228,47 @@ export function VideoPlayerPage({ videoId, basePath }: VideoPlayerPageProps) {
             {/* Video Player */}
             <Card className="overflow-hidden border-2 border-brand-border">
               <div className="relative aspect-video bg-black">
+                {/* HLS Loading Overlay */}
+                {!isHlsReady && !hlsError && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/70">
+                    <div className="text-center">
+                      <Loader2 className="h-10 w-10 animate-spin text-white mx-auto mb-2" />
+                      <p className="text-white text-sm">Loading video stream...</p>
+                    </div>
+                  </div>
+                )}
+                {hlsError ? (
+                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/90">
+                    <div className="text-center p-6">
+                      <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                      <p className="text-white mb-4">{hlsError}</p>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setHlsError(null);
+                          initializePlayer();
+                        }}
+                      >
+                        Retry
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
                 <video
                   ref={videoRef}
-                  src={video.videoUrl}
                   controls
                   className="w-full h-full"
                   poster={video.thumbnailUrl || undefined}
+                  playsInline
                   onLoadedMetadata={(e) => {
                     const videoElement = e.currentTarget;
                     if (videoElement.duration && videoElement.duration > 0) {
                       setActualDuration(Math.floor(videoElement.duration));
                     }
+                  }}
+                  onCanPlay={() => {
+                    console.log("[Video Player] Video can play");
+                    setIsHlsReady(true);
                   }}
                 >
                   Your browser does not support the video tag.

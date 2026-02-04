@@ -116,7 +116,7 @@ const Login = () => {
         let redirectUrl = "/login";
         
         // Check if user is a library owner
-        if (session?.user?.userType === "libraryresourceowner") {
+        if (session?.user?.userType === "libraryresourceowner" || session?.user?.role === "contentcreator") {
           redirectUrl = "/library-owner/dashboard";
           console.log("[Login] Redirecting library owner to:", redirectUrl);
         } else if (session?.user?.role) {
