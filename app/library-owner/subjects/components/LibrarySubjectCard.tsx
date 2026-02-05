@@ -11,6 +11,7 @@ import {
   Pencil,
   Video,
   Layers,
+  Trash2,
 } from "lucide-react";
 import { AIAgentLogo } from "@/components/AIAgentLogo";
 import { useRouter } from "next/navigation";
@@ -22,6 +23,7 @@ interface LibrarySubjectCardProps {
   onAIClick?: (subjectName: string) => void;
   onClick?: () => void;
   onEdit?: (subject: LibrarySubject) => void;
+  onDelete?: (subject: LibrarySubject) => void;
 }
 
 export const LibrarySubjectCard = ({
@@ -29,6 +31,7 @@ export const LibrarySubjectCard = ({
   onAIClick,
   onClick,
   onEdit,
+  onDelete,
 }: LibrarySubjectCardProps) => {
   const router = useRouter();
 
@@ -40,6 +43,11 @@ export const LibrarySubjectCard = ({
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onEdit?.(subject);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.(subject);
   };
 
   const topicsCount = subject.topicsCount ?? subject.topics?.length ?? 0;
@@ -205,16 +213,27 @@ export const LibrarySubjectCard = ({
             )}
           </TabsContent>
         </Tabs>
-        <div className="mt-4 pt-4 border-t">
+        <div className="mt-4 pt-4 border-t flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={handleManageClick}
-            className="w-full"
+            className="flex-1"
           >
             <Settings className="h-4 w-4 mr-2" />
             Manage
           </Button>
+          {onDelete && (
+            <button
+              type="button"
+              onClick={handleDeleteClick}
+              className="h-9 w-9 rounded-md border border-red-200 hover:bg-red-50 flex items-center justify-center text-red-500 hover:text-red-600 transition-colors"
+              aria-label="Delete subject"
+              title="Delete subject"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </CardContent>
     </Card>

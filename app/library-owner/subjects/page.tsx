@@ -14,7 +14,10 @@ import {
   ClassSelectorModal,
   LibrarySubjectCard,
   EditSubjectModal,
+  DeleteSubjectDialog,
 } from "./components";
+import { useDeleteSubject } from "@/hooks/subjects/use-delete-subject";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -58,8 +61,13 @@ const LibraryOwnerSubjectsPage = () => {
   const [isClassSelectorOpen, setIsClassSelectorOpen] = useState(false);
   const [isCreateSubjectModalOpen, setIsCreateSubjectModalOpen] = useState(false);
   const [isEditSubjectModalOpen, setIsEditSubjectModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<LibraryClass | null>(null);
   const [subjectToEdit, setSubjectToEdit] = useState<LibrarySubject | null>(null);
+  const [subjectToDelete, setSubjectToDelete] = useState<LibrarySubject | null>(null);
+
+  // Delete subject mutation
+  const deleteSubject = useDeleteSubject();
 
   // Fetch resources dashboard data - this is the source of truth
   const {
@@ -203,6 +211,37 @@ const LibraryOwnerSubjectsPage = () => {
     queryClient.invalidateQueries({ queryKey: ["library-owner", "resources"] });
   };
 
+  // Handle delete subject click
+  const handleDeleteSubject = (subject: LibrarySubject) => {
+    setSubjectToDelete(subject);
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Handle confirm delete
+  const handleConfirmDelete = () => {
+    if (!subjectToDelete) return;
+
+    deleteSubject.mutate(subjectToDelete.id, {
+      onSuccess: (data) => {
+        toast.success(`Subject "${data.name}" deleted successfully`);
+        setIsDeleteDialogOpen(false);
+        setSubjectToDelete(null);
+        // Force refresh the resources data
+        queryClient.invalidateQueries({ queryKey: ["library-owner", "resources"] });
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to delete subject");
+      },
+    });
+  };
+
+  // Handle close delete dialog
+  const handleCloseDeleteDialog = () => {
+    if (deleteSubject.isPending) return;
+    setIsDeleteDialogOpen(false);
+    setSubjectToDelete(null);
+  };
+
   // Show skeleton loader while resources are loading
   if (isResourcesLoading) {
     return <ResourcesSkeleton />;
@@ -326,6 +365,7 @@ const LibraryOwnerSubjectsPage = () => {
                 onAIClick={handleAIClick}
                 onClick={() => handleSubjectClick(subject.id)}
                 onEdit={handleEditSubject}
+                onDelete={handleDeleteSubject}
               />
             ))}
           </div>
@@ -362,6 +402,15 @@ const LibraryOwnerSubjectsPage = () => {
         isOpen={isEditSubjectModalOpen}
         onClose={handleCloseEditSubjectModal}
         subject={subjectToEdit}
+      />
+
+      {/* Delete Subject Dialog */}
+      <DeleteSubjectDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+        onConfirm={handleConfirmDelete}
+        subject={subjectToDelete}
+        isLoading={deleteSubject.isPending}
       />
     </>
   );
