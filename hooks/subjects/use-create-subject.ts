@@ -93,6 +93,10 @@ export function useCreateSubject() {
       queryClient.invalidateQueries({
         queryKey: ["library-owner", "resources"],
       });
+      // Invalidate subjects list queries
+      queryClient.invalidateQueries({
+        queryKey: ["library-owner", "subjects"],
+      });
     },
   });
 }

@@ -84,6 +84,10 @@ export function useUpdateSubject() {
       queryClient.invalidateQueries({
         queryKey: ["library-owner", "resources"],
       });
+      // Invalidate subjects list queries
+      queryClient.invalidateQueries({
+        queryKey: ["library-owner", "subjects"],
+      });
     },
   });
 }
@@ -135,6 +139,10 @@ export function useUpdateSubjectThumbnail() {
       // Also invalidate the resources dashboard
       queryClient.invalidateQueries({
         queryKey: ["library-owner", "resources"],
+      });
+      // Invalidate subjects list queries
+      queryClient.invalidateQueries({
+        queryKey: ["library-owner", "subjects"],
       });
     },
   });

@@ -1,50 +1,146 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import { useLibrarySubjects } from "@/hooks/library-owner/use-library-subjects";
-import { useLibraryOwnerResources } from "@/hooks/library-owner/use-library-owner-resources";
+import React, { useState, useMemo, useEffect } from "react";
+import { LibrarySubject } from "@/hooks/library-owner/use-library-subjects";
+import { useLibraryOwnerResources, LibraryClass, Subject } from "@/hooks/library-owner/use-library-owner-resources";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import { AIAgentModal } from "@/components/AIAgentModal";
 import { useRouter } from "next/navigation";
-import {
-  SubjectHeader,
-  SubjectFilters,
-  SubjectList,
-  SubjectPagination,
-} from "@/app/teacher/subjects/subject-components";
 import { ResourcesStatistics } from "@/app/library-owner/resources/components/ResourcesStatistics";
 import { ResourcesBreakdown } from "@/app/library-owner/resources/components/ResourcesBreakdown";
 import { ResourcesSkeleton } from "@/app/library-owner/resources/components/ResourcesSkeleton";
-import { LibraryClassCard } from "@/app/library-owner/resources/components/LibraryClassCard";
+import { CreateSubjectModal } from "@/app/library-owner/resources/[classId]/components/CreateSubjectModal";
+import {
+  ClassSelectorModal,
+  LibrarySubjectCard,
+  EditSubjectModal,
+} from "./components";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus, BookOpen, Search } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+
+// Helper to convert Subject to LibrarySubject
+const toLibrarySubject = (
+  subject: Subject,
+  className: string,
+  topics?: { id: string; title: string; order: number; is_active: boolean }[]
+): LibrarySubject => ({
+  id: subject.id,
+  name: subject.name,
+  code: subject.code,
+  color: subject.color,
+  description: null,
+  classId: subject.classId,
+  className,
+  topicsCount: topics?.length || 0,
+  topics: topics || [],
+  totalVideos: subject.videosCount || 0,
+  totalMaterials: subject.materialsCount || 0,
+});
 
 const LibraryOwnerSubjectsPage = () => {
   const router = useRouter();
-  const [page, setPage] = useState(1);
-  const limit = 10;
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy] = useState<"name" | "code" | "createdAt" | "updatedAt">("name");
-  const [sortOrder] = useState<"asc" | "desc">("asc");
+  const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState("");
 
-  const { data, isLoading, error } = useLibrarySubjects({
-    page,
-    limit,
-    search: searchQuery || undefined,
-    sortBy,
-    sortOrder,
-  });
+  // Modal states
+  const [isClassSelectorOpen, setIsClassSelectorOpen] = useState(false);
+  const [isCreateSubjectModalOpen, setIsCreateSubjectModalOpen] = useState(false);
+  const [isEditSubjectModalOpen, setIsEditSubjectModalOpen] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<LibraryClass | null>(null);
+  const [subjectToEdit, setSubjectToEdit] = useState<LibrarySubject | null>(null);
 
-  // Fetch resources dashboard data for statistics
+  // Fetch resources dashboard data - this is the source of truth
   const {
     data: resourcesData,
     isLoading: isResourcesLoading,
+    error,
   } = useLibraryOwnerResources();
 
-  // Reset to page 1 when search changes
+  // Get sorted classes with subject counts
+  const classesWithSubjects = useMemo(() => {
+    if (!resourcesData?.libraryClasses) return [];
+
+    return resourcesData.libraryClasses
+      .map((libraryClass) => ({
+        id: libraryClass.id,
+        name: libraryClass.name,
+        order: libraryClass.order,
+        subjectsCount: libraryClass.subjects?.length || 0,
+      }))
+      .sort((a, b) => a.order - b.order);
+  }, [resourcesData?.libraryClasses]);
+
+  // Auto-select first class with subjects when data loads
   useEffect(() => {
-    setPage(1);
-  }, [searchQuery]);
+    if (classesWithSubjects.length > 0 && !selectedClassId) {
+      // Find first class with subjects, or just the first class
+      const firstWithSubjects = classesWithSubjects.find((c) => c.subjectsCount > 0);
+      setSelectedClassId(firstWithSubjects?.id || classesWithSubjects[0].id);
+    }
+  }, [classesWithSubjects, selectedClassId]);
+
+  // Get subjects for the selected class
+  const filteredSubjects = useMemo(() => {
+    if (!resourcesData?.libraryClasses || !selectedClassId) return [];
+
+    const selectedLibraryClass = resourcesData.libraryClasses.find(
+      (c) => c.id === selectedClassId
+    );
+    if (!selectedLibraryClass) return [];
+
+    const classSubjects = (selectedLibraryClass.subjects || []).map((subject) => {
+      const subjectTopics = resourcesData.topics
+        ? resourcesData.topics
+            .filter((t) => t.subjectId === subject.id)
+            .map((t) => ({
+              id: t.id,
+              title: t.title,
+              order: t.order,
+              is_active: t.is_active,
+            }))
+            .sort((a, b) => a.order - b.order)
+        : [];
+
+      return toLibrarySubject(subject, selectedLibraryClass.name, subjectTopics);
+    });
+
+    // Apply search filter
+    if (searchQuery) {
+      return classSubjects.filter(
+        (s) =>
+          s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s.code.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    return classSubjects;
+  }, [resourcesData, selectedClassId, searchQuery]);
+
+  // Calculate total subjects across all classes
+  const totalSubjects = useMemo(() => {
+    if (!resourcesData?.libraryClasses) return 0;
+    return resourcesData.libraryClasses.reduce(
+      (sum, c) => sum + (c.subjects?.length || 0),
+      0
+    );
+  }, [resourcesData?.libraryClasses]);
+
+  // Get the selected class object
+  const currentSelectedClass = useMemo(() => {
+    return resourcesData?.libraryClasses?.find((c) => c.id === selectedClassId) || null;
+  }, [resourcesData?.libraryClasses, selectedClassId]);
 
   const errorMessage = useMemo(() => {
     if (!error) return null;
@@ -73,80 +169,81 @@ const LibraryOwnerSubjectsPage = () => {
     setSelectedSubject(subjectName);
     setAiModalOpen(true);
   };
-// please workkkkkkk
+
   const handleSubjectClick = (subjectId: string) => {
     router.push(`/library-owner/subjects/${subjectId}`);
   };
 
-  const subjects = useMemo(() => {
-    if (!data?.data) return [];
-    // Transform library subjects to match teacher subject structure
-    return data.data.map((subject) => ({
-      id: subject.id,
-      name: subject.name,
-      code: subject.code || null,
-      color: subject.color,
-      description: subject.description,
-      thumbnail: subject.thumbnailUrl ? {
-        secure_url: subject.thumbnailUrl,
-        public_id: "",
-      } : null,
-      school: {
-        id: "",
-        school_name: "",
-      },
-      academicSession: {
-        id: "",
-        academic_year: "",
-        term: "",
-      },
-      topics: subject.topics || [],
-      createdAt: subject.createdAt || new Date().toISOString(),
-      updatedAt: subject.updatedAt || new Date().toISOString(),
-    }));
-  }, [data?.data]);
+  // Handle class selection for creating a subject
+  const handleClassSelect = (classItem: LibraryClass) => {
+    setSelectedClass(classItem);
+    setIsClassSelectorOpen(false);
+    setIsCreateSubjectModalOpen(true);
+  };
 
-  const meta = data?.meta;
+  // Handle edit subject
+  const handleEditSubject = (subject: LibrarySubject) => {
+    setSubjectToEdit(subject);
+    setIsEditSubjectModalOpen(true);
+  };
 
-  // Calculate stats from subjects
-  const stats = useMemo(() => {
-    const subjectsList = data?.data || [];
-    if (!subjectsList.length) {
-      return {
-        totalSubjects: 0,
-        totalVideos: 0,
-        totalMaterials: 0,
-        totalClasses: 0,
-      };
-    }
+  // Handle close create subject modal and refresh data
+  const handleCloseCreateSubjectModal = () => {
+    setIsCreateSubjectModalOpen(false);
+    setSelectedClass(null);
+    // Force refresh the resources data
+    queryClient.invalidateQueries({ queryKey: ["library-owner", "resources"] });
+  };
 
-    const totalVideos = subjectsList.reduce((sum, s) => sum + (s.totalVideos || 0), 0);
-    const totalMaterials = subjectsList.reduce((sum, s) => sum + (s.totalMaterials || 0), 0);
-    const uniqueClasses = new Set(subjectsList.map((s) => s.classId)).size;
-
-    return {
-      totalSubjects: data?.meta?.total || subjectsList.length,
-      totalVideos,
-      totalMaterials,
-      totalClasses: uniqueClasses,
-    };
-  }, [data]);
+  // Handle close edit subject modal and refresh data
+  const handleCloseEditSubjectModal = () => {
+    setIsEditSubjectModalOpen(false);
+    setSubjectToEdit(null);
+    // Force refresh the resources data
+    queryClient.invalidateQueries({ queryKey: ["library-owner", "resources"] });
+  };
 
   // Show skeleton loader while resources are loading
   if (isResourcesLoading) {
     return <ResourcesSkeleton />;
   }
 
+  // Check if there are no classes to show a helpful message
+  const hasClasses = resourcesData?.libraryClasses && resourcesData.libraryClasses.length > 0;
+
   return (
     <>
       <div className="py-6 space-y-6 bg-brand-bg">
-        <SubjectHeader />
+        {/* Custom Header with Create Subject Button */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-brand-heading">Subjects</h1>
+            <p className="text-brand-light-accent-1 text-sm">
+              Manage your library subjects ({totalSubjects} total)
+            </p>
+          </div>
+          <Button
+            onClick={() => {
+              if (currentSelectedClass) {
+                setSelectedClass(currentSelectedClass);
+                setIsCreateSubjectModalOpen(true);
+              } else {
+                setIsClassSelectorOpen(true);
+              }
+            }}
+            className="flex items-center gap-2 w-full sm:w-auto"
+            disabled={!hasClasses}
+          >
+            <Plus className="h-4 w-4" />
+            Create Subject
+          </Button>
+        </div>
 
         {errorMessage && (
           <div className="text-center py-8 text-red-600">{errorMessage}</div>
         )}
 
-        {/* Statistics Overview - Same as Resources tab */}
+        {/* Statistics Overview */}
         {resourcesData?.statistics && (
           <>
             <ResourcesStatistics statistics={resourcesData.statistics} />
@@ -154,58 +251,117 @@ const LibraryOwnerSubjectsPage = () => {
           </>
         )}
 
-        {/* Library Classes - Horizontal Scrollable Row */}
-        {resourcesData?.libraryClasses && resourcesData.libraryClasses.length > 0 && (
-          <div className="pl-0 pr-6">
-            <h2 className="text-lg sm:text-xl font-semibold text-brand-heading mb-4">
-              Library Classes ({resourcesData.libraryClasses.length})
-            </h2>
-            <div className="flex gap-4 overflow-x-auto pb-4 -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              {resourcesData.libraryClasses.map((classItem) => (
-                <div key={classItem.id} className="flex-shrink-0 w-64">
-                  <LibraryClassCard classItem={classItem} />
-                </div>
-              ))}
-            </div>
+        {/* Filters: Class Selector + Search */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Class Filter */}
+          <div className="w-full sm:w-64">
+            <Select
+              value={selectedClassId}
+              onValueChange={setSelectedClassId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a class" />
+              </SelectTrigger>
+              <SelectContent>
+                {classesWithSubjects.map((classItem) => (
+                  <SelectItem key={classItem.id} value={classItem.id}>
+                    {classItem.name} ({classItem.subjectsCount})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Search Filter */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-light-accent-1" />
+            <Input
+              placeholder="Search subjects..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
+
+        {/* Subject List */}
+        {!hasClasses ? (
+          <div className="text-center py-12">
+            <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-lg font-medium">No classes found</h3>
+            <p className="text-gray-500">
+              You need to have classes set up before creating subjects.
+            </p>
+          </div>
+        ) : filteredSubjects.length === 0 ? (
+          <div className="text-center py-12">
+            <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-lg font-medium">
+              {searchQuery ? "No subjects match your search" : "No subjects in this class"}
+            </h3>
+            <p className="text-gray-500">
+              {searchQuery
+                ? `No subjects found matching "${searchQuery}". Try a different search term.`
+                : "Create your first subject to get started."}
+            </p>
+            {!searchQuery && currentSelectedClass && (
+              <Button
+                onClick={() => {
+                  setSelectedClass(currentSelectedClass);
+                  setIsCreateSubjectModalOpen(true);
+                }}
+                className="mt-4"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Subject
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredSubjects.map((subject) => (
+              <LibrarySubjectCard
+                key={subject.id}
+                subject={subject}
+                onAIClick={handleAIClick}
+                onClick={() => handleSubjectClick(subject.id)}
+                onEdit={handleEditSubject}
+              />
+            ))}
           </div>
         )}
-
-        {/* <SubjectStatsCards 
-          stats={stats} 
-          isLoading={isLoading} 
-          academicSession={null}
-        /> */}
-
-        <SubjectFilters
-          searchQuery={searchQuery}
-          onSearchChange={(value) => {
-            setSearchQuery(value);
-            setPage(1);
-          }}
-        />
-
-        <SubjectList
-          subjects={subjects}
-          isLoading={isLoading}
-          pagination={meta}
-          totalSubjects={stats.totalSubjects}
-          searchQuery={searchQuery}
-          onAIClick={handleAIClick}
-          onSubjectClick={handleSubjectClick}
-          basePath="/library-owner"
-          canManage={true}
-        />
-
-        <SubjectPagination
-          pagination={meta}
-          onPageChange={setPage}
-        />
       </div>
 
+      {/* AI Agent Modal */}
       <AIAgentModal
         isOpen={aiModalOpen}
         onClose={() => setAiModalOpen(false)}
         subject={selectedSubject}
+      />
+
+      {/* Class Selector Modal */}
+      <ClassSelectorModal
+        isOpen={isClassSelectorOpen}
+        onClose={() => setIsClassSelectorOpen(false)}
+        onSelectClass={handleClassSelect}
+        classes={resourcesData?.libraryClasses || []}
+      />
+
+      {/* Create Subject Modal */}
+      {selectedClass && (
+        <CreateSubjectModal
+          isOpen={isCreateSubjectModalOpen}
+          onClose={handleCloseCreateSubjectModal}
+          classId={selectedClass.id}
+          className={selectedClass.name}
+        />
+      )}
+
+      {/* Edit Subject Modal */}
+      <EditSubjectModal
+        isOpen={isEditSubjectModalOpen}
+        onClose={handleCloseEditSubjectModal}
+        subject={subjectToEdit}
       />
     </>
   );

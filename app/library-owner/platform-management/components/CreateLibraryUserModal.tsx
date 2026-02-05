@@ -11,33 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { useAvailablePermissions } from "@/hooks/library-owner/use-library-users";
 import type { CreateLibraryUserPayload, LibraryUserRole, LibraryUserType } from "@/hooks/library-owner/use-library-users-types";
 
-const ROLES: { value: LibraryUserRole; label: string }[] = [
-  { value: "admin", label: "Admin" },
-  { value: "manager", label: "Manager" },
-  { value: "content_creator", label: "Content creator" },
-  { value: "reviewer", label: "Reviewer" },
-  { value: "viewer", label: "Viewer" },
-];
-
-const USER_TYPES: { value: LibraryUserType; label: string }[] = [
-  { value: "libraryresourceowner", label: "Library resource owner" },
-  { value: "librarymanager", label: "Library manager" },
-  { value: "contentcreator", label: "Content creator" },
-  { value: "reviewer", label: "Reviewer" },
-  { value: "viewer", label: "Viewer" },
-];
+// Fixed role and user type for new library users
+const DEFAULT_ROLE: LibraryUserRole = "admin";
+const DEFAULT_USER_TYPE: LibraryUserType = "libraryresourceowner";
 
 interface CreateLibraryUserModalProps {
   isOpen: boolean;
@@ -58,8 +39,6 @@ export function CreateLibraryUserModal({
   const [first_name, setFirst_name] = useState("");
   const [last_name, setLast_name] = useState("");
   const [phone_number, setPhone_number] = useState("");
-  const [role, setRole] = useState<LibraryUserRole>("content_creator");
-  const [userType, setUserType] = useState<LibraryUserType>("contentcreator");
   const [permissionCodes, setPermissionCodes] = useState<string[]>([]);
   const [permissionLevel, setPermissionLevel] = useState<string>("");
 
@@ -70,8 +49,6 @@ export function CreateLibraryUserModal({
     setFirst_name("");
     setLast_name("");
     setPhone_number("");
-    setRole("content_creator");
-    setUserType("contentcreator");
     setPermissionCodes([]);
     setPermissionLevel("");
   }, [isOpen]);
@@ -84,25 +61,27 @@ export function CreateLibraryUserModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return; // Prevent double submission
+    
     const payload: CreateLibraryUserPayload = {
       email: email.trim(),
       first_name: first_name.trim(),
       last_name: last_name.trim(),
-      role,
-      userType,
+      role: DEFAULT_ROLE,
+      userType: DEFAULT_USER_TYPE,
       permissions: permissionCodes.length ? permissionCodes : undefined,
       permissionLevel: permissionLevel ? Number(permissionLevel) : undefined,
     };
     if (password.trim()) payload.password = password.trim();
     if (phone_number.trim()) payload.phone_number = phone_number.trim();
     onSubmit(payload);
-    onClose();
+    // Don't close here - let parent close after async operation completes
   };
 
   const canSubmit = email.trim() && first_name.trim() && last_name.trim();
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isLoading && onClose()}>
       <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add library user</DialogTitle>
@@ -117,6 +96,7 @@ export function CreateLibraryUserModal({
                 onChange={(e) => setFirst_name(e.target.value)}
                 placeholder="Jane"
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -127,6 +107,7 @@ export function CreateLibraryUserModal({
                 onChange={(e) => setLast_name(e.target.value)}
                 placeholder="Doe"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -139,6 +120,7 @@ export function CreateLibraryUserModal({
               onChange={(e) => setEmail(e.target.value)}
               placeholder="user@library.com"
               required
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -150,6 +132,7 @@ export function CreateLibraryUserModal({
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Min 8 characters; leave blank to auto-generate"
               minLength={8}
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -159,38 +142,21 @@ export function CreateLibraryUserModal({
               value={phone_number}
               onChange={(e) => setPhone_number(e.target.value)}
               placeholder="+2348012345678"
+              disabled={isLoading}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Role</Label>
-              <Select value={role} onValueChange={(v) => setRole(v as LibraryUserRole)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ROLES.map((r) => (
-                    <SelectItem key={r.value} value={r.value}>
-                      {r.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="h-10 px-3 py-2 rounded-md border border-brand-border bg-gray-50 text-sm text-brand-heading">
+                Admin
+              </div>
             </div>
             <div className="space-y-2">
               <Label>User type</Label>
-              <Select value={userType} onValueChange={(v) => setUserType(v as LibraryUserType)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {USER_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="h-10 px-3 py-2 rounded-md border border-brand-border bg-gray-50 text-sm text-brand-heading">
+                Library resource owner
+              </div>
             </div>
           </div>
           {availablePermissions.length > 0 && (
@@ -203,6 +169,7 @@ export function CreateLibraryUserModal({
                       id={`perm-${p.id}`}
                       checked={permissionCodes.includes(p.code)}
                       onCheckedChange={() => handleTogglePermission(p.code)}
+                      disabled={isLoading}
                     />
                     <label
                       htmlFor={`perm-${p.id}`}
@@ -225,10 +192,11 @@ export function CreateLibraryUserModal({
               value={permissionLevel}
               onChange={(e) => setPermissionLevel(e.target.value)}
               placeholder="1–10"
+              disabled={isLoading}
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
               Cancel
             </Button>
             <Button type="submit" disabled={!canSubmit || isLoading}>

@@ -99,7 +99,8 @@ export function EditLibraryUserModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || isLoading) return;
+    
     const payload: UpdateLibraryUserPayload = {
       email: email.trim(),
       first_name: first_name.trim(),
@@ -112,7 +113,7 @@ export function EditLibraryUserModal({
     if (password.trim()) payload.password = password.trim();
     if (phone_number.trim()) payload.phone_number = phone_number.trim();
     onSubmit(user.id, payload);
-    onClose();
+    // Don't close here - let parent close after async operation completes
   };
 
   const currentSnapshot = JSON.stringify({
@@ -137,7 +138,7 @@ export function EditLibraryUserModal({
   if (!user) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isLoading && onClose()}>
       <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit library user</DialogTitle>
@@ -151,6 +152,7 @@ export function EditLibraryUserModal({
                 value={first_name}
                 onChange={(e) => setFirst_name(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -160,6 +162,7 @@ export function EditLibraryUserModal({
                 value={last_name}
                 onChange={(e) => setLast_name(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -171,6 +174,7 @@ export function EditLibraryUserModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -182,6 +186,7 @@ export function EditLibraryUserModal({
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Leave blank to keep current"
               minLength={8}
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -190,12 +195,13 @@ export function EditLibraryUserModal({
               id="edit-phone"
               value={phone_number}
               onChange={(e) => setPhone_number(e.target.value)}
+              disabled={isLoading}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Role</Label>
-              <Select value={role} onValueChange={(v) => setRole(v as LibraryUserRole)}>
+              <Select value={role} onValueChange={(v) => setRole(v as LibraryUserRole)} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -210,7 +216,7 @@ export function EditLibraryUserModal({
             </div>
             <div className="space-y-2">
               <Label>User type</Label>
-              <Select value={userType} onValueChange={(v) => setUserType(v as LibraryUserType)}>
+              <Select value={userType} onValueChange={(v) => setUserType(v as LibraryUserType)} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -234,6 +240,7 @@ export function EditLibraryUserModal({
                       id={`edit-perm-${p.id}`}
                       checked={permissionCodes.includes(p.code)}
                       onCheckedChange={() => handleTogglePermission(p.code)}
+                      disabled={isLoading}
                     />
                     <label
                       htmlFor={`edit-perm-${p.id}`}
@@ -256,10 +263,11 @@ export function EditLibraryUserModal({
               value={permissionLevel}
               onChange={(e) => setPermissionLevel(e.target.value)}
               placeholder="1–10"
+              disabled={isLoading}
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
               Cancel
             </Button>
             <Button type="submit" disabled={!canSubmit || isLoading}>

@@ -60,6 +60,7 @@ export const PlayVideoPage = () => {
   const [isHlsReady, setIsHlsReady] = useState(false);
   const [qualityLevels, setQualityLevels] = useState<{ height: number; bitrate: number; index: number }[]>([]);
   const [currentQuality, setCurrentQuality] = useState<number>(-1); // -1 = Auto
+  const currentQualityRef = useRef<number>(-1); // Ref to track currentQuality for event handlers
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [showQualityFeatureTooltip, setShowQualityFeatureTooltip] = useState(false);
 
@@ -73,6 +74,11 @@ export const PlayVideoPage = () => {
   useEffect(() => {
     console.log("[Video Player] isHlsReady changed to:", isHlsReady);
   }, [isHlsReady]);
+
+  // Keep currentQualityRef in sync with currentQuality state
+  useEffect(() => {
+    currentQualityRef.current = currentQuality;
+  }, [currentQuality]);
 
   // Feature discovery tooltip for quality selector
   useEffect(() => {
@@ -190,7 +196,7 @@ export const PlayVideoPage = () => {
         // Track when quality level changes (for Auto mode display)
         hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
           console.log("[Video Player] HLS: LEVEL_SWITCHED to", data.level);
-          if (currentQuality === -1) {
+          if (currentQualityRef.current === -1) {
             // In auto mode, just log the switch
             const level = hls.levels[data.level];
             if (level) {
@@ -867,17 +873,17 @@ export const PlayVideoPage = () => {
                       >
                         Retry
                       </Button>
-                      <p className="text-xs text-gray-400">
+                      {/* <p className="text-xs text-gray-400">
                         Try opening the video URL directly in your browser to test if it&apos;s accessible.
-                      </p>
-                      {video?.videoUrl && (
+                      </p> */}
+                      {/* {video?.videoUrl && (
                         <div className="mt-2 p-2 bg-black/50 rounded border border-gray-600">
                           <p className="text-xs text-gray-400 mb-1">Video URL:</p>
                           <p className="text-xs text-blue-400 break-all select-all cursor-text">
                             {video.videoUrl}
                           </p>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 </div>
