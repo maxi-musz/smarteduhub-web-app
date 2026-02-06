@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatTitle } from "@/lib/text-formatter";
 
 const CreateAccount = () => {
   const router = useRouter();
@@ -106,6 +107,9 @@ const CreateAccount = () => {
   const { min, max } = getDateRestrictions();
 
   const handleInputChange = (field: string, value: string) => {
+    if (field === "schoolName" || field === "schoolAddress") {
+      value = formatTitle(value);
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 

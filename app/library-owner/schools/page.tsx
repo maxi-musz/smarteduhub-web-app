@@ -1,13 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useLibraryOwnerSchools, AllSchoolsResponse } from "@/hooks/library-owner/use-library-owner-schools";
-import { useLibraryOwnerSchool, SingleSchoolResponse } from "@/hooks/library-owner/use-library-owner-school";
+import { useSearchParams } from "next/navigation";
+import { useLibraryOwnerSchools } from "@/hooks/library-owner/use-library-owner-schools";
+import { useLibraryOwnerSchool } from "@/hooks/library-owner/use-library-owner-school";
+import { useLibraryOwnerProfile } from "@/hooks/library-owner/use-library-owner-profile";
+import { PERMISSION_MANAGE_LIBRARY_USERS } from "@/app/library-owner/platform-management/constants";
 import { SchoolsSkeleton } from "./components/SchoolsSkeleton";
 import { SchoolsStatistics } from "./components/SchoolsStatistics";
 import { SchoolsBreakdown } from "./components/SchoolsBreakdown";
 import { SchoolCard } from "./components/SchoolCard";
 import { SchoolDetailsModal } from "./components/SchoolDetailsModal";
+import { OnboardSchoolModal } from "./components/OnboardSchoolModal";
 import {
   Dialog,
   DialogContent,
@@ -15,15 +19,38 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, RefreshCw, Search } from "lucide-react";
+import { AlertCircle, RefreshCw, Search, PlusCircle } from "lucide-react";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 import { Input } from "@/components/ui/input";
 import { logger } from "@/lib/logger";
 
+function hasManageLibraryUsersPermission(permissions: unknown[]): boolean {
+  return (
+    Array.isArray(permissions) &&
+    (permissions as string[]).includes(PERMISSION_MANAGE_LIBRARY_USERS)
+  );
+}
+
 const LibraryOwnerSchools = () => {
+  const searchParams = useSearchParams();
   const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isOnboardModalOpen, setIsOnboardModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { data: profileData } = useLibraryOwnerProfile();
+  const canOnboardSchools = hasManageLibraryUsersPermission(
+    profileData?.user?.permissions ?? []
+  );
+
+  // Open modal when URL has ?schoolId= (e.g. after creating a new school)
+  useEffect(() => {
+    const id = searchParams.get("schoolId");
+    if (id && id.trim()) {
+      setSelectedSchoolId(id.trim());
+      setIsDetailsModalOpen(true);
+    }
+  }, [searchParams]);
 
   // Log when component mounts
   useEffect(() => {
@@ -77,7 +104,7 @@ const LibraryOwnerSchools = () => {
   };
 
   // Filter schools based on search query
-  const filteredSchools = (schoolsData as unknown as AllSchoolsResponse | undefined)?.schools.filter((school) =>
+  const filteredSchools = schoolsData?.schools.filter((school) =>
     school.school_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     school.school_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     school.school_address.toLowerCase().includes(searchQuery.toLowerCase())
@@ -155,28 +182,39 @@ const LibraryOwnerSchools = () => {
   return (
     <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 bg-brand-bg">
       {/* Header */}
-      <div className="px-4 sm:px-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-brand-heading">Schools</h1>
-        <p className="text-sm sm:text-base text-brand-light-accent-1 mt-1">
-          Manage and view all schools in your library
-        </p>
+      <div className="px-4 sm:px-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-brand-heading">Schools</h1>
+          <p className="text-sm sm:text-base text-brand-light-accent-1 mt-1">
+            Manage and view all schools in your library
+          </p>
+        </div>
+        {canOnboardSchools && (
+          <Button
+            className="bg-brand-primary hover:bg-brand-primary/90 text-white shrink-0"
+            onClick={() => setIsOnboardModalOpen(true)}
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Onboard new school
+          </Button>
+        )}
       </div>
 
       {/* Statistics Overview */}
       <div className="px-4 sm:px-6">
-        <SchoolsStatistics statistics={(schoolsData as unknown as AllSchoolsResponse).statistics} />
+        <SchoolsStatistics statistics={schoolsData.statistics} />
       </div>
 
       {/* Breakdown Statistics */}
       <div className="px-4 sm:px-6">
-        <SchoolsBreakdown statistics={(schoolsData as unknown as AllSchoolsResponse).statistics} />
+        <SchoolsBreakdown statistics={schoolsData.statistics} />
       </div>
 
       {/* Search and Schools List */}
       <div className="px-4 sm:px-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h2 className="text-lg sm:text-xl font-semibold text-brand-heading">
-            All Schools ({(schoolsData as unknown as AllSchoolsResponse).total})
+            All Schools ({schoolsData.total})
           </h2>
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-brand-light-accent-1" />
@@ -213,13 +251,29 @@ const LibraryOwnerSchools = () => {
 
       {/* School Details Modal */}
       <SchoolDetailsModal
-        schoolData={(schoolDetails as unknown as SingleSchoolResponse | undefined) ?? null}
+        schoolData={schoolDetails ?? null}
         isOpen={isDetailsModalOpen}
         onClose={handleCloseDetails}
+      />
+
+      {/* Onboard new school modal */}
+      <OnboardSchoolModal
+        isOpen={isOnboardModalOpen}
+        onClose={() => setIsOnboardModalOpen(false)}
+        onSuccess={(schoolId) => {
+          setSelectedSchoolId(schoolId);
+          setIsDetailsModalOpen(true);
+        }}
       />
     </div>
   );
 };
 
-export default LibraryOwnerSchools;
+export default function LibraryOwnerSchoolsPage() {
+  return (
+    <React.Suspense fallback={<SchoolsSkeleton />}>
+      <LibraryOwnerSchools />
+    </React.Suspense>
+  );
+}
 

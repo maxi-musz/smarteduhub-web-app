@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatTitle } from "@/lib/text-formatter";
 import {
   Select,
   SelectContent,
@@ -73,6 +74,8 @@ export default function ManualStudentForm({
   const handleInputChange = (field: keyof StudentFormData, value: string) => {
     if (field === "phoneNumber") {
       value = value.replace(/\D/g, "").slice(0, 11);
+    } else if (field === "firstName" || field === "lastName") {
+      value = formatTitle(value);
     }
     setFormData((prev) => ({ ...prev, [field]: value }));
   };

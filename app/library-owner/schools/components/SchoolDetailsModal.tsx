@@ -9,6 +9,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SingleSchoolResponse, useApproveSchool } from "@/hooks/library-owner/use-library-owner-school";
+import { useLibraryOwnerProfile } from "@/hooks/library-owner/use-library-owner-profile";
+import { PERMISSION_MANAGE_LIBRARY_USERS } from "@/app/library-owner/platform-management/constants";
 import {
   Building2,
   Mail,
@@ -26,6 +28,13 @@ import {
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { AddClassesSection } from "./AddClassesSection";
+import { AddTeachersSection } from "./AddTeachersSection";
+import { AddStudentsSection } from "./AddStudentsSection";
+
+function hasManageLibraryUsersPermission(permissions: unknown[]): boolean {
+  return Array.isArray(permissions) && (permissions as string[]).includes(PERMISSION_MANAGE_LIBRARY_USERS);
+}
 
 interface SchoolDetailsModalProps {
   schoolData: SingleSchoolResponse | null;
@@ -40,10 +49,13 @@ export const SchoolDetailsModal = ({
 }: SchoolDetailsModalProps) => {
   const { toast } = useToast();
   const approveSchool = useApproveSchool();
+  const { data: profileData } = useLibraryOwnerProfile();
+  const canManage = hasManageLibraryUsersPermission(profileData?.user?.permissions ?? []);
 
   if (!schoolData) return null;
 
   const { school, details, documentsSubmitted } = schoolData;
+  const availableClassNames = details.classes.list.map((c) => c.name);
   const docs = documentsSubmitted ?? { cac: null, taxClearance: null, utilityBill: null };
 
   const handleApprove = async () => {
@@ -290,11 +302,15 @@ export const SchoolDetailsModal = ({
               </TabsList>
 
               <TabsContent value="teachers" className="mt-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-brand-light-accent-1 mb-3">
-                    Total: {details.teachers.total}
-                  </p>
-                  {details.teachers.recent.length > 0 ? (
+                <div className="space-y-4">
+                  {canManage && (
+                    <AddTeachersSection schoolId={school.id} />
+                  )}
+                  <div className="space-y-2">
+                    <p className="text-sm text-brand-light-accent-1 mb-3">
+                      Total: {details.teachers.total}
+                    </p>
+                    {details.teachers.recent.length > 0 ? (
                     <div className="space-y-2">
                       {details.teachers.recent.map((teacher) => (
                         <div
@@ -326,15 +342,20 @@ export const SchoolDetailsModal = ({
                       No teachers found
                     </p>
                   )}
+                  </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="students" className="mt-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-brand-light-accent-1 mb-3">
-                    Total: {details.students.total}
-                  </p>
-                  {details.students.recent.length > 0 ? (
+                <div className="space-y-4">
+                  {canManage && (
+                    <AddStudentsSection schoolId={school.id} availableClasses={availableClassNames} />
+                  )}
+                  <div className="space-y-2">
+                    <p className="text-sm text-brand-light-accent-1 mb-3">
+                      Total: {details.students.total}
+                    </p>
+                    {details.students.recent.length > 0 ? (
                     <div className="space-y-2">
                       {details.students.recent.map((student) => (
                         <div
@@ -367,15 +388,20 @@ export const SchoolDetailsModal = ({
                       No students found
                     </p>
                   )}
+                  </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="classes" className="mt-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-brand-light-accent-1 mb-3">
-                    Total: {details.classes.total}
-                  </p>
-                  {details.classes.list.length > 0 ? (
+                <div className="space-y-4">
+                  {canManage && (
+                    <AddClassesSection schoolId={school.id} />
+                  )}
+                  <div className="space-y-2">
+                    <p className="text-sm text-brand-light-accent-1 mb-3">
+                      Total: {details.classes.total}
+                    </p>
+                    {details.classes.list.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {details.classes.list.map((classItem) => (
                         <div
@@ -396,6 +422,7 @@ export const SchoolDetailsModal = ({
                       No classes found
                     </p>
                   )}
+                  </div>
                 </div>
               </TabsContent>
 

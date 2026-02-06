@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatTitle } from "@/lib/text-formatter";
 
 type AdminFormData = {
   firstName: string;
@@ -64,6 +65,9 @@ const ManualAdminForm: React.FC<ManualAdminFormProps> = ({
   });
 
   const handleInputChange = (field: keyof AdminFormData, value: string) => {
+    if (field === "firstName" || field === "lastName") {
+      value = formatTitle(value);
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
