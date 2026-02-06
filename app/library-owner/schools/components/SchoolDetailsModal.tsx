@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SingleSchoolResponse, useApproveSchool } from "@/hooks/library-owner/use-library-owner-school";
+import { SingleSchoolResponse, useApproveSchool, type Subject } from "@/hooks/library-owner/use-library-owner-school";
 import { useLibraryOwnerProfile } from "@/hooks/library-owner/use-library-owner-profile";
 import { PERMISSION_MANAGE_LIBRARY_USERS } from "@/app/library-owner/platform-management/constants";
 import {
@@ -24,6 +25,7 @@ import {
   ExternalLink,
   CheckCircle,
   Loader2,
+  Pencil,
 } from "lucide-react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +33,8 @@ import { useToast } from "@/hooks/use-toast";
 import { AddClassesSection } from "./AddClassesSection";
 import { AddTeachersSection } from "./AddTeachersSection";
 import { AddStudentsSection } from "./AddStudentsSection";
+import { AddSubjectsSection } from "./AddSubjectsSection";
+import { EditSubjectModal } from "./EditSubjectModal";
 
 function hasManageLibraryUsersPermission(permissions: unknown[]): boolean {
   return Array.isArray(permissions) && (permissions as string[]).includes(PERMISSION_MANAGE_LIBRARY_USERS);
@@ -51,6 +55,7 @@ export const SchoolDetailsModal = ({
   const approveSchool = useApproveSchool();
   const { data: profileData } = useLibraryOwnerProfile();
   const canManage = hasManageLibraryUsersPermission(profileData?.user?.permissions ?? []);
+  const [subjectToEdit, setSubjectToEdit] = useState<Subject | null>(null);
 
   if (!schoolData) return null;
 
@@ -427,31 +432,54 @@ export const SchoolDetailsModal = ({
               </TabsContent>
 
               <TabsContent value="subjects" className="mt-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-brand-light-accent-1 mb-3">
-                    Total: {details.subjects.total}
-                  </p>
-                  {details.subjects.list.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {details.subjects.list.map((subject) => (
-                        <div
-                          key={subject.id}
-                          className="p-3 bg-gray-50 rounded-lg"
-                        >
-                          <p className="font-medium text-brand-heading">
-                            {subject.name}
-                          </p>
-                          <p className="text-xs text-brand-light-accent-1">
-                            {subject.code ?? "—"}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-brand-light-accent-1">
-                      No subjects found
-                    </p>
+                <div className="space-y-4">
+                  {canManage && (
+                    <AddSubjectsSection
+                      schoolId={school.id}
+                      availableClasses={details.classes.list}
+                      availableTeachers={details.teachers.recent}
+                    />
                   )}
+                  <div className="space-y-2">
+                    <p className="text-sm text-brand-light-accent-1 mb-3">
+                      Total: {details.subjects.total}
+                    </p>
+                    {details.subjects.list.length > 0 ? (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {details.subjects.list.map((subject) => (
+                          <div
+                            key={subject.id}
+                            className="p-3 bg-gray-50 rounded-lg flex items-start justify-between gap-2"
+                          >
+                            <div className="min-w-0">
+                              <p className="font-medium text-brand-heading">
+                                {subject.name}
+                              </p>
+                              <p className="text-xs text-brand-light-accent-1">
+                                {subject.code ?? "—"}
+                              </p>
+                            </div>
+                            {canManage && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 shrink-0 text-brand-light-accent-1 hover:text-brand-heading"
+                                onClick={() => setSubjectToEdit(subject)}
+                                aria-label="Edit subject"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-brand-light-accent-1">
+                        No subjects found
+                      </p>
+                    )}
+                  </div>
                 </div>
               </TabsContent>
 
@@ -567,6 +595,15 @@ export const SchoolDetailsModal = ({
           </div>
         </div>
       </DialogContent>
+      <EditSubjectModal
+        schoolId={school.id}
+        subject={subjectToEdit}
+        availableClasses={details.classes.list}
+        availableTeachers={details.teachers.recent}
+        isOpen={!!subjectToEdit}
+        onClose={() => setSubjectToEdit(null)}
+        onSuccess={() => setSubjectToEdit(null)}
+      />
     </Dialog>
   );
 };

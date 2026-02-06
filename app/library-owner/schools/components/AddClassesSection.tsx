@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -13,15 +13,11 @@ import { X, Loader2 } from "lucide-react";
 import { useOnboardLibraryClasses } from "@/hooks/library-owner/use-onboard-library-classes";
 import { useToast } from "@/hooks/use-toast";
 
-const CLASS_LEVELS = [
-  "JSS1", "JSS2", "JSS3", "SS1", "SS2", "SS3",
+/** Nigerian system order: add classes in this sequence. */
+const CLASS_LEVELS_ORDERED = [
+  "KG1", "KG2", "Nursery 1", "Nursery 2",
   "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6",
-];
-
-const BULK_OPTIONS = [
-  { label: "Primary 1 - Primary 6", classes: ["Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6"] },
-  { label: "JSS1 - JSS3", classes: ["JSS1", "JSS2", "JSS3"] },
-  { label: "SS1 - SS2", classes: ["SS1", "SS2"] },
+  "JSS1", "JSS2", "JSS3", "SS1", "SS2", "SS3",
 ];
 
 interface AddClassesSectionProps {
@@ -33,21 +29,11 @@ export function AddClassesSection({ schoolId }: AddClassesSectionProps) {
   const onboardClasses = useOnboardLibraryClasses();
   const [classes, setClasses] = useState<string[]>([]);
   const [selectedLevel, setSelectedLevel] = useState("");
-  const [selectedBulk, setSelectedBulk] = useState("");
 
   const handleAddClass = () => {
     if (selectedLevel && !classes.includes(selectedLevel)) {
       setClasses((prev) => [...prev, selectedLevel]);
       setSelectedLevel("");
-    }
-  };
-
-  const handleAddBulk = () => {
-    const option = BULK_OPTIONS.find((o) => o.label === selectedBulk);
-    if (option) {
-      const newOnes = option.classes.filter((c) => !classes.includes(c));
-      if (newOnes.length > 0) setClasses((prev) => [...prev, ...newOnes]);
-      setSelectedBulk("");
     }
   };
 
@@ -62,27 +48,28 @@ export function AddClassesSection({ schoolId }: AddClassesSectionProps) {
     }
   };
 
-  const availableLevels = CLASS_LEVELS.filter((c) => !classes.includes(c));
-  const availableBulk = BULK_OPTIONS.filter((opt) => opt.classes.some((c) => !classes.includes(c)));
+  /** Only the next class in Nigerian order can be added (enforces sequence). */
+  const nextClassIndex = classes.length;
+  const nextClass = nextClassIndex < CLASS_LEVELS_ORDERED.length ? CLASS_LEVELS_ORDERED[nextClassIndex] : null;
+  const availableLevels = nextClass ? [nextClass] : [];
+
+  useEffect(() => {
+    if (nextClass && selectedLevel !== nextClass) setSelectedLevel(nextClass);
+    if (!nextClass) setSelectedLevel("");
+  }, [nextClass, selectedLevel]);
 
   return (
     <div className="rounded-lg border border-brand-border bg-gray-50/50 p-4 space-y-3">
-      <p className="text-sm font-medium text-brand-heading">Add classes</p>
-      <div className="flex flex-wrap gap-2">
-        <Select value={selectedBulk} onValueChange={setSelectedBulk}>
-          <SelectTrigger className="w-[180px] h-9">
-            <SelectValue placeholder="Bulk add" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableBulk.map((o) => (
-              <SelectItem key={o.label} value={o.label}>{o.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button type="button" size="sm" variant="outline" onClick={handleAddBulk} disabled={!selectedBulk}>Add bulk</Button>
+      <div>
+        <p className="text-sm font-medium text-brand-heading">Add classes</p>
+        <p className="text-xs text-brand-light-accent-1 mt-1">
+          Add classes in order: KG1 → KG2 → Nursery 1 → Nursery 2 → Primary 1–6 → JSS1–3 → SS1–3. Select the next class in sequence.
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
         <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-          <SelectTrigger className="w-[120px] h-9">
-            <SelectValue placeholder="Single" />
+          <SelectTrigger className="w-[140px] h-9">
+            <SelectValue placeholder={nextClass ? `Next: ${nextClass}` : "All added"} />
           </SelectTrigger>
           <SelectContent>
             {availableLevels.map((level) => (
@@ -90,7 +77,9 @@ export function AddClassesSection({ schoolId }: AddClassesSectionProps) {
             ))}
           </SelectContent>
         </Select>
-        <Button type="button" size="sm" variant="outline" onClick={handleAddClass} disabled={!selectedLevel}>Add</Button>
+        <Button type="button" size="sm" variant="outline" onClick={handleAddClass} disabled={!selectedLevel}>
+          Add
+        </Button>
       </div>
       {classes.length > 0 && (
         <>
