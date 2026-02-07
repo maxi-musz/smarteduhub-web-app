@@ -9,7 +9,7 @@ import ManualTeacherForm from "@/components/onboarding/ManualTeacherForm";
 import TeacherList from "@/components/onboarding/TeacherList";
 import TeacherUploadSection from "@/components/onboarding/TeacherUploadSection";
 import { formatTitle } from "@/lib/text-formatter";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, ChevronUp } from "lucide-react";
 
 type TeacherFormData = {
   id: string;
@@ -33,6 +33,8 @@ export function AddTeachersSection({ schoolId }: AddTeachersSectionProps) {
   const [teachers, setTeachers] = useState<TeacherFormData[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [addViaBulkUpload, setAddViaBulkUpload] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showForm, setShowForm] = useState(true);
 
   const handleTeachersUploaded = (
     list: Array<{ firstName: string; lastName: string; email: string; phoneNumber: string; id?: string }>
@@ -50,6 +52,7 @@ export function AddTeachersSection({ schoolId }: AddTeachersSectionProps) {
 
   const handleManualAdd = (t: Omit<TeacherFormData, "id">) => {
     setTeachers((prev) => [...prev, { ...t, id: nextId() }]);
+    setShowForm(false);
   };
 
   const handleRemove = (id: string) => {
@@ -75,20 +78,64 @@ export function AddTeachersSection({ schoolId }: AddTeachersSectionProps) {
     }
   };
 
+  if (!isExpanded) {
+    return (
+      <div className="rounded-lg border border-brand-border bg-gray-50/50 p-4">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => { setIsExpanded(true); setShowForm(true); }}
+        >
+          <Plus className="h-4 w-4" />
+          Add teacher
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg border border-brand-border bg-gray-50/50 p-4 space-y-3">
-      <p className="text-sm font-medium text-brand-heading">Add teachers</p>
-      <ManualTeacherForm onAddTeacher={handleManualAdd} onError={setErrorMessage} existingTeachers={teachers} />
-      {errorMessage && <p className="text-xs text-red-600">{errorMessage}</p>}
-      <label className="flex items-center gap-2 cursor-pointer text-sm text-brand-heading">
-        <Checkbox
-          checked={addViaBulkUpload}
-          onCheckedChange={(checked) => setAddViaBulkUpload(checked === true)}
-        />
-        Add via bulk upload
-      </label>
-      {addViaBulkUpload && (
-        <TeacherUploadSection onTeachersUploaded={handleTeachersUploaded} existingTeachers={teachers} />
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-brand-heading">Add teachers</p>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 gap-1.5 text-brand-light-accent-1 hover:text-brand-heading"
+          onClick={() => setIsExpanded(false)}
+        >
+          <ChevronUp className="h-4 w-4" />
+          Close
+        </Button>
+      </div>
+      {showForm ? (
+        <>
+          <ManualTeacherForm onAddTeacher={handleManualAdd} onError={setErrorMessage} existingTeachers={teachers} />
+          {errorMessage && <p className="text-xs text-red-600">{errorMessage}</p>}
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-brand-heading">
+            <Checkbox
+              checked={addViaBulkUpload}
+              onCheckedChange={(checked) => setAddViaBulkUpload(checked === true)}
+            />
+            Add via bulk upload
+          </label>
+          {addViaBulkUpload && (
+            <TeacherUploadSection onTeachersUploaded={handleTeachersUploaded} existingTeachers={teachers} />
+          )}
+        </>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => setShowForm(true)}
+        >
+          <Plus className="h-4 w-4" />
+          Add more
+        </Button>
       )}
       <TeacherList teachers={teachers} onRemoveTeacher={handleRemove} />
       {teachers.length > 0 && (

@@ -9,7 +9,7 @@ import ManualStudentForm from "@/components/onboarding/ManualStudentForm";
 import StudentList from "@/components/onboarding/StudentList";
 import StudentUploadSection from "@/components/onboarding/StudentUploadSection";
 import { formatTitle } from "@/lib/text-formatter";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, ChevronUp } from "lucide-react";
 
 type StudentFormData = {
   id: string;
@@ -35,6 +35,8 @@ export function AddStudentsSection({ schoolId, availableClasses }: AddStudentsSe
   const [students, setStudents] = useState<StudentFormData[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [addViaBulkUpload, setAddViaBulkUpload] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showForm, setShowForm] = useState(true);
 
   const handleStudentsUploaded = (
     list: Array<{ firstName: string; lastName: string; email: string; phoneNumber: string; studentClass: string; id?: string }>
@@ -52,6 +54,7 @@ export function AddStudentsSection({ schoolId, availableClasses }: AddStudentsSe
 
   const handleManualAdd = (s: Omit<StudentFormData, "id">) => {
     setStudents((prev) => [...prev, { ...s, id: nextId() }]);
+    setShowForm(false);
   };
 
   const handleRemove = (id: string) => {
@@ -78,23 +81,71 @@ export function AddStudentsSection({ schoolId, availableClasses }: AddStudentsSe
     }
   };
 
+  if (!isExpanded) {
+    return (
+      <div className="rounded-lg border border-brand-border bg-gray-50/50 p-4">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => { setIsExpanded(true); setShowForm(true); }}
+          disabled={availableClasses.length === 0}
+        >
+          <Plus className="h-4 w-4" />
+          Add student
+        </Button>
+        {availableClasses.length === 0 && (
+          <p className="text-xs text-amber-700 mt-2">Add classes first so you can assign students to a class.</p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg border border-brand-border bg-gray-50/50 p-4 space-y-3">
-      <p className="text-sm font-medium text-brand-heading">Add students</p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-brand-heading">Add students</p>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 gap-1.5 text-brand-light-accent-1 hover:text-brand-heading"
+          onClick={() => setIsExpanded(false)}
+        >
+          <ChevronUp className="h-4 w-4" />
+          Close
+        </Button>
+      </div>
       {availableClasses.length === 0 && (
         <p className="text-xs text-amber-700">Add classes first so you can assign students to a class.</p>
       )}
-      <ManualStudentForm availableClasses={availableClasses} onAddStudent={handleManualAdd} onError={setErrorMessage} existingStudents={students} />
-      {errorMessage && <p className="text-xs text-red-600">{errorMessage}</p>}
-      <label className="flex items-center gap-2 cursor-pointer text-sm text-brand-heading">
-        <Checkbox
-          checked={addViaBulkUpload}
-          onCheckedChange={(checked) => setAddViaBulkUpload(checked === true)}
-        />
-        Add via bulk upload
-      </label>
-      {addViaBulkUpload && (
-        <StudentUploadSection availableClasses={availableClasses} existingStudents={students} onStudentsUploaded={handleStudentsUploaded} />
+      {showForm ? (
+        <>
+          <ManualStudentForm availableClasses={availableClasses} onAddStudent={handleManualAdd} onError={setErrorMessage} existingStudents={students} />
+          {errorMessage && <p className="text-xs text-red-600">{errorMessage}</p>}
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-brand-heading">
+            <Checkbox
+              checked={addViaBulkUpload}
+              onCheckedChange={(checked) => setAddViaBulkUpload(checked === true)}
+            />
+            Add via bulk upload
+          </label>
+          {addViaBulkUpload && (
+            <StudentUploadSection availableClasses={availableClasses} existingStudents={students} onStudentsUploaded={handleStudentsUploaded} />
+          )}
+        </>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => setShowForm(true)}
+        >
+          <Plus className="h-4 w-4" />
+          Add more
+        </Button>
       )}
       <StudentList students={students} onRemoveStudent={handleRemove} />
       {students.length > 0 && (

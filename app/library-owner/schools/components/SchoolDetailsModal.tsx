@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ import {
   CheckCircle,
   Loader2,
   Pencil,
+  ClipboardList,
 } from "lucide-react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -459,18 +461,34 @@ export const SchoolDetailsModal = ({
                                 {subject.code ?? "—"}
                               </p>
                             </div>
-                            {canManage && (
+                            <div className="flex items-center gap-1 shrink-0">
                               <Button
-                                type="button"
                                 variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 shrink-0 text-brand-light-accent-1 hover:text-brand-heading"
-                                onClick={() => setSubjectToEdit(subject)}
-                                aria-label="Edit subject"
+                                size="sm"
+                                className="h-8 gap-1.5 text-brand-light-accent-1 hover:text-brand-heading"
+                                asChild
                               >
-                                <Pencil className="h-4 w-4" />
+                                <Link
+                                  href={`/library-owner/schools/subject/assessment/${school.id}/${subject.id}`}
+                                  aria-label="View assessments"
+                                >
+                                  <ClipboardList className="h-4 w-4" />
+                                  View assessments
+                                </Link>
                               </Button>
-                            )}
+                              {canManage && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 shrink-0 text-brand-light-accent-1 hover:text-brand-heading"
+                                  onClick={() => setSubjectToEdit(subject)}
+                                  aria-label="Edit subject"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>

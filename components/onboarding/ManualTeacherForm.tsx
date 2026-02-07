@@ -190,7 +190,7 @@ export default function ManualTeacherForm({
           disabled={!isFormValid()}
           className={`px-6 ${
             isFormValid()
-              ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              ? "bg-brand-primary text-white hover:bg-brand-primary/90"
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
         >

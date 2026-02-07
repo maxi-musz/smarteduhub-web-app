@@ -81,10 +81,16 @@ export default function ManualStudentForm({
   };
 
   const isFormValid = () => {
+    const hasRequired =
+      formData.firstName.trim() !== "" &&
+      formData.lastName.trim() !== "" &&
+      formData.email.trim() !== "" &&
+      formData.studentClass.trim() !== "";
+    const phoneOk = !formData.phoneNumber.trim() || isValidPhoneNumber(formData.phoneNumber);
     return (
-      Object.values(formData).every((value) => value.trim() !== "") &&
+      hasRequired &&
       isValidEmail(formData.email) &&
-      isValidPhoneNumber(formData.phoneNumber) &&
+      phoneOk &&
       availableClasses.includes(formData.studentClass)
     );
   };
@@ -102,7 +108,9 @@ export default function ManualStudentForm({
 
       onAddStudent({
         ...formData,
-        phoneNumber: normalizePhoneNumber(formData.phoneNumber),
+        phoneNumber: formData.phoneNumber.trim()
+          ? normalizePhoneNumber(formData.phoneNumber)
+          : "",
       });
 
       setFormData({
@@ -188,10 +196,10 @@ export default function ManualStudentForm({
             maxLength={11}
             inputMode="numeric"
           />
-          {!isValidPhoneNumber(formData.phoneNumber) &&
-            formData.phoneNumber && (
+          {formData.phoneNumber &&
+            !isValidPhoneNumber(formData.phoneNumber) && (
               <span className="text-xs text-red-500">
-                Phone number must be 11 digits.
+                Phone number must be 11 digits (e.g. 08012345678).
               </span>
             )}
         </div>
@@ -231,7 +239,7 @@ export default function ManualStudentForm({
           disabled={!isFormValid()}
           className={`px-6 ${
             isFormValid()
-              ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              ? "bg-brand-primary text-white hover:bg-brand-primary/90"
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
         >
