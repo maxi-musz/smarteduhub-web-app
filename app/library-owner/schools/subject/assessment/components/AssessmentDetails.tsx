@@ -1,14 +1,27 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Send, X } from "lucide-react";
+import { Send, X, Pencil, Lock } from "lucide-react";
 import type { LibrarySchoolAssessment } from "../hooks/use-library-school-assessments";
 import {
   usePublishLibrarySchoolAssessment,
   useUnpublishLibrarySchoolAssessment,
+  useUpdateLibrarySchoolAssessment,
 } from "../hooks/use-library-school-assessments";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { EditAssessmentModal } from "./EditAssessmentModal";
 
 interface AssessmentDetailsProps {
   schoolId: string;
@@ -19,6 +32,9 @@ interface AssessmentDetailsProps {
 export function AssessmentDetails({ schoolId, assessment, questionsCount }: AssessmentDetailsProps) {
   const publishMutation = usePublishLibrarySchoolAssessment(schoolId);
   const unpublishMutation = useUnpublishLibrarySchoolAssessment(schoolId);
+  const updateMutation = useUpdateLibrarySchoolAssessment(schoolId);
+  const [editOpen, setEditOpen] = useState(false);
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
 
   const count = questionsCount ?? assessment._count?.questions ?? 0;
   const getStatusColor = (status: string) => {
@@ -48,15 +64,28 @@ export function AssessmentDetails({ schoolId, assessment, questionsCount }: Asse
               </div>
             </div>
             <div className="flex gap-2 shrink-0">
+              <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
+                <Pencil className="h-4 w-4 mr-1" /> Edit
+              </Button>
               {assessment.status === "DRAFT" && (
-                <Button size="sm" onClick={() => publishMutation.mutate(assessment.id)} disabled={publishMutation.isPending || count < 5}>
-                  <Send className="h-4 w-4 mr-1" /> Publish
-                </Button>
+                <>
+                  <Button size="sm" onClick={() => publishMutation.mutate(assessment.id)} disabled={publishMutation.isPending || count < 5}>
+                    <Send className="h-4 w-4 mr-1" /> Publish
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setCloseConfirmOpen(true)} disabled={updateMutation.isPending}>
+                    <Lock className="h-4 w-4 mr-1" /> Close
+                  </Button>
+                </>
               )}
               {(assessment.status === "PUBLISHED" || assessment.status === "ACTIVE") && (
-                <Button size="sm" variant="outline" onClick={() => unpublishMutation.mutate(assessment.id)} disabled={unpublishMutation.isPending}>
-                  <X className="h-4 w-4 mr-1" /> Unpublish
-                </Button>
+                <>
+                  <Button size="sm" variant="outline" onClick={() => unpublishMutation.mutate(assessment.id)} disabled={unpublishMutation.isPending}>
+                    <X className="h-4 w-4 mr-1" /> Unpublish
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setCloseConfirmOpen(true)} disabled={updateMutation.isPending}>
+                    <Lock className="h-4 w-4 mr-1" /> Close
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -76,6 +105,38 @@ export function AssessmentDetails({ schoolId, assessment, questionsCount }: Asse
           )}
         </CardContent>
       </Card>
+
+      <EditAssessmentModal
+        schoolId={schoolId}
+        assessment={assessment}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
+
+      <AlertDialog open={closeConfirmOpen} onOpenChange={setCloseConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close assessment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will set the assessment status to Closed. Students will no longer be able to attempt it.
+              To publish again later, you must first change the status back to Draft via Edit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                updateMutation.mutate(
+                  { id: assessment.id, data: { status: "CLOSED" } },
+                  { onSettled: () => setCloseConfirmOpen(false) }
+                );
+              }}
+            >
+              Close assessment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

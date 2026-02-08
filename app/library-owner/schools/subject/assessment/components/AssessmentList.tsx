@@ -15,13 +15,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ClipboardList, Eye, FileQuestion, Users, Send, X, Trash2 } from "lucide-react";
+import { ClipboardList, Eye, FileQuestion, Users, Send, X, Trash2, Pencil, Lock } from "lucide-react";
 import type { LibrarySchoolAssessment } from "../hooks/use-library-school-assessments";
 import {
   useDeleteLibrarySchoolAssessment,
   usePublishLibrarySchoolAssessment,
   useUnpublishLibrarySchoolAssessment,
+  useUpdateLibrarySchoolAssessment,
 } from "../hooks/use-library-school-assessments";
+import { EditAssessmentModal } from "./EditAssessmentModal";
 
 interface AssessmentListProps {
   schoolId: string;
@@ -41,9 +43,19 @@ export function AssessmentList({
   const deleteMutation = useDeleteLibrarySchoolAssessment(schoolId);
   const publishMutation = usePublishLibrarySchoolAssessment(schoolId);
   const unpublishMutation = useUnpublishLibrarySchoolAssessment(schoolId);
+  const updateMutation = useUpdateLibrarySchoolAssessment(schoolId);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [publishId, setPublishId] = useState<string | null>(null);
   const [unpublishId, setUnpublishId] = useState<string | null>(null);
+  const [closeId, setCloseId] = useState<string | null>(null);
+  const [editAssessment, setEditAssessment] = useState<LibrarySchoolAssessment | null>(null);
+
+  const handleClose = (id: string) => {
+    updateMutation.mutate(
+      { id, data: { status: "CLOSED" } },
+      { onSettled: () => setCloseId(null) }
+    );
+  };
 
   const basePath = `/library-owner/schools/subject/assessment/${schoolId}/${subjectId}`;
 
@@ -127,10 +139,16 @@ export function AssessmentList({
                       <Eye className="h-4 w-4 mr-1" /> View
                     </Link>
                   </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setEditAssessment(a)}>
+                    <Pencil className="h-4 w-4 mr-1" /> Edit
+                  </Button>
                   {a.status === "DRAFT" && (
                     <>
                       <Button variant="ghost" size="sm" onClick={() => setPublishId(a.id)} disabled={publishMutation.isPending || (a._count?.questions ?? 0) < 5}>
                         <Send className="h-4 w-4 mr-1" /> Publish
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setCloseId(a.id)} disabled={updateMutation.isPending}>
+                        <Lock className="h-4 w-4 mr-1" /> Close
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => setDeleteId(a.id)} disabled={deleteMutation.isPending}>
                         <Trash2 className="h-4 w-4 mr-1" /> Delete
@@ -138,9 +156,14 @@ export function AssessmentList({
                     </>
                   )}
                   {(a.status === "PUBLISHED" || a.status === "ACTIVE") && (
-                    <Button variant="ghost" size="sm" onClick={() => setUnpublishId(a.id)} disabled={unpublishMutation.isPending}>
-                      <X className="h-4 w-4 mr-1" /> Unpublish
-                    </Button>
+                    <>
+                      <Button variant="ghost" size="sm" onClick={() => setUnpublishId(a.id)} disabled={unpublishMutation.isPending}>
+                        <X className="h-4 w-4 mr-1" /> Unpublish
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setCloseId(a.id)} disabled={updateMutation.isPending}>
+                        <Lock className="h-4 w-4 mr-1" /> Close
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
@@ -193,6 +216,30 @@ export function AssessmentList({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <AlertDialog open={!!closeId} onOpenChange={(o) => !o && setCloseId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close assessment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will set the assessment status to Closed. Students will no longer be able to attempt it.
+              To publish again later, you must first change the status back to Draft via Edit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => closeId && handleClose(closeId)}>Close assessment</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {editAssessment && (
+        <EditAssessmentModal
+          schoolId={schoolId}
+          assessment={editAssessment}
+          open={!!editAssessment}
+          onOpenChange={(o) => !o && setEditAssessment(null)}
+        />
+      )}
     </>
   );
 }

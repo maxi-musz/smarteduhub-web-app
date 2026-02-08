@@ -25,12 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { StudentAssessmentRulesModal } from "@/components/student/StudentAssessmentRulesModal";
 import {
   Clock,
   AlertCircle,
@@ -63,7 +58,7 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
 
   const { data: questionsData, isLoading, error } = useStudentAssessmentQuestions(
     assessmentId,
-    hasStarted
+    true
   );
 
   const submitMutation = useSubmitStudentAssessment();
@@ -211,8 +206,8 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
     return `${minutes}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Loading state
-  if (!hasStarted || isLoading) {
+  // Loading state - only while fetching; once we have data, show instructions modal (before Start) or assessment (after Start)
+  if (isLoading && !questionsData) {
     return (
       <div className="min-h-screen bg-brand-bg flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
@@ -261,77 +256,14 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
   // Rules Modal
   if (showRulesModal) {
     return (
-      <Dialog open={showRulesModal} onOpenChange={() => {}}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Assessment Instructions</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-semibold text-lg mb-2">{assessment.title}</h3>
-              {assessment.description && (
-                <p className="text-sm text-gray-600">{assessment.description}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="text-sm text-gray-500">Total Questions</p>
-                <p className="font-semibold">{totalQuestions}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Total Points</p>
-                <p className="font-semibold">{assessment.total_points}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Duration</p>
-                <p className="font-semibold">
-                  {assessment.duration > 0 ? `${assessment.duration} minutes` : "Unlimited"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Passing Score</p>
-                <p className="font-semibold">{assessment.passing_score}%</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Attempts Remaining</p>
-                <p className="font-semibold">{assessment.remaining_attempts}</p>
-              </div>
-            </div>
-
-            {assessment.instructions && (
-              <div className="space-y-2">
-                <h4 className="font-semibold">Instructions:</h4>
-                <div className="text-sm text-gray-700 whitespace-pre-wrap bg-blue-50 p-4 rounded-lg">
-                  {assessment.instructions}
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <h4 className="font-semibold">General Rules:</h4>
-              <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                <li>Answer all questions to the best of your ability</li>
-                <li>You can navigate between questions using the navigation buttons</li>
-                <li>Your progress is automatically saved</li>
-                {assessment.duration > 0 && (
-                  <li>Make sure to submit before time runs out</li>
-                )}
-                <li>Once submitted, you cannot change your answers</li>
-              </ul>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={confirmExit}>
-                Cancel
-              </Button>
-              <Button onClick={handleStartAssessment}>
-                Start Assessment
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <StudentAssessmentRulesModal
+        isOpen={showRulesModal}
+        assessment={assessment}
+        totalQuestions={totalQuestions}
+        totalPoints={assessment.total_points}
+        onAccept={handleStartAssessment}
+        onDecline={confirmExit}
+      />
     );
   }
 
