@@ -12,16 +12,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import { useLibrarySchoolAssessments } from "../../hooks/use-library-school-assessments";
 import { AssessmentList } from "../../components/AssessmentList";
 import type { AssessmentStatus, AssessmentType } from "../../hooks/use-library-school-assessments";
 
-const STATUS_OPTIONS: { label: string; value?: string }[] = [
-  { label: "All", value: undefined },
+// Order: Active first, then All, then the rest
+const STATUS_PILLS: { label: string; value: AssessmentStatus | "all" }[] = [
+  { label: "Active", value: "ACTIVE" },
+  { label: "All", value: "all" },
   { label: "Draft", value: "DRAFT" },
   { label: "Published", value: "PUBLISHED" },
-  { label: "Active", value: "ACTIVE" },
   { label: "Closed", value: "CLOSED" },
   { label: "Archived", value: "ARCHIVED" },
 ];
@@ -38,7 +40,7 @@ export default function SubjectAssessmentsPage() {
   const schoolId = params.schoolId as string;
   const subjectId = params.subjectId as string;
   const [page, setPage] = useState(1);
-  const [status, setStatus] = useState<AssessmentStatus | undefined>(undefined);
+  const [status, setStatus] = useState<AssessmentStatus | undefined>("ACTIVE");
   const [type, setType] = useState<AssessmentType | undefined>(undefined);
 
   const { data: schoolData } = useLibraryOwnerSchool(schoolId);
@@ -50,10 +52,34 @@ export default function SubjectAssessmentsPage() {
     page,
     limit: 10,
   });
+  const { data: allData } = useLibrarySchoolAssessments({
+    schoolId,
+    subject_id: subjectId,
+    status: undefined,
+    assessment_type: type,
+    page: 1,
+    limit: 1,
+  });
 
   const assessments = data?.assessments ?? [];
   const pagination = data?.pagination;
+  const counts = data?.counts;
+  const totalCount = allData?.pagination?.total;
+  const allCounts = allData?.counts;
   const subjectName = assessments[0]?.subject?.name ?? schoolData?.details?.subjects?.list?.find((s) => s.id === subjectId)?.name ?? "Subject";
+
+  const getStatusCount = (pill: { value: AssessmentStatus | "all" }): number | undefined => {
+    if (pill.value === "all") {
+      if (counts) return Object.values(counts).reduce((s, n) => s + n, 0);
+      if (status === undefined && typeof pagination?.total === "number") return pagination.total;
+      if (typeof totalCount === "number") return totalCount;
+      return undefined;
+    }
+    if (counts && typeof counts[pill.value] === "number") return counts[pill.value];
+    if (allCounts && typeof allCounts[pill.value] === "number") return allCounts[pill.value];
+    if (status === pill.value && typeof pagination?.total === "number") return pagination.total;
+    return undefined;
+  };
 
   return (
     <div className="py-6 space-y-6 bg-brand-bg">
@@ -75,18 +101,31 @@ export default function SubjectAssessmentsPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-brand-light-accent-1">Status</span>
-          <Select value={status ?? "all"} onValueChange={(v) => setStatus(v === "all" ? undefined : (v as AssessmentStatus))}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="All" />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((o) => (
-                <SelectItem key={o.label} value={o.value ?? "all"}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {STATUS_PILLS.map((pill) => {
+            const value = pill.value === "all" ? undefined : pill.value;
+            const isSelected = (status === undefined && pill.value === "all") || (status !== undefined && status === pill.value);
+            const count = getStatusCount(pill);
+            return (
+              <button
+                key={pill.value}
+                type="button"
+                onClick={() => {
+                  setStatus(value);
+                  setPage(1);
+                }}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+                  isSelected
+                    ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                    : "bg-gray-100 text-brand-light-accent-1 hover:bg-gray-200 hover:text-brand-heading"
+                )}
+              >
+                {pill.label}
+                {count !== undefined && <span className="opacity-90">({count})</span>}
+              </button>
+            );
+          })}
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-brand-light-accent-1">Type</span>

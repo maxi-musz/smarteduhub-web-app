@@ -39,7 +39,6 @@ export function ResultsTable({
   resultMessage,
   subjects,
   pagination,
-  sessionId,
   page,
   onPageChange,
   onReleaseStudent,

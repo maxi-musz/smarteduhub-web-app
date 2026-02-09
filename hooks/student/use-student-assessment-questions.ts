@@ -132,11 +132,17 @@ const fetchAssessmentQuestions = async (
       const { assessment, questions, total_questions, total_points, estimated_duration } = data;
 
       // Read shuffle flags (backend may send snake_case or camelCase; default true when omitted)
-      const rawAssessment = assessment as Record<string, unknown>;
+      const rawAssessment = assessment as unknown as Record<string, unknown>;
       const shuffleQuestions = rawAssessment.shuffle_questions ?? rawAssessment.shuffleQuestions ?? true;
       const shuffleOptions = rawAssessment.shuffle_options ?? rawAssessment.shuffleOptions ?? true;
 
       // Normalize questions: ensure options array and option.text (backend may send option_text)
+      const normalizeCorrectAnswers = (raw: unknown[]): CorrectAnswer[] =>
+        raw.map((item) => {
+          const o = item as { id?: string; option_ids?: string[] };
+          return { id: o.id ?? "", option_ids: Array.isArray(o.option_ids) ? o.option_ids : [] };
+        });
+
       let processedQuestions: AssessmentQuestion[] = questions.map((q) => {
         const options = Array.isArray(q.options) ? q.options : [];
         const normalizedOptions: QuestionOption[] = options.map((opt) => ({
@@ -145,6 +151,7 @@ const fetchAssessmentQuestions = async (
           is_correct: opt.is_correct ?? false,
           order: typeof opt.order === "number" ? opt.order : 0,
         }));
+        const rawCorrectAnswers = Array.isArray(q.correct_answers) ? q.correct_answers : [];
         return {
           id: q.id,
           question_text: q.question_text,
@@ -154,7 +161,7 @@ const fetchAssessmentQuestions = async (
           order: q.order,
           explanation: q.explanation ?? null,
           options: normalizedOptions,
-          correct_answers: q.correct_answers ?? [],
+          correct_answers: normalizeCorrectAnswers(rawCorrectAnswers),
         };
       });
 

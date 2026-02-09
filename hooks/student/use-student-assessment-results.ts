@@ -162,7 +162,7 @@ const fetchAssessmentResults = async (
       questions: sub.questions.map((q) => {
         const rawQ = q as QuestionWithAnswer & {
           options?: Array<{ id: string; text?: string; option_text?: string; is_correct?: boolean; order?: number; is_selected?: boolean }>;
-          question_options?: Array<{ id: string; text?: string; option_text?: string; is_correct?: boolean; order?: number }>;
+          question_options?: Array<{ id: string; text?: string; option_text?: string; is_correct?: boolean; order?: number; is_selected?: boolean }>;
         };
         const selectedIds = new Set(
           (rawQ.user_answer?.selected_options ?? []).map((o: { id: string }) => o.id)

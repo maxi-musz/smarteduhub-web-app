@@ -6,7 +6,6 @@ import Image from "next/image";
 import { 
   useStudentAssessmentQuestions, 
   useSubmitStudentAssessment,
-  QuestionAnswer,
 } from "@/hooks/student/use-student-assessment-questions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,7 +54,6 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showViolationModal, setShowViolationModal] = useState(false);
   const [lastViolation, setLastViolation] = useState<MalpracticeViolation | null>(null);
-  const [questionStartTimes, setQuestionStartTimes] = useState<Record<string, Date>>({});
   const [assessmentStartTime, setAssessmentStartTime] = useState<Date | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const handleAutoSubmitRef = useRef<(() => void) | null>(null);
@@ -87,19 +85,6 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
   );
 
   const submitMutation = useSubmitStudentAssessment();
-
-  // Track question start times
-  useEffect(() => {
-    if (hasStarted && questionsData) {
-      const currentQuestion = questionsData.data.questions[currentQuestionIndex];
-      if (currentQuestion) {
-        setQuestionStartTimes((prev) => ({
-          ...prev,
-          [currentQuestion.id]: prev[currentQuestion.id] || new Date(),
-        }));
-      }
-    }
-  }, [currentQuestionIndex, hasStarted, questionsData]);
 
   // Timer setup - will be updated after handleAutoSubmit is defined
   useEffect(() => {
@@ -193,32 +178,32 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
     }
   };
 
-  const calculateTimeSpent = useCallback((questionId: string): number => {
-    const startTime = questionStartTimes[questionId];
-    if (!startTime) return 0;
-    return Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
-  }, [questionStartTimes]);
+  // const calculateTimeSpent = useCallback((questionId: string): number => {
+  //   const startTime = questionStartTimes[questionId];
+  //   if (!startTime) return 0;
+  //   return Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
+  // }, [questionStartTimes]);
 
   const handleSubmit = useCallback(async () => {
     if (!questionsData || !assessmentStartTime) return;
 
-    const submittedAt = new Date();
-    const totalTimeSpent = Math.floor((submittedAt.getTime() - assessmentStartTime.getTime()) / 1000);
+    // const submittedAt = new Date();
+    // const _totalTimeSpent = Math.floor((submittedAt.getTime() - assessmentStartTime.getTime()) / 1000);
 
-    const questionAnswers: QuestionAnswer[] = questionsData.data.questions.map((q) => ({
-      question_id: q.id,
-      answer: answers[q.id] || null,
-      time_spent: calculateTimeSpent(q.id),
-    }));
+    // const _questionAnswers: QuestionAnswer[] = questionsData.data.questions.map((q) => ({
+    //   question_id: q.id,
+    //   answer: answers[q.id] || null,
+    //   time_spent: calculateTimeSpent(q.id),
+    // }));
 
     try {
-      const result = await submitMutation.mutateAsync({
-        assessment_id: assessmentId,
-        answers: questionAnswers,
-        total_time_spent: totalTimeSpent,
-        started_at: assessmentStartTime.toISOString(),
-        submitted_at: submittedAt.toISOString(),
-      });
+      // const result = await submitMutation.mutateAsync({
+      //   assessment_id: assessmentId,
+      //   answers: _questionAnswers,
+      //   total_time_spent: _totalTimeSpent,
+      //   started_at: assessmentStartTime.toISOString(),
+      //   submitted_at: submittedAt.toISOString(),
+      // });
 
       // Clear timer
       if (timerIntervalRef.current) {
@@ -231,7 +216,7 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
     } catch {
       // Error handled by mutation
     }
-  }, [questionsData, assessmentStartTime, answers, assessmentId, submitMutation, router, calculateTimeSpent]);
+  }, [questionsData, assessmentStartTime, router]);
 
   const handleAutoSubmit = useCallback(() => {
     if (!questionsData) return;

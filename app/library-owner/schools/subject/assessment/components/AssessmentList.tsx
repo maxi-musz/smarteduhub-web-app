@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,10 +22,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ClipboardList, Eye, FileQuestion, Users, Send, X, Trash2, Pencil, Lock, MoreVertical } from "lucide-react";
+import { ClipboardList, Copy, Eye, FileQuestion, Loader2, Users, Send, X, Trash2, Pencil, Lock, MoreVertical } from "lucide-react";
 import type { LibrarySchoolAssessment } from "../hooks/use-library-school-assessments";
 import {
   useDeleteLibrarySchoolAssessment,
+  useDuplicateLibrarySchoolAssessment,
   usePublishLibrarySchoolAssessment,
   useUnpublishLibrarySchoolAssessment,
   useUpdateLibrarySchoolAssessment,
@@ -47,6 +49,7 @@ export function AssessmentList({
   isLoading,
 }: AssessmentListProps) {
   const deleteMutation = useDeleteLibrarySchoolAssessment(schoolId);
+  const duplicateMutation = useDuplicateLibrarySchoolAssessment(schoolId);
   const publishMutation = usePublishLibrarySchoolAssessment(schoolId);
   const unpublishMutation = useUnpublishLibrarySchoolAssessment(schoolId);
   const updateMutation = useUpdateLibrarySchoolAssessment(schoolId);
@@ -54,7 +57,9 @@ export function AssessmentList({
   const [publishId, setPublishId] = useState<string | null>(null);
   const [unpublishId, setUnpublishId] = useState<string | null>(null);
   const [closeId, setCloseId] = useState<string | null>(null);
+  const [duplicateAssessment, setDuplicateAssessment] = useState<LibrarySchoolAssessment | null>(null);
   const [editAssessment, setEditAssessment] = useState<LibrarySchoolAssessment | null>(null);
+  const router = useRouter();
 
   const handleClose = (id: string) => {
     updateMutation.mutate(
@@ -153,6 +158,13 @@ export function AssessmentList({
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setEditAssessment(a)} className="flex items-center gap-2.5 cursor-pointer">
                       <Pencil className="h-4 w-4 text-amber-600 shrink-0" /> Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setDuplicateAssessment(a)}
+                      disabled={duplicateMutation.isPending}
+                      className="flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <Copy className="h-4 w-4 text-violet-600 shrink-0" /> Duplicate
                     </DropdownMenuItem>
                     {a.status === "DRAFT" && (
                       <>
@@ -261,6 +273,45 @@ export function AssessmentList({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => closeId && handleClose(closeId)}>Close assessment</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={!!duplicateAssessment} onOpenChange={(o) => !o && setDuplicateAssessment(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Duplicate assessment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A copy of &quot;{duplicateAssessment?.title}&quot; will be created as a new draft with the same questions and settings.
+              You can then edit the copy. The original assessment will not be changed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={duplicateMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                duplicateAssessment &&
+                duplicateMutation.mutate(
+                  { id: duplicateAssessment.id },
+                  {
+                    onSuccess: (newAssessment) => {
+                      setDuplicateAssessment(null);
+                      router.push(`${basePath}/${newAssessment.id}`);
+                    },
+                    onSettled: () => setDuplicateAssessment(null),
+                  }
+                )
+              }
+              disabled={duplicateMutation.isPending}
+            >
+              {duplicateMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" />
+                  Duplicating…
+                </>
+              ) : (
+                "Proceed"
+              )}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

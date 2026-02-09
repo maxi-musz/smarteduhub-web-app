@@ -93,6 +93,12 @@ function extractTotalFromResponse(raw: ListApiResponse, fallback: number): numbe
   return fallback;
 }
 
+function extractCountsFromResponse(raw: ListApiResponse): Record<string, number> | undefined {
+  const d = raw.data;
+  if (!d || typeof d !== "object" || !d.counts || typeof d.counts !== "object") return undefined;
+  return d.counts as Record<string, number>;
+}
+
 export interface CreateAssessmentPayload {
   title: string;
   subject_id: string;
@@ -168,6 +174,7 @@ export function useLibrarySchoolAssessments(params: ListAssessmentsParams) {
       const arr = extractAssessmentsFromResponse(raw);
       const total = extractTotalFromResponse(raw, arr.length);
       const totalPages = Math.max(1, Math.ceil(total / limit));
+      const counts = extractCountsFromResponse(raw);
       return {
         assessments: arr,
         pagination: {
@@ -178,6 +185,7 @@ export function useLibrarySchoolAssessments(params: ListAssessmentsParams) {
           hasNext: page < totalPages,
           hasPrevious: page > 1,
         },
+        counts,
       };
     },
     enabled: !!schoolId && !!subject_id,
@@ -358,6 +366,42 @@ export function useUnpublishLibrarySchoolAssessment(schoolId: string) {
     },
     onError: (e) => {
       toast({ title: "Failed to unpublish", description: e.message, variant: "destructive" });
+    },
+  });
+}
+
+export interface DuplicateAssessmentPayload {
+  created_by_user_id?: string;
+}
+
+export function useDuplicateLibrarySchoolAssessment(schoolId: string) {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      body = {},
+    }: {
+      id: string;
+      body?: DuplicateAssessmentPayload;
+    }) => {
+      const res = await authenticatedApi.post<LibrarySchoolAssessment>(
+        `${BASE(schoolId)}/${id}/duplicate`,
+        body
+      );
+      return handleApiResponse<LibrarySchoolAssessment>(res as { success?: boolean; data?: LibrarySchoolAssessment });
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId] });
+      qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId, data.id] });
+      qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId, data.id, "details"] });
+      toast({
+        title: "Assessment duplicated",
+        description: `"${data.title}" created as draft. You can edit it now.`,
+      });
+    },
+    onError: (e) => {
+      toast({ title: "Failed to duplicate assessment", description: e.message, variant: "destructive" });
     },
   });
 }

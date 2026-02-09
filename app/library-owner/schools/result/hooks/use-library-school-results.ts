@@ -220,7 +220,7 @@ export function useReleaseResultsSchool(schoolId: string) {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["library-school-results-dashboard", schoolId] });
-      toast({ title: "Results released", description: data.message ?? `Processed ${data.processed} students` });
+      toast({ title: "Results released", description: `Processed ${data.processed} students` });
     },
     onError: (e) => {
       toast({ title: "Release failed", description: e.message, variant: "destructive" });
@@ -262,7 +262,7 @@ export function useReleaseResultsClass(schoolId: string) {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["library-school-results-dashboard", schoolId] });
-      toast({ title: "Results released", description: data.message ?? `Processed ${data.processed} students` });
+      toast({ title: "Results released", description: `Processed ${data.processed} students` });
     },
     onError: (e) => {
       toast({ title: "Release failed", description: e.message, variant: "destructive" });
@@ -283,7 +283,7 @@ export function useReleaseResultsStudents(schoolId: string) {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["library-school-results-dashboard", schoolId] });
-      toast({ title: "Results released", description: data.message ?? `Processed ${data.processed} students` });
+      toast({ title: "Results released", description: `Processed ${data.processed} students` });
     },
     onError: (e) => {
       toast({ title: "Release failed", description: e.message, variant: "destructive" });
@@ -304,7 +304,7 @@ export function useUnreleaseResultsSchool(schoolId: string) {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["library-school-results-dashboard", schoolId] });
-      toast({ title: "Results unreleased", description: data.message ?? `Updated ${data.total_updated} students` });
+      toast({ title: "Results unreleased", description: `Updated ${data.total_updated} students` });
     },
     onError: (e) => {
       toast({ title: "Unrelease failed", description: e.message, variant: "destructive" });
@@ -346,7 +346,7 @@ export function useUnreleaseResultsStudents(schoolId: string) {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["library-school-results-dashboard", schoolId] });
-      toast({ title: "Results unreleased", description: data.message ?? `Updated ${data.total_updated} students` });
+      toast({ title: "Results unreleased", description: `Updated ${data.total_updated} students` });
     },
     onError: (e) => {
       toast({ title: "Unrelease failed", description: e.message, variant: "destructive" });
@@ -367,7 +367,7 @@ export function useUnreleaseResultsClass(schoolId: string) {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["library-school-results-dashboard", schoolId] });
-      toast({ title: "Results unreleased", description: data.message ?? `Updated ${data.updated} students` });
+      toast({ title: "Results unreleased", description: `Updated ${data.updated} students` });
     },
     onError: (e) => {
       toast({ title: "Unrelease failed", description: e.message, variant: "destructive" });
