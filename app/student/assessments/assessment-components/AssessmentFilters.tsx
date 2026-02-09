@@ -12,20 +12,28 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { SubjectWithStats } from "@/hooks/student/use-student-assessments";
 
+export type StatusCounts = {
+  all?: number;
+  ACTIVE?: number;
+  PUBLISHED?: number;
+  CLOSED?: number;
+};
+
 interface AssessmentFiltersProps {
   status: string;
   type: string;
   subject: string;
   subjects: SubjectWithStats[];
+  statusCounts?: StatusCounts;
   onStatusChange: (status: string) => void;
   onTypeChange: (type: string) => void;
   onSubjectChange: (subject: string) => void;
 }
 
 const STATUS_OPTIONS: { label: string; value: string }[] = [
+  { label: "Active", value: "ACTIVE" },
   { label: "All", value: "all" },
   { label: "Published", value: "PUBLISHED" },
-  { label: "Active", value: "ACTIVE" },
   { label: "Closed", value: "CLOSED" },
 ];
 
@@ -34,11 +42,23 @@ export const AssessmentFilters = ({
   type,
   subject,
   subjects,
+  statusCounts,
   onStatusChange,
   onTypeChange,
   onSubjectChange,
 }: AssessmentFiltersProps) => {
   const selectedSubject = subjects.find((s) => s.id === subject);
+
+  const getStatusLabel = (option: { label: string; value: string }) => {
+    const count =
+      option.value === "all"
+        ? statusCounts?.all
+        : statusCounts?.[option.value as keyof StatusCounts];
+    if (count !== undefined && count !== null) {
+      return `${option.label} (${count})`;
+    }
+    return option.label;
+  };
 
   return (
     <div className="space-y-4">
@@ -50,7 +70,7 @@ export const AssessmentFilters = ({
               const isActive = option.value === status;
               return (
                 <Button
-                  key={option.label}
+                  key={option.value}
                   type="button"
                   variant={isActive ? "default" : "outline"}
                   size="sm"
@@ -60,7 +80,7 @@ export const AssessmentFilters = ({
                   }
                   onClick={() => onStatusChange(option.value)}
                 >
-                  {option.label}
+                  {getStatusLabel(option)}
                 </Button>
               );
             })}

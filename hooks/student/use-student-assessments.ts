@@ -59,6 +59,7 @@ export interface StudentAssessment {
   };
   student_attempts: StudentAssessmentAttempts;
   student_can_view_grading: boolean;
+  is_result_released?: boolean;
   performance_summary: StudentPerformanceSummary;
   _count: {
     questions: number;

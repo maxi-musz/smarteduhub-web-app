@@ -240,7 +240,7 @@ export const AssessmentList = ({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  {canAttempt && (
+                  {canAttempt && (!hasAttempted || !assessment.is_result_released) && (
                     <Button
                       variant="default"
                       size="sm"
