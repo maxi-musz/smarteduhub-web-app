@@ -196,6 +196,73 @@ export function useLibrarySchoolAssessmentById(schoolId: string | null, assessme
   });
 }
 
+/** Consolidated response from GET .../assessments/:id (assessment + questions + attempts in one call) */
+export interface LibrarySchoolAssessmentWithDetailsResponse {
+  assessment: LibrarySchoolAssessment;
+  questions: LibrarySchoolQuestion[] | { questions: LibrarySchoolQuestion[]; total_questions?: number; total_points?: number };
+  attempts?: {
+    statistics?: { attempted_count?: number; studentsAttempted?: number; totalAttempts?: number };
+    students?: unknown[];
+    data?: unknown[];
+  };
+}
+
+export interface LibrarySchoolAssessmentWithDetails {
+  assessment: LibrarySchoolAssessment;
+  questionsData: { questions: LibrarySchoolQuestion[]; total_questions: number; total_points: number };
+  attemptsData: { data: unknown[]; statistics?: { attempted_count?: number } };
+}
+
+/** Single call to GET .../assessments/:id; returns assessment, questions, and attempts. Use this on the assessment detail page instead of three separate hooks. */
+export function useLibrarySchoolAssessmentWithDetails(schoolId: string | null, assessmentId: string | null) {
+  return useQuery({
+    queryKey: ["library-school-assessments", schoolId, assessmentId, "details"],
+    queryFn: async (): Promise<LibrarySchoolAssessmentWithDetails> => {
+      if (!schoolId || !assessmentId) throw new AuthenticatedApiError("schoolId and assessmentId required", 400);
+      const res = await authenticatedApi.get<{ success?: boolean; data?: LibrarySchoolAssessmentWithDetailsResponse }>(
+        `${BASE(schoolId)}/${assessmentId}`
+      );
+      const raw = handleApiResponse<LibrarySchoolAssessmentWithDetailsResponse>(
+        res as { success?: boolean; data?: LibrarySchoolAssessmentWithDetailsResponse }
+      );
+      const assessment = raw.assessment;
+      const questionsRaw = raw.questions ?? (assessment as { questions?: LibrarySchoolQuestion[] })?.questions;
+      const questionsArray = Array.isArray(questionsRaw)
+        ? questionsRaw
+        : Array.isArray((questionsRaw as { questions?: LibrarySchoolQuestion[] })?.questions)
+          ? (questionsRaw as { questions: LibrarySchoolQuestion[] }).questions
+          : [];
+      const totalQuestions = Array.isArray(questionsRaw)
+        ? questionsRaw.length
+        : (questionsRaw as { total_questions?: number })?.total_questions ?? questionsArray.length;
+      const totalPoints = Array.isArray(questionsRaw)
+        ? questionsArray.reduce((s, q) => s + (q.points ?? 0), 0)
+        : (questionsRaw as { total_points?: number })?.total_points ?? questionsArray.reduce((s, q) => s + (q.points ?? 0), 0);
+      const attempts = raw.attempts;
+      const attemptedCount =
+        attempts?.statistics?.attempted_count ??
+        attempts?.statistics?.studentsAttempted ??
+        attempts?.statistics?.totalAttempts ??
+        0;
+      const attemptsList = Array.isArray(attempts?.data) ? attempts.data : Array.isArray(attempts?.students) ? attempts.students : [];
+
+      return {
+        assessment,
+        questionsData: {
+          questions: questionsArray,
+          total_questions: totalQuestions,
+          total_points: totalPoints,
+        },
+        attemptsData: {
+          data: attemptsList,
+          statistics: { attempted_count: attemptedCount },
+        },
+      };
+    },
+    enabled: !!schoolId && !!assessmentId,
+  });
+}
+
 export function useCreateLibrarySchoolAssessment(schoolId: string) {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -225,6 +292,7 @@ export function useUpdateLibrarySchoolAssessment(schoolId: string) {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId] });
       qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId, data.id] });
+      qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId, data.id, "details"] });
       toast({ title: "Assessment updated", description: data.title });
     },
     onError: (e) => {
@@ -245,6 +313,7 @@ export function useDeleteLibrarySchoolAssessment(schoolId: string) {
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId] });
       qc.removeQueries({ queryKey: ["library-school-assessments", schoolId, id] });
+      qc.removeQueries({ queryKey: ["library-school-assessments", schoolId, id, "details"] });
       toast({ title: "Assessment deleted" });
     },
     onError: (e) => {
@@ -264,6 +333,7 @@ export function usePublishLibrarySchoolAssessment(schoolId: string) {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId] });
       qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId, data.id] });
+      qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId, data.id, "details"] });
       toast({ title: "Assessment published", description: "Students can now access it" });
     },
     onError: (e) => {
@@ -283,6 +353,7 @@ export function useUnpublishLibrarySchoolAssessment(schoolId: string) {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId] });
       qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId, data.id] });
+      qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId, data.id, "details"] });
       toast({ title: "Assessment unpublished" });
     },
     onError: (e) => {
@@ -345,6 +416,7 @@ export function useCreateLibrarySchoolQuestion(schoolId: string) {
     },
     onSuccess: (_, { assessmentId }) => {
       qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId, assessmentId, "questions"] });
+      qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId, assessmentId, "details"] });
       qc.invalidateQueries({ queryKey: ["library-school-assessments", schoolId] });
       toast({ title: "Question added" });
     },

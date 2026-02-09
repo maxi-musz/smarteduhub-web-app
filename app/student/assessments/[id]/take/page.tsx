@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { StudentAssessmentRulesModal } from "@/components/student/StudentAssessmentRulesModal";
+import { ViolationWarningModal } from "@/components/explore/assessment/ViolationWarningModal";
+import { useAntiMalpractice, type MalpracticeViolation } from "@/hooks/explore/use-anti-malpractice";
 import {
   Clock,
   AlertCircle,
@@ -49,12 +52,34 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[] | number | null>>({});
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [showViolationModal, setShowViolationModal] = useState(false);
+  const [lastViolation, setLastViolation] = useState<MalpracticeViolation | null>(null);
   const [questionStartTimes, setQuestionStartTimes] = useState<Record<string, Date>>({});
   const [assessmentStartTime, setAssessmentStartTime] = useState<Date | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const handleAutoSubmitRef = useRef<(() => void) | null>(null);
+  const submittedSuccessRef = useRef(false);
+
+  const {
+    totalViolations,
+    hasExceededMax,
+    isFullscreen,
+    requestFullscreen,
+  } = useAntiMalpractice({
+    enabled: hasStarted,
+    onViolation: (violation) => {
+      setLastViolation(violation);
+      setShowViolationModal(true);
+    },
+    maxViolations: 3,
+    enableFullscreen: true,
+    enableTabDetection: true,
+    enableCopyPaste: true,
+    enableContextMenu: true,
+    enablePrint: true,
+    enableDevTools: true,
+  });
 
   const { data: questionsData, isLoading, error } = useStudentAssessmentQuestions(
     assessmentId,
@@ -117,6 +142,41 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
     setAssessmentStartTime(new Date());
   };
 
+  // Request fullscreen when assessment starts
+  useEffect(() => {
+    if (hasStarted && !isFullscreen) {
+      requestFullscreen();
+    }
+  }, [hasStarted, isFullscreen, requestFullscreen]);
+
+  // Warn on close/refresh during assessment (not after successful submit)
+  useEffect(() => {
+    if (!hasStarted) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (submittedSuccessRef.current) return;
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasStarted]);
+
+  // Disqualify when max violations exceeded
+  const handleDisqualification = useCallback(() => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+    setShowViolationModal(false);
+    setLastViolation(null);
+    alert("You have been disqualified due to multiple violations. Your assessment has been terminated.");
+    router.push("/student/assessments");
+  }, [router]);
+
+  useEffect(() => {
+    if (hasExceededMax && hasStarted) {
+      handleDisqualification();
+    }
+  }, [hasExceededMax, hasStarted, handleDisqualification]);
+
   const handleAnswerChange = (questionId: string, answer: string | string[] | number | null) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
@@ -165,8 +225,9 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
         clearInterval(timerIntervalRef.current);
       }
 
-      // Show results and redirect
-      router.push(`/student/assessments/${assessmentId}/result/${result.data.attempt_id}`);
+      // Don't show "leave page?" when redirecting after submit
+      submittedSuccessRef.current = true;
+      router.push("/student/assessments");
     } catch {
       // Error handled by mutation
     }
@@ -182,10 +243,6 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
   useEffect(() => {
     handleAutoSubmitRef.current = handleAutoSubmit;
   }, [handleAutoSubmit]);
-
-  const handleExit = () => {
-    setShowExitConfirm(true);
-  };
 
   const confirmExit = () => {
     if (timerIntervalRef.current) {
@@ -271,24 +328,29 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
   return (
     <div className="min-h-screen bg-brand-bg py-6">
       <div className="max-w-4xl mx-auto px-4 space-y-6">
-        {/* Header with timer */}
+        {/* Header with timer and violation count */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
                 <CardTitle>{assessment.title}</CardTitle>
                 <p className="text-sm text-gray-600">
                   Question {currentQuestionIndex + 1} of {totalQuestions} • {answeredCount} answered
                 </p>
               </div>
-              {timeRemaining !== null && (
-                <div className="flex items-center gap-2">
-                  <Clock className={`h-5 w-5 ${timeRemaining < 300 ? "text-red-600" : "text-gray-600"}`} />
-                  <span className={`font-semibold ${timeRemaining < 300 ? "text-red-600" : ""}`}>
-                    {formatTime(timeRemaining)}
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-brand-heading">
+                  Violation count: {totalViolations}/3
+                </span>
+                {timeRemaining !== null && (
+                  <div className="flex items-center gap-2">
+                    <Clock className={`h-5 w-5 ${timeRemaining < 300 ? "text-red-600" : "text-gray-600"}`} />
+                    <span className={`font-semibold ${timeRemaining < 300 ? "text-red-600" : ""}`}>
+                      {formatTime(timeRemaining)}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </CardHeader>
         </Card>
@@ -324,10 +386,11 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
 
           <CardContent>
             <div className="space-y-4">
-              {/* Multiple Choice Single */}
-              {currentQuestion.question_type === "MULTIPLE_CHOICE" && (
+              {/* Single-select (MULTIPLE_CHOICE, MULTIPLE_CHOICE_SINGLE, TRUE_FALSE, or any type with options) */}
+              {currentQuestion.options?.length > 0 &&
+                currentQuestion.question_type !== "MULTIPLE_CHOICE_MULTIPLE" && (
                 <RadioGroup
-                  value={answers[currentQuestion.id] as string || ""}
+                  value={(answers[currentQuestion.id] as string) || ""}
                   onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
                 >
                   {currentQuestion.options.map((option) => (
@@ -341,21 +404,35 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
                 </RadioGroup>
               )}
 
-              {/* True/False */}
-              {currentQuestion.question_type === "TRUE_FALSE" && (
-                <RadioGroup
-                  value={answers[currentQuestion.id] as string || ""}
-                  onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
-                >
-                  {currentQuestion.options.map((option) => (
-                    <div key={option.id} className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-gray-50">
-                      <RadioGroupItem value={option.id} id={option.id} />
-                      <Label htmlFor={option.id} className="flex-1 cursor-pointer">
-                        {option.text}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
+              {/* Multiple-select (MULTIPLE_CHOICE_MULTIPLE) */}
+              {currentQuestion.question_type === "MULTIPLE_CHOICE_MULTIPLE" &&
+                currentQuestion.options?.length > 0 && (
+                <div className="space-y-2">
+                  {currentQuestion.options.map((option) => {
+                    const selected = (answers[currentQuestion.id] as string[] | undefined) ?? [];
+                    const checked = selected.includes(option.id);
+                    return (
+                      <div
+                        key={option.id}
+                        className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-gray-50"
+                      >
+                        <Checkbox
+                          id={option.id}
+                          checked={checked}
+                          onCheckedChange={(checked) => {
+                            const next = checked
+                              ? [...selected, option.id]
+                              : selected.filter((id) => id !== option.id);
+                            handleAnswerChange(currentQuestion.id, next);
+                          }}
+                        />
+                        <Label htmlFor={option.id} className="flex-1 cursor-pointer">
+                          {option.text}
+                        </Label>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
 
               {/* Fill in the Blank */}
@@ -416,9 +493,6 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
               </Button>
 
               <div className="flex items-center gap-2">
-                <Button variant="ghost" onClick={handleExit}>
-                  Exit
-                </Button>
                 {currentQuestionIndex === totalQuestions - 1 ? (
                   <Button onClick={() => setShowSubmitConfirm(true)}>
                     <Send className="h-4 w-4 mr-2" />
@@ -473,24 +547,6 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
         </Card>
       </div>
 
-      {/* Exit Confirmation Dialog */}
-      <AlertDialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Exit Assessment?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to exit? Your progress will not be saved and this will count as an attempt.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Continue Assessment</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmExit} className="bg-red-600 hover:bg-red-700">
-              Exit
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       {/* Submit Confirmation Dialog */}
       <AlertDialog open={showSubmitConfirm} onOpenChange={setShowSubmitConfirm}>
         <AlertDialogContent>
@@ -526,6 +582,18 @@ export default function TakeAssessmentPage(props: TakeAssessmentPageProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Anti-malpractice violation warning */}
+      <ViolationWarningModal
+        isOpen={showViolationModal}
+        violation={lastViolation}
+        violationCount={totalViolations}
+        maxViolations={3}
+        onContinue={() => {
+          setShowViolationModal(false);
+        }}
+        hideExitButton
+      />
     </div>
   );
 }

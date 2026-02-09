@@ -28,6 +28,7 @@ import {
   Loader2,
   Pencil,
   ClipboardList,
+  Award,
 } from "lucide-react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -136,6 +137,12 @@ export const SchoolDetailsModal = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" className="gap-1.5" asChild>
+                <Link href={`/library-owner/schools/result/${school.id}`} aria-label="Manage results">
+                  <Award className="h-4 w-4" />
+                  Manage results
+                </Link>
+              </Button>
               {school.status.toLowerCase() === "pending" && (
                 <Button
                   size="sm"

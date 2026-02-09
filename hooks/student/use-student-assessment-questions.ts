@@ -110,30 +110,67 @@ const fetchAssessmentQuestions = async (
       throw new Error(errorMsg);
     }
 
-    // Apply shuffling if enabled
+    // Normalize and apply shuffling
     if (response.data && typeof response.data === "object" && "assessment" in response.data && "questions" in response.data) {
       const data = response.data as unknown as {
         assessment: AssessmentWithQuestions;
-        questions: AssessmentQuestion[];
+        questions: Array<{
+          id: string;
+          question_text: string;
+          question_image?: string | null;
+          question_type: string;
+          points: number;
+          order: number;
+          explanation?: string | null;
+          options?: Array<{ id: string; text?: string; option_text?: string; is_correct?: boolean; order?: number }>;
+          correct_answers?: unknown[];
+        }>;
         total_questions: number;
         total_points: number;
         estimated_duration: number;
       };
       const { assessment, questions, total_questions, total_points, estimated_duration } = data;
-      
-      let processedQuestions = [...questions];
-      
-      // Shuffle questions if enabled
-      if (assessment.shuffle_questions) {
+
+      // Read shuffle flags (backend may send snake_case or camelCase; default true when omitted)
+      const rawAssessment = assessment as Record<string, unknown>;
+      const shuffleQuestions = rawAssessment.shuffle_questions ?? rawAssessment.shuffleQuestions ?? true;
+      const shuffleOptions = rawAssessment.shuffle_options ?? rawAssessment.shuffleOptions ?? true;
+
+      // Normalize questions: ensure options array and option.text (backend may send option_text)
+      let processedQuestions: AssessmentQuestion[] = questions.map((q) => {
+        const options = Array.isArray(q.options) ? q.options : [];
+        const normalizedOptions: QuestionOption[] = options.map((opt) => ({
+          id: opt.id,
+          text: opt.text ?? (opt as { option_text?: string }).option_text ?? "",
+          is_correct: opt.is_correct ?? false,
+          order: typeof opt.order === "number" ? opt.order : 0,
+        }));
+        return {
+          id: q.id,
+          question_text: q.question_text,
+          question_image: q.question_image ?? null,
+          question_type: q.question_type,
+          points: q.points,
+          order: q.order,
+          explanation: q.explanation ?? null,
+          options: normalizedOptions,
+          correct_answers: q.correct_answers ?? [],
+        };
+      });
+
+      // Shuffle questions if enabled (always run so order differs per load when shuffle is true)
+      if (shuffleQuestions) {
         processedQuestions = shuffleArray(processedQuestions);
         logger.info("[use-student-assessment-questions] Questions shuffled");
       }
-      
+
       // Shuffle options within each question if enabled
-      if (assessment.shuffle_options) {
-        processedQuestions = processedQuestions.map(question => ({
+      if (shuffleOptions) {
+        processedQuestions = processedQuestions.map((question) => ({
           ...question,
-          options: shuffleArray(question.options),
+          options: Array.isArray(question.options) && question.options.length > 0
+            ? shuffleArray(question.options)
+            : question.options,
         }));
         logger.info("[use-student-assessment-questions] Options shuffled");
       }
@@ -284,10 +321,20 @@ export const useSubmitStudentAssessment = () => {
       queryClient.invalidateQueries({ 
         queryKey: ["student", "assessment", data.data.assessment_id] 
       });
-      
+
+      const percentage = data.data.percentage ?? (data.data as { feedback?: { percentage?: number } }).feedback?.percentage;
+      const passed = data.data.passed ?? (data.data as { feedback?: { passed?: boolean } }).feedback?.passed;
+      const scoreText = typeof percentage === "number" ? `${percentage.toFixed(1)}%` : null;
+      const resultText = typeof passed === "boolean" ? (passed ? "Passed" : "Not Passed") : null;
+      const description = scoreText && resultText
+        ? `Score: ${scoreText} - ${resultText}`
+        : scoreText
+          ? `Score: ${scoreText}`
+          : "Your submission has been recorded.";
+
       toast({
         title: "Assessment submitted successfully",
-        description: `Score: ${data.data.percentage.toFixed(1)}% - ${data.data.passed ? "Passed" : "Not Passed"}`,
+        description,
       });
     },
     onError: (error) => {

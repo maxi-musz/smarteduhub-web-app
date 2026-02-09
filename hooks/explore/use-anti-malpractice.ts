@@ -9,6 +9,8 @@ export interface MalpracticeViolation {
 export interface UseAntiMalpracticeOptions {
   onViolation?: (violation: MalpracticeViolation) => void;
   maxViolations?: number;
+  /** When false, no listeners are attached and no violations are tracked (e.g. before assessment has started). */
+  enabled?: boolean;
   enableFullscreen?: boolean;
   enableTabDetection?: boolean;
   enableCopyPaste?: boolean;
@@ -21,6 +23,7 @@ export function useAntiMalpractice(options: UseAntiMalpracticeOptions = {}) {
   const {
     onViolation,
     maxViolations = 3,
+    enabled = true,
     enableFullscreen = true,
     enableTabDetection = true,
     enableCopyPaste = true,
@@ -55,7 +58,7 @@ export function useAntiMalpractice(options: UseAntiMalpracticeOptions = {}) {
 
   // Fullscreen detection
   useEffect(() => {
-    if (!enableFullscreen) return;
+    if (!enabled || !enableFullscreen) return;
 
     const handleFullscreenChange = () => {
       const isCurrentlyFullscreen = !!(
@@ -82,15 +85,11 @@ export function useAntiMalpractice(options: UseAntiMalpracticeOptions = {}) {
       document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
       document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
     };
-  }, [enableFullscreen, isFullscreen, trackViolation]);
+  }, [enabled, enableFullscreen, isFullscreen, trackViolation]);
 
-  // Tab/window blur detection
+  // Tab/window detection: use only visibilitychange so one switch = one violation (blur + visibility often fire together)
   useEffect(() => {
-    if (!enableTabDetection) return;
-
-    const handleBlur = () => {
-      trackViolation("window_blur");
-    };
+    if (!enabled || !enableTabDetection) return;
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -98,18 +97,16 @@ export function useAntiMalpractice(options: UseAntiMalpracticeOptions = {}) {
       }
     };
 
-    window.addEventListener("blur", handleBlur);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      window.removeEventListener("blur", handleBlur);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [enableTabDetection, trackViolation]);
+  }, [enabled, enableTabDetection, trackViolation]);
 
   // Copy/Paste prevention
   useEffect(() => {
-    if (!enableCopyPaste) return;
+    if (!enabled || !enableCopyPaste) return;
 
     const handleCopy = (e: ClipboardEvent) => {
       e.preventDefault();
@@ -138,11 +135,11 @@ export function useAntiMalpractice(options: UseAntiMalpracticeOptions = {}) {
       document.removeEventListener("paste", handlePaste);
       document.removeEventListener("cut", handleCut);
     };
-  }, [enableCopyPaste, trackViolation]);
+  }, [enabled, enableCopyPaste, trackViolation]);
 
   // Context menu prevention
   useEffect(() => {
-    if (!enableContextMenu) return;
+    if (!enabled || !enableContextMenu) return;
 
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
@@ -155,11 +152,11 @@ export function useAntiMalpractice(options: UseAntiMalpracticeOptions = {}) {
     return () => {
       document.removeEventListener("contextmenu", handleContextMenu);
     };
-  }, [enableContextMenu, trackViolation]);
+  }, [enabled, enableContextMenu, trackViolation]);
 
   // Print prevention
   useEffect(() => {
-    if (!enablePrint) return;
+    if (!enabled || !enablePrint) return;
 
     const handleBeforePrint = (e: Event) => {
       e.preventDefault();
@@ -172,11 +169,11 @@ export function useAntiMalpractice(options: UseAntiMalpracticeOptions = {}) {
     return () => {
       window.removeEventListener("beforeprint", handleBeforePrint);
     };
-  }, [enablePrint, trackViolation]);
+  }, [enabled, enablePrint, trackViolation]);
 
   // DevTools detection (basic)
   useEffect(() => {
-    if (!enableDevTools) return;
+    if (!enabled || !enableDevTools) return;
 
     let devtools = { open: false };
     const element = new Image();
@@ -200,10 +197,11 @@ export function useAntiMalpractice(options: UseAntiMalpracticeOptions = {}) {
     return () => {
       clearInterval(checkDevTools);
     };
-  }, [enableDevTools, trackViolation]);
+  }, [enabled, enableDevTools, trackViolation]);
 
   // Keyboard shortcuts prevention
   useEffect(() => {
+    if (!enabled) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       // Prevent F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S, Ctrl+P
       if (
@@ -227,7 +225,7 @@ export function useAntiMalpractice(options: UseAntiMalpracticeOptions = {}) {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [trackViolation]);
+  }, [enabled, trackViolation]);
 
   // Request fullscreen
   const requestFullscreen = useCallback(async () => {

@@ -155,8 +155,41 @@ const fetchAssessmentResults = async (
       throw new Error("Invalid response: missing data");
     }
 
-    // Return the response as-is since it already matches AssessmentResultsResponse structure
-    return response as unknown as AssessmentResultsResponse;
+    const data = response.data as unknown as AssessmentResultsResponse["data"];
+    // Normalize submissions: ensure each question has options with text, is_selected, is_correct
+    const normalizedSubmissions: AssessmentResultsResponse["data"]["submissions"] = data.submissions.map((sub) => ({
+      ...sub,
+      questions: sub.questions.map((q) => {
+        const rawQ = q as QuestionWithAnswer & {
+          options?: Array<{ id: string; text?: string; option_text?: string; is_correct?: boolean; order?: number; is_selected?: boolean }>;
+          question_options?: Array<{ id: string; text?: string; option_text?: string; is_correct?: boolean; order?: number }>;
+        };
+        const selectedIds = new Set(
+          (rawQ.user_answer?.selected_options ?? []).map((o: { id: string }) => o.id)
+        );
+        const options = Array.isArray(rawQ.options) ? rawQ.options : Array.isArray(rawQ.question_options) ? rawQ.question_options : [];
+        const normalizedOptions: QuestionOption[] = options.map((opt) => ({
+          id: opt.id,
+          text: opt.text ?? (opt as { option_text?: string }).option_text ?? "",
+          is_correct: opt.is_correct ?? false,
+          order: typeof opt.order === "number" ? opt.order : 0,
+          is_selected: opt.is_selected ?? selectedIds.has(opt.id),
+        }));
+        return {
+          ...q,
+          options: normalizedOptions,
+        };
+      }),
+    }));
+
+    return {
+      success: true,
+      message: (response as { message?: string }).message ?? "",
+      data: {
+        ...data,
+        submissions: normalizedSubmissions,
+      },
+    } as AssessmentResultsResponse;
   } catch (error) {
     logger.error("[use-student-assessment-results] Error fetching results:", {
       error: error instanceof Error ? error.message : String(error),

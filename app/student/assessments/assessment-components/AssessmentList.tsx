@@ -119,7 +119,8 @@ export const AssessmentList = ({
         const canAttempt = !assessment.student_attempts.has_reached_max && 
                           (assessment.status === "ACTIVE" || assessment.status === "PUBLISHED");
         const latestAttempt = assessment.student_attempts.latest_attempt;
-        const bestAttempt = assessment.performance_summary.best_attempt;
+        const bestAttempt = assessment.performance_summary?.best_attempt ?? null;
+        const canViewGrading = assessment.student_can_view_grading ?? false;
 
         return (
           <Card key={assessment.id} className="hover:shadow-md transition-shadow">
@@ -179,51 +180,59 @@ export const AssessmentList = ({
                   {/* Attempt Information */}
                   {hasAttempted && (
                     <div className="mt-4 p-3 bg-gray-50 rounded-lg space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Your Performance</span>
-                        {bestAttempt && getPerformanceBadge(bestAttempt.percentage, bestAttempt.passed)}
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                        <div>
-                          <span className="text-gray-500">Attempts:</span>
-                          <span className="ml-2 font-medium">
-                            {assessment.student_attempts.total_attempts} / {assessment.max_attempts}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Remaining:</span>
-                          <span className="ml-2 font-medium">
-                            {assessment.student_attempts.remaining_attempts}
-                          </span>
-                        </div>
-                        {bestAttempt && (
-                          <>
-                            <div>
-                              <span className="text-gray-500">Best Score:</span>
-                              <span className="ml-2 font-medium text-green-600">
-                                {bestAttempt.total_score} / {bestAttempt.max_score || assessment.total_points}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Percentage:</span>
-                              <span className="ml-2 font-medium text-green-600">
-                                {bestAttempt.percentage.toFixed(1)}%
-                              </span>
-                            </div>
-                          </>
-                        )}
-                      </div>
-
-                      {latestAttempt && latestAttempt.status === "SUBMITTED" && (
-                        <div className="pt-2 border-t border-gray-200">
-                          <div className="flex items-center gap-2 text-xs text-gray-600">
-                            <TrendingUp className="h-3 w-3" />
-                            <span>
-                              Latest: {latestAttempt.total_score} points ({latestAttempt.percentage.toFixed(1)}%) 
-                              - {format(new Date(latestAttempt.submitted_at), "MMM d, yyyy 'at' h:mm a")}
-                            </span>
+                      {canViewGrading ? (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-700">Your Performance</span>
+                            {bestAttempt && getPerformanceBadge(bestAttempt.percentage, bestAttempt.passed)}
                           </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div>
+                              <span className="text-gray-500">Attempts:</span>
+                              <span className="ml-2 font-medium">
+                                {assessment.student_attempts.total_attempts} / {assessment.max_attempts}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Remaining:</span>
+                              <span className="ml-2 font-medium">
+                                {assessment.student_attempts.remaining_attempts}
+                              </span>
+                            </div>
+                            {bestAttempt && bestAttempt.total_score != null && (
+                              <div>
+                                <span className="text-gray-500">Best Score:</span>
+                                <span className="ml-2 font-medium text-green-600">
+                                  {bestAttempt.total_score} / {bestAttempt.max_score ?? assessment.total_points}
+                                </span>
+                              </div>
+                            )}
+                            {bestAttempt && bestAttempt.percentage != null && (
+                              <div>
+                                <span className="text-gray-500">Percentage:</span>
+                                <span className="ml-2 font-medium text-green-600">
+                                  {bestAttempt.percentage.toFixed(1)}%
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          {latestAttempt && latestAttempt.status === "SUBMITTED" && latestAttempt.total_score != null && (
+                            <div className="pt-2 border-t border-gray-200">
+                              <div className="flex items-center gap-2 text-xs text-gray-600">
+                                <TrendingUp className="h-3 w-3" />
+                                <span>
+                                  Latest: {latestAttempt.total_score} points
+                                  {latestAttempt.percentage != null ? ` (${latestAttempt.percentage.toFixed(1)}%)` : ""}
+                                  {" "}- {format(new Date(latestAttempt.submitted_at), "MMM d, yyyy 'at' h:mm a")}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                          <span>Submitted – awaiting result release</span>
                         </div>
                       )}
                     </div>
@@ -271,10 +280,12 @@ export const AssessmentList = ({
                   <span className="text-gray-500">Total Points:</span>
                   <span className="ml-2 font-medium">{assessment.total_points}</span>
                 </div>
-                <div>
-                  <span className="text-gray-500">Passing Score:</span>
-                  <span className="ml-2 font-medium">{assessment.passing_score}%</span>
-                </div>
+                {assessment.passing_score != null && (
+                  <div>
+                    <span className="text-gray-500">Passing Score:</span>
+                    <span className="ml-2 font-medium">{assessment.passing_score}%</span>
+                  </div>
+                )}
                 <div>
                   <span className="text-gray-500">Max Attempts:</span>
                   <span className="ml-2 font-medium">{assessment.max_attempts}</span>
@@ -282,17 +293,21 @@ export const AssessmentList = ({
                 <div>
                   <span className="text-gray-500">Status:</span>
                   <span className={`ml-2 font-medium ${
-                    assessment.student_attempts.has_reached_max 
-                      ? 'text-red-600' 
-                      : canAttempt 
-                      ? 'text-green-600' 
-                      : 'text-gray-600'
+                    hasAttempted && !canViewGrading
+                      ? "text-blue-600"
+                      : assessment.student_attempts.has_reached_max
+                      ? "text-red-600"
+                      : canAttempt
+                      ? "text-green-600"
+                      : "text-gray-600"
                   }`}>
-                    {assessment.student_attempts.has_reached_max 
-                      ? 'Max attempts reached' 
-                      : canAttempt 
-                      ? 'Available' 
-                      : 'Not Available'}
+                    {hasAttempted && !canViewGrading
+                      ? "Completed – awaiting result release"
+                      : assessment.student_attempts.has_reached_max
+                      ? "Max attempts reached"
+                      : canAttempt
+                      ? "Available"
+                      : "Not Available"}
                   </span>
                 </div>
               </div>

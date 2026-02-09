@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Plus } from "lucide-react";
-import { useLibrarySchoolAssessmentById, useLibrarySchoolAssessmentQuestions, useLibrarySchoolAssessmentAttempts } from "../../../hooks/use-library-school-assessments";
+import { useLibrarySchoolAssessmentWithDetails } from "../../../hooks/use-library-school-assessments";
 import { AssessmentDetails } from "../../../components/AssessmentDetails";
 import { QuestionsView } from "../../../components/QuestionsView";
 import { AttemptsView } from "../../../components/AttemptsView";
@@ -19,16 +19,16 @@ export default function AssessmentDetailPage() {
   const subjectId = params.subjectId as string;
   const assessmentId = params.assessmentId as string;
 
-  const { data: assessment, isLoading: loadingAssessment } = useLibrarySchoolAssessmentById(schoolId, assessmentId);
-  const { data: questionsData, isLoading: loadingQuestions } = useLibrarySchoolAssessmentQuestions(schoolId, assessmentId);
-  const { data: attemptsData, isLoading: loadingAttempts } = useLibrarySchoolAssessmentAttempts(schoolId, assessmentId);
+  const { data: detailsData, isLoading: loadingDetails } = useLibrarySchoolAssessmentWithDetails(schoolId, assessmentId);
 
-  const questions = questionsData?.questions ?? [];
-  const questionsCount = questionsData?.total_questions ?? assessment?._count?.questions ?? 0;
+  const assessment = detailsData?.assessment;
+  const questions = detailsData?.questionsData?.questions ?? [];
+  const questionsCount = detailsData?.questionsData?.total_questions ?? assessment?._count?.questions ?? 0;
+  const attemptsData = detailsData?.attemptsData;
   const attemptsCount = attemptsData?.statistics?.attempted_count ?? 0;
   const [addQuestionOpen, setAddQuestionOpen] = useState(false);
 
-  if (loadingAssessment) {
+  if (loadingDetails) {
     return (
       <div className="py-6 bg-brand-bg">
         <div className="text-center py-12 text-brand-light-accent-1">Loading assessment...</div>
@@ -85,7 +85,7 @@ export default function AssessmentDetailPage() {
                 Add question
               </Button>
             </div>
-            <QuestionsView questions={questions} isLoading={loadingQuestions} />
+            <QuestionsView questions={questions} isLoading={loadingDetails} />
             <AddQuestionDialog
               schoolId={schoolId}
               assessmentId={assessmentId}
@@ -97,7 +97,7 @@ export default function AssessmentDetailPage() {
         </TabsContent>
 
         <TabsContent value="attempts">
-          <AttemptsView data={attemptsData} isLoading={loadingAttempts} />
+          <AttemptsView data={attemptsData} isLoading={loadingDetails} />
         </TabsContent>
       </Tabs>
     </div>

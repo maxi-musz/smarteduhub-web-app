@@ -16,7 +16,9 @@ interface ViolationWarningModalProps {
   violationCount: number;
   maxViolations: number;
   onContinue: () => void;
-  onExit: () => void;
+  onExit?: () => void;
+  /** When true, only show Continue button (no Exit Assessment). Use for student flow where exit is not allowed. */
+  hideExitButton?: boolean;
 }
 
 const getViolationMessage = (type: MalpracticeViolation["type"]): string => {
@@ -72,6 +74,7 @@ export function ViolationWarningModal({
   maxViolations,
   onContinue,
   onExit,
+  hideExitButton = false,
 }: ViolationWarningModalProps) {
   if (!violation) return null;
 
@@ -103,21 +106,19 @@ export function ViolationWarningModal({
 
           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm font-semibold text-yellow-900 mb-2">
+              Violation count: {violationCount}/{maxViolations}
+            </p>
+            <p className="text-sm text-yellow-900">
               {isFinalWarning ? (
                 <>
                   ⚠️ <strong>FINAL WARNING!</strong> This is your last chance. Any further violation will result in immediate disqualification.
                 </>
               ) : (
                 <>
-                  Warning {violationCount} of {maxViolations}
+                  You have <strong>{remainingWarnings}</strong> warning{remainingWarnings !== 1 ? "s" : ""} remaining before disqualification.
                 </>
               )}
             </p>
-            {!isFinalWarning && (
-              <p className="text-xs text-yellow-800">
-                You have <strong>{remainingWarnings}</strong> warning{remainingWarnings !== 1 ? "s" : ""} remaining before disqualification.
-              </p>
-            )}
           </div>
 
           <div className="p-3 bg-gray-50 rounded-lg">
@@ -132,16 +133,18 @@ export function ViolationWarningModal({
         </div>
 
         <div className="flex gap-3 pt-4 border-t">
-          <Button
-            variant="outline"
-            onClick={onExit}
-            className="flex-1"
-          >
-            Exit Assessment
-          </Button>
+          {!hideExitButton && onExit && (
+            <Button
+              variant="outline"
+              onClick={onExit}
+              className="flex-1"
+            >
+              Exit Assessment
+            </Button>
+          )}
           <Button
             onClick={onContinue}
-            className="flex-1 bg-red-600 hover:bg-red-700"
+            className={(hideExitButton ? "w-full " : "flex-1 ") + "bg-red-600 hover:bg-red-700"}
           >
             I Understand - Continue
           </Button>

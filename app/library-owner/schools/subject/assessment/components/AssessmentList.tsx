@@ -15,7 +15,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ClipboardList, Eye, FileQuestion, Users, Send, X, Trash2, Pencil, Lock } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ClipboardList, Eye, FileQuestion, Users, Send, X, Trash2, Pencil, Lock, MoreVertical } from "lucide-react";
 import type { LibrarySchoolAssessment } from "../hooks/use-library-school-assessments";
 import {
   useDeleteLibrarySchoolAssessment,
@@ -133,39 +139,66 @@ export function AssessmentList({
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`${basePath}/${a.id}`}>
-                      <Eye className="h-4 w-4 mr-1" /> View
-                    </Link>
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setEditAssessment(a)}>
-                    <Pencil className="h-4 w-4 mr-1" /> Edit
-                  </Button>
-                  {a.status === "DRAFT" && (
-                    <>
-                      <Button variant="ghost" size="sm" onClick={() => setPublishId(a.id)} disabled={publishMutation.isPending || (a._count?.questions ?? 0) < 5}>
-                        <Send className="h-4 w-4 mr-1" /> Publish
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => setCloseId(a.id)} disabled={updateMutation.isPending}>
-                        <Lock className="h-4 w-4 mr-1" /> Close
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => setDeleteId(a.id)} disabled={deleteMutation.isPending}>
-                        <Trash2 className="h-4 w-4 mr-1" /> Delete
-                      </Button>
-                    </>
-                  )}
-                  {(a.status === "PUBLISHED" || a.status === "ACTIVE") && (
-                    <>
-                      <Button variant="ghost" size="sm" onClick={() => setUnpublishId(a.id)} disabled={unpublishMutation.isPending}>
-                        <X className="h-4 w-4 mr-1" /> Unpublish
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => setCloseId(a.id)} disabled={updateMutation.isPending}>
-                        <Lock className="h-4 w-4 mr-1" /> Close
-                      </Button>
-                    </>
-                  )}
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-brand-light-accent-1 hover:text-brand-heading" aria-label="Assessment actions">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuItem asChild>
+                      <Link href={`${basePath}/${a.id}`} className="flex items-center gap-2.5 cursor-pointer">
+                        <Eye className="h-4 w-4 text-blue-600 shrink-0" /> View
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setEditAssessment(a)} className="flex items-center gap-2.5 cursor-pointer">
+                      <Pencil className="h-4 w-4 text-amber-600 shrink-0" /> Edit
+                    </DropdownMenuItem>
+                    {a.status === "DRAFT" && (
+                      <>
+                        <DropdownMenuItem
+                          onClick={() => setPublishId(a.id)}
+                          disabled={publishMutation.isPending || (a._count?.questions ?? 0) < 5}
+                          className="flex items-center gap-2.5 cursor-pointer"
+                        >
+                          <Send className="h-4 w-4 text-green-600 shrink-0" /> Publish
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setCloseId(a.id)}
+                          disabled={updateMutation.isPending}
+                          className="flex items-center gap-2.5 cursor-pointer"
+                        >
+                          <Lock className="h-4 w-4 text-slate-500 shrink-0" /> Close
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setDeleteId(a.id)}
+                          disabled={deleteMutation.isPending}
+                          className="flex items-center gap-2.5 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4 shrink-0" /> Delete
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    {(a.status === "PUBLISHED" || a.status === "ACTIVE") && (
+                      <>
+                        <DropdownMenuItem
+                          onClick={() => setUnpublishId(a.id)}
+                          disabled={unpublishMutation.isPending}
+                          className="flex items-center gap-2.5 cursor-pointer"
+                        >
+                          <X className="h-4 w-4 text-orange-600 shrink-0" /> Unpublish
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setCloseId(a.id)}
+                          disabled={updateMutation.isPending}
+                          className="flex items-center gap-2.5 cursor-pointer"
+                        >
+                          <Lock className="h-4 w-4 text-slate-500 shrink-0" /> Close
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardHeader>
             <CardContent>

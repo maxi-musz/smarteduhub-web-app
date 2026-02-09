@@ -383,15 +383,14 @@ function QuestionCard({
           </div>
         )}
 
-        {/* Multiple Choice / Checkboxes */}
-        {(question.question_type === "MULTIPLE_CHOICE" ||
-          question.question_type === "CHECKBOXES") &&
-          question.options.length > 0 && (
+        {/* Multiple Choice / Checkboxes – show for any question type that has options */}
+        {question.options?.length > 0 && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Options:</h4>
               {question.options.map((option) => {
                 const isSelected = option.is_selected;
                 const isCorrectOption = option.is_correct;
+                const optionLabel = option.text ?? (option as { option_text?: string }).option_text ?? "—";
 
                 return (
                   <div
@@ -405,7 +404,7 @@ function QuestionCard({
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="flex-1">{option.text}</span>
+                      <span className="flex-1">{optionLabel}</span>
                       <div className="flex items-center gap-2">
                         {isSelected && (
                           <Badge variant="secondary" className="text-xs">
