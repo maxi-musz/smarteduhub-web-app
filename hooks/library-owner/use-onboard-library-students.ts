@@ -6,7 +6,7 @@ import {
 import { logger } from "@/lib/logger";
 import type { LibraryOnboardStudentPayload } from "./types-onboarding";
 
-interface OnboardStudentsApiDataItem {
+export interface OnboardStudentsApiDataItem {
   id: string;
   first_name: string;
   last_name: string;
@@ -18,10 +18,17 @@ interface OnboardStudentsApiDataItem {
   updated_at: string;
 }
 
+export interface OnboardStudentsApiResult {
+  totalSuccessfullyOnboarded: number;
+  totalFailed: number;
+  failedEmailsToOnboard: string[];
+  onboardedUsers: OnboardStudentsApiDataItem[];
+}
+
 type ApiResponse = {
   success: boolean;
   message?: string;
-  data?: OnboardStudentsApiDataItem[];
+  data?: OnboardStudentsApiResult;
   statusCode?: number;
 };
 
@@ -34,7 +41,7 @@ export function useOnboardLibraryStudents() {
   const queryClient = useQueryClient();
 
   return useMutation<
-    OnboardStudentsApiDataItem[],
+    OnboardStudentsApiResult,
     AuthenticatedApiError,
     OnboardLibraryStudentsPayload
   >({
@@ -44,13 +51,18 @@ export function useOnboardLibraryStudents() {
         count: students.length,
       });
 
-      const response = await authenticatedApi.post<
-        OnboardStudentsApiDataItem[]
-      >(`/library/schools/${schoolId}/onboard-students`, { students });
+      const response = await authenticatedApi.post<OnboardStudentsApiResult>(
+        `/library/schools/${schoolId}/onboard-students`,
+        { students }
+      );
 
       const typed = response as unknown as ApiResponse;
-      if (typed.success && Array.isArray(typed.data)) {
-        logger.info("[useOnboardLibraryStudents] Students onboarded successfully");
+      if (typed.success && typed.data) {
+        const { totalSuccessfullyOnboarded, totalFailed } = typed.data;
+        logger.info("[useOnboardLibraryStudents] Students onboarded", {
+          totalSuccessfullyOnboarded,
+          totalFailed,
+        });
         return typed.data;
       }
 

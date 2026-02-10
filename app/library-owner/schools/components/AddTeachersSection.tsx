@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useOnboardLibraryTeachers } from "@/hooks/library-owner/use-onboard-library-teachers";
 import { useToast } from "@/hooks/use-toast";
 import ManualTeacherForm from "@/components/onboarding/ManualTeacherForm";
 import TeacherList from "@/components/onboarding/TeacherList";
 import TeacherUploadSection from "@/components/onboarding/TeacherUploadSection";
 import { formatTitle } from "@/lib/text-formatter";
-import { Loader2, Plus, ChevronUp } from "lucide-react";
+import { Loader2, Plus, ChevronUp, UserPlus, Upload } from "lucide-react";
 
 type TeacherFormData = {
   id: string;
@@ -32,8 +31,9 @@ export function AddTeachersSection({ schoolId }: AddTeachersSectionProps) {
   const onboardTeachers = useOnboardLibraryTeachers();
   const [teachers, setTeachers] = useState<TeacherFormData[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
-  const [addViaBulkUpload, setAddViaBulkUpload] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  /** 'manual' | 'bulk' | null: null = show choice; manual = manual form; bulk = bulk upload */
+  const [addMode, setAddMode] = useState<"manual" | "bulk" | null>(null);
   const [showForm, setShowForm] = useState(true);
 
   const handleTeachersUploaded = (
@@ -78,6 +78,17 @@ export function AddTeachersSection({ schoolId }: AddTeachersSectionProps) {
     }
   };
 
+  const handleExpand = () => {
+    setIsExpanded(true);
+    setAddMode(null);
+    setShowForm(true);
+  };
+
+  const handleCollapse = () => {
+    setIsExpanded(false);
+    setAddMode(null);
+  };
+
   if (!isExpanded) {
     return (
       <div className="rounded-lg border border-brand-border bg-gray-50/50 p-4">
@@ -86,7 +97,7 @@ export function AddTeachersSection({ schoolId }: AddTeachersSectionProps) {
           variant="outline"
           size="sm"
           className="gap-2"
-          onClick={() => { setIsExpanded(true); setShowForm(true); }}
+          onClick={handleExpand}
         >
           <Plus className="h-4 w-4" />
           Add teacher
@@ -104,44 +115,78 @@ export function AddTeachersSection({ schoolId }: AddTeachersSectionProps) {
           variant="ghost"
           size="sm"
           className="h-8 gap-1.5 text-brand-light-accent-1 hover:text-brand-heading"
-          onClick={() => setIsExpanded(false)}
+          onClick={handleCollapse}
         >
           <ChevronUp className="h-4 w-4" />
           Close
         </Button>
       </div>
-      {showForm ? (
+
+      {addMode === null ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setAddMode("manual")}
+            className="flex items-center gap-3 p-4 rounded-lg border-2 border-brand-border bg-white hover:border-brand-primary hover:bg-brand-primary/5 text-left transition-colors"
+          >
+            <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center">
+              <UserPlus className="h-5 w-5 text-brand-primary" />
+            </div>
+            <div>
+              <p className="font-medium text-brand-heading">Add manually</p>
+              <p className="text-xs text-brand-light-accent-1">Enter one teacher at a time</p>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setAddMode("bulk")}
+            className="flex items-center gap-3 p-4 rounded-lg border-2 border-brand-border bg-white hover:border-brand-primary hover:bg-brand-primary/5 text-left transition-colors"
+          >
+            <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center">
+              <Upload className="h-5 w-5 text-brand-primary" />
+            </div>
+            <div>
+              <p className="font-medium text-brand-heading">Bulk upload</p>
+              <p className="text-xs text-brand-light-accent-1">Download template, fill and upload Excel/CSV</p>
+            </div>
+          </button>
+        </div>
+      ) : (
         <>
-          <ManualTeacherForm onAddTeacher={handleManualAdd} onError={setErrorMessage} existingTeachers={teachers} />
-          {errorMessage && <p className="text-xs text-red-600">{errorMessage}</p>}
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-brand-heading">
-            <Checkbox
-              checked={addViaBulkUpload}
-              onCheckedChange={(checked) => setAddViaBulkUpload(checked === true)}
-            />
-            Add via bulk upload
-          </label>
-          {addViaBulkUpload && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-brand-light-accent-1 hover:text-brand-heading -ml-1"
+            onClick={() => setAddMode(null)}
+          >
+            ← Change method
+          </Button>
+          {addMode === "manual" && (
+            <>
+              {showForm ? (
+                <>
+                  <ManualTeacherForm onAddTeacher={handleManualAdd} onError={setErrorMessage} existingTeachers={teachers} />
+                  {errorMessage && <p className="text-xs text-red-600">{errorMessage}</p>}
+                </>
+              ) : (
+                <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setShowForm(true)}>
+                  <Plus className="h-4 w-4" />
+                  Add more
+                </Button>
+              )}
+            </>
+          )}
+          {addMode === "bulk" && (
             <TeacherUploadSection onTeachersUploaded={handleTeachersUploaded} existingTeachers={teachers} />
           )}
+          <TeacherList teachers={teachers} onRemoveTeacher={handleRemove} />
+          {teachers.length > 0 && (
+            <Button size="sm" onClick={handleSubmit} disabled={onboardTeachers.isPending} className="bg-brand-primary text-white hover:bg-brand-primary/90">
+              {onboardTeachers.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save teachers"}
+            </Button>
+          )}
         </>
-      ) : (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={() => setShowForm(true)}
-        >
-          <Plus className="h-4 w-4" />
-          Add more
-        </Button>
-      )}
-      <TeacherList teachers={teachers} onRemoveTeacher={handleRemove} />
-      {teachers.length > 0 && (
-        <Button size="sm" onClick={handleSubmit} disabled={onboardTeachers.isPending} className="bg-brand-primary text-white hover:bg-brand-primary/90">
-          {onboardTeachers.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save teachers"}
-        </Button>
       )}
     </div>
   );

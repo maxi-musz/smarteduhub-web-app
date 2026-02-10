@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -75,25 +75,6 @@ function isValidPhoneNumber(phone: string) {
   );
 }
 
-// Template placeholder data for validation
-const TEMPLATE_PLACEHOLDERS = [
-  "john.doe@school.edu.ng",
-  "jane.smith@school.edu.ng",
-  "ahmed.ibrahim@school.edu.ng",
-  "john",
-  "jane",
-  "ahmed",
-  "doe",
-  "smith",
-  "ibrahim",
-  "jss1",
-  "primary 1",
-];
-
-function isPlaceholderData(value: string): boolean {
-  return TEMPLATE_PLACEHOLDERS.includes(value.toLowerCase().trim());
-}
-
 export default function StudentUploadSection({
   availableClasses,
   existingStudents,
@@ -109,21 +90,21 @@ export default function StudentUploadSection({
   const [totalStudentsForTemplate, setTotalStudentsForTemplate] = useState<string>("");
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  /** After a successful bulk add, show this instead of upload UI so the list is the focus */
+  const [lastBulkUploadCount, setLastBulkUploadCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (existingStudents.length === 0) setLastBulkUploadCount(null);
+  }, [existingStudents.length]);
 
   const generateAndDownloadTemplate = (selectedClass: string, totalStudents: number) => {
-    const placeholderRows = [
-      { "First Name": "John", "Last Name": "Doe", Email: "john.doe@school.edu.ng", "Phone Number": "08012345678" },
-      { "First Name": "Jane", "Last Name": "Smith", Email: "jane.smith@school.edu.ng", "Phone Number": "08098765432" },
-      { "First Name": "Ahmed", "Last Name": "Ibrahim", Email: "ahmed.ibrahim@school.edu.ng", "Phone Number": "2347012345678" },
-    ];
     const templateData: Record<string, string>[] = [];
     for (let i = 0; i < totalStudents; i++) {
-      const place = placeholderRows[i % placeholderRows.length];
       templateData.push({
-        "First Name": place["First Name"],
-        "Last Name": place["Last Name"],
-        Email: place["Email"],
-        "Phone Number": place["Phone Number"],
+        "First Name": "",
+        "Last Name": "",
+        Email: "",
+        "Phone Number": "",
         "Student Class": selectedClass,
       });
     }
@@ -203,25 +184,11 @@ export default function StudentUploadSection({
                 ""
             ).trim();
 
-            // Check for template placeholders
-            if (isPlaceholderData(firstName)) {
-              errors.push("Please replace template placeholder data");
-            }
-            if (isPlaceholderData(lastName)) {
-              errors.push("Please replace template placeholder data");
-            }
-            if (isPlaceholderData(email)) {
-              errors.push("Please replace template placeholder data");
-            }
-            if (isPlaceholderData(studentClass)) {
-              errors.push("Please replace template placeholder data");
-            }
-
-            // Regular validation
+            // Required fields and format validation
             if (!firstName.trim()) errors.push("First name is required");
             if (!lastName.trim()) errors.push("Last name is required");
             if (!email.trim()) errors.push("Email is required");
-            else if (!isValidEmail(email) && !isPlaceholderData(email)) {
+            else if (!isValidEmail(email)) {
               errors.push("Invalid email format");
             }
             if (!phoneNumber.trim()) errors.push("Phone number is required");
@@ -230,8 +197,7 @@ export default function StudentUploadSection({
             }
             if (!studentClass.trim()) errors.push("Student class is required");
             else if (
-              !availableClasses.includes(studentClass) &&
-              !isPlaceholderData(studentClass)
+              !availableClasses.some((c) => c.trim().toLowerCase() === studentClass.trim().toLowerCase())
             ) {
               errors.push(
                 `Class "${studentClass}" not found. Available classes: ${availableClasses.join(
@@ -243,7 +209,6 @@ export default function StudentUploadSection({
             // Check for duplicate email in existing students
             if (
               email &&
-              !isPlaceholderData(email) &&
               existingStudents.some(
                 (student) => student.email.toLowerCase() === email.toLowerCase()
               )
@@ -262,8 +227,26 @@ export default function StudentUploadSection({
             };
           });
 
-          setParsedStudents(parsed);
-          setShowPreviewModal(true);
+          // Require the same class for all rows
+          const uniqueClasses = [...new Set(parsed.map((p) => p.studentClass.trim().toLowerCase()).filter(Boolean))];
+          if (uniqueClasses.length > 1) {
+            setErrorMessage(
+              "The Student Class column must have the same value for all rows. Please use one class for the entire upload, then try again."
+            );
+            setShowErrorModal(true);
+            setIsUploading(false);
+            return;
+          }
+
+          if (parsed.length === 0) {
+            setErrorMessage(
+              "No student rows found in the file. Check that the file has the expected columns: First Name, Last Name, Email, Phone Number, Student Class."
+            );
+            setShowErrorModal(true);
+          } else {
+            setParsedStudents(parsed);
+            setShowPreviewModal(true);
+          }
         } catch (error) {
           console.error("Error parsing file:", error);
           setErrorMessage(
@@ -341,6 +324,7 @@ export default function StudentUploadSection({
     const files = e.target.files;
     if (files && files.length > 0) {
       handleFileUpload(files[0]);
+      e.target.value = ""; // reset so selecting the same file again (e.g. after editing) still triggers onChange
     }
   };
 
@@ -364,93 +348,117 @@ export default function StudentUploadSection({
     onStudentsUploaded(studentsToAdd);
     setShowPreviewModal(false);
     setParsedStudents([]);
+    setLastBulkUploadCount(studentsToAdd.length);
   };
 
   return (
     <>
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-brand-heading">
-            Bulk Upload Students
-          </h3>
-          <Button
-            onClick={handleDownloadTemplateClick}
-            variant="outline"
-            className="flex items-center gap-2"
-            disabled={availableClasses.length === 0}
-            title={availableClasses.length === 0 ? "Add classes first to download the template" : undefined}
-          >
-            <Download className="w-4 h-4" />
-            Download Template
-          </Button>
-        </div>
-
-        <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            isDragOver
-              ? "border-brand-primary bg-brand-primary/5"
-              : "border-gray-300 hover:border-gray-400"
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <div className="flex flex-col items-center">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              {isUploading ? (
-                <Loader2 className="w-6 h-6 text-brand-primary animate-spin" />
-              ) : (
-                <FileSpreadsheet className="w-6 h-6 text-gray-400" />
-              )}
-            </div>
-            <h4 className="text-lg font-medium text-brand-heading mb-2">
-              {isUploading ? "Processing file..." : "Upload Excel or CSV file"}
-            </h4>
-            <p className="text-brand-light-accent-2 text-sm mb-4">
-              Drag and drop your file here, or click to browse
+        {lastBulkUploadCount !== null ? (
+          <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+            <p className="text-brand-heading font-medium">
+              {lastBulkUploadCount} student{lastBulkUploadCount === 1 ? "" : "s"} added to the list below.
             </p>
-            <p className="text-xs text-brand-light-accent-2 mb-4">
-              Supported formats: .xlsx, .xls, .csv (Max size: 10MB)
+            <p className="text-sm text-brand-light-accent-1 mt-1">
+              Review the list and click &quot;Save students&quot; when ready, or upload another file.
             </p>
-            <input
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              onChange={handleFileInputChange}
-              className="hidden"
-              id="student-file-upload"
-              disabled={isUploading}
-            />
-            <label htmlFor="student-file-upload">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-3 gap-2"
+              onClick={() => setLastBulkUploadCount(null)}
+            >
+              <Upload className="w-4 h-4" />
+              Upload another file
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-brand-heading">
+                Bulk Upload Students
+              </h3>
               <Button
-                type="button"
-                disabled={isUploading}
-                className="bg-brand-primary hover:bg-brand-primary/90 text-white"
-                asChild
+                onClick={handleDownloadTemplateClick}
+                variant="outline"
+                className="flex items-center gap-2"
+                disabled={availableClasses.length === 0}
+                title={availableClasses.length === 0 ? "Add classes first to download the template" : undefined}
               >
-                <span className="flex items-center gap-2">
-                  <Upload className="w-4 h-4" />
-                  Choose File
-                </span>
+                <Download className="w-4 h-4" />
+                Download Template
               </Button>
-            </label>
-          </div>
-        </div>
+            </div>
 
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-          <h4 className="font-medium text-blue-900 mb-2">Required columns:</h4>
-          <div className="text-sm text-blue-800 grid grid-cols-2 gap-2">
-            <span>• First Name</span>
-            <span>• Last Name</span>
-            <span>• Email</span>
-            <span>• Phone Number (11 digits)</span>
-            <span>• Student Class</span>
-          </div>
-          <div className="mt-2">
-            <p className="text-sm text-blue-800">
-              <strong>Available Classes:</strong> {availableClasses.length > 0 ? availableClasses.join(", ") : "None yet — add classes first, then download the template to get a file with the class column pre-filled."}
-            </p>
-          </div>
-        </div>
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                isDragOver
+                  ? "border-brand-primary bg-brand-primary/5"
+                  : "border-gray-300 hover:border-gray-400"
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  {isUploading ? (
+                    <Loader2 className="w-6 h-6 text-brand-primary animate-spin" />
+                  ) : (
+                    <FileSpreadsheet className="w-6 h-6 text-gray-400" />
+                  )}
+                </div>
+                <h4 className="text-lg font-medium text-brand-heading mb-2">
+                  {isUploading ? "Processing file..." : "Upload Excel or CSV file"}
+                </h4>
+                <p className="text-brand-light-accent-2 text-sm mb-4">
+                  Drag and drop your file here, or click to browse
+                </p>
+                <p className="text-xs text-brand-light-accent-2 mb-4">
+                  Supported formats: .xlsx, .xls, .csv (Max size: 10MB)
+                </p>
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                  id="student-file-upload"
+                  disabled={isUploading}
+                />
+                <label htmlFor="student-file-upload">
+                  <Button
+                    type="button"
+                    disabled={isUploading}
+                    className="bg-brand-primary hover:bg-brand-primary/90 text-white"
+                    asChild
+                  >
+                    <span className="flex items-center gap-2">
+                      <Upload className="w-4 h-4" />
+                      Choose File
+                    </span>
+                  </Button>
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">Required columns:</h4>
+              <div className="text-sm text-blue-800 grid grid-cols-2 gap-2">
+                <span>• First Name</span>
+                <span>• Last Name</span>
+                <span>• Email</span>
+                <span>• Phone Number (11 digits)</span>
+                <span>• Student Class</span>
+              </div>
+              <div className="mt-2">
+                <p className="text-sm text-blue-800">
+                  <strong>Available Classes:</strong> {availableClasses.length > 0 ? availableClasses.join(", ") : "None yet — add classes first, then download the template to get a file with the class column pre-filled."}
+                </p>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Download Template: Select class + total students */}
@@ -498,6 +506,14 @@ export default function StudentUploadSection({
             </div>
             <Button
               onClick={handleConfirmDownloadTemplate}
+              disabled={
+                !selectedClassForTemplate.trim() ||
+                !totalStudentsForTemplate.trim() ||
+                (() => {
+                  const n = parseInt(totalStudentsForTemplate, 10);
+                  return isNaN(n) || n < 1 || n > 1000;
+                })()
+              }
               className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white"
             >
               <Download className="w-4 h-4 mr-2" />
@@ -521,7 +537,7 @@ export default function StudentUploadSection({
               The <strong>Student Class</strong> column is pre-filled for all rows. Do not edit or remove it—the backend uses it to assign students to the correct class.
             </p>
             <p className="text-muted-foreground mb-4">
-              Fill in First Name, Last Name, Email, and Phone Number for each student, then remove the placeholder example rows before reuploading.
+              Fill in First Name, Last Name, Email, and Phone Number for each row. The Student Class column is already set for all rows.
             </p>
             <Button
               onClick={() => setShowTemplateModal(false)}
