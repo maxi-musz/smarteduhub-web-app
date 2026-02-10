@@ -8,6 +8,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Upload,
   Download,
@@ -95,40 +104,64 @@ export default function StudentUploadSection({
   const [parsedStudents, setParsedStudents] = useState<ParsedStudent[]>([]);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showDownloadTemplateDialog, setShowDownloadTemplateDialog] = useState(false);
+  const [selectedClassForTemplate, setSelectedClassForTemplate] = useState<string>("");
+  const [totalStudentsForTemplate, setTotalStudentsForTemplate] = useState<string>("");
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const downloadTemplate = () => {
-    const templateData = [
-      {
-        "First Name": "John",
-        "Last Name": "Doe",
-        Email: "john.doe@school.edu.ng",
-        "Phone Number": "08012345678",
-        "Student Class": "JSS1",
-      },
-      {
-        "First Name": "Jane",
-        "Last Name": "Smith",
-        Email: "jane.smith@school.edu.ng",
-        "Phone Number": "8098765432",
-        "Student Class": "Primary 1",
-      },
-      {
-        "First Name": "Ahmed",
-        "Last Name": "Ibrahim",
-        Email: "ahmed.ibrahim@school.edu.ng",
-        "Phone Number": "2347012345678",
-        "Student Class": availableClasses[0] || "JSS1",
-      },
+  const generateAndDownloadTemplate = (selectedClass: string, totalStudents: number) => {
+    const placeholderRows = [
+      { "First Name": "John", "Last Name": "Doe", Email: "john.doe@school.edu.ng", "Phone Number": "08012345678" },
+      { "First Name": "Jane", "Last Name": "Smith", Email: "jane.smith@school.edu.ng", "Phone Number": "08098765432" },
+      { "First Name": "Ahmed", "Last Name": "Ibrahim", Email: "ahmed.ibrahim@school.edu.ng", "Phone Number": "2347012345678" },
     ];
+    const templateData: Record<string, string>[] = [];
+    for (let i = 0; i < totalStudents; i++) {
+      const place = placeholderRows[i % placeholderRows.length];
+      templateData.push({
+        "First Name": place["First Name"],
+        "Last Name": place["Last Name"],
+        Email: place["Email"],
+        "Phone Number": place["Phone Number"],
+        "Student Class": selectedClass,
+      });
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(templateData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
     XLSX.writeFile(workbook, "students_template.xlsx");
 
+    setShowDownloadTemplateDialog(false);
+    setSelectedClassForTemplate("");
+    setTotalStudentsForTemplate("");
     setShowTemplateModal(true);
+  };
+
+  const handleDownloadTemplateClick = () => {
+    if (availableClasses.length === 0) {
+      setErrorMessage("Add at least one class before downloading the template.");
+      setShowErrorModal(true);
+      return;
+    }
+    setShowDownloadTemplateDialog(true);
+  };
+
+  const handleConfirmDownloadTemplate = () => {
+    const classSelected = selectedClassForTemplate.trim();
+    const total = parseInt(totalStudentsForTemplate, 10);
+    if (!classSelected) {
+      setErrorMessage("Please select a class.");
+      setShowErrorModal(true);
+      return;
+    }
+    if (!totalStudentsForTemplate.trim() || isNaN(total) || total < 1 || total > 1000) {
+      setErrorMessage("Please enter a valid number of students (1–1000).");
+      setShowErrorModal(true);
+      return;
+    }
+    generateAndDownloadTemplate(classSelected, total);
   };
 
   const parseUploadedFile = useCallback(
@@ -341,9 +374,11 @@ export default function StudentUploadSection({
             Bulk Upload Students
           </h3>
           <Button
-            onClick={downloadTemplate}
+            onClick={handleDownloadTemplateClick}
             variant="outline"
             className="flex items-center gap-2"
+            disabled={availableClasses.length === 0}
+            title={availableClasses.length === 0 ? "Add classes first to download the template" : undefined}
           >
             <Download className="w-4 h-4" />
             Download Template
@@ -412,11 +447,65 @@ export default function StudentUploadSection({
           </div>
           <div className="mt-2">
             <p className="text-sm text-blue-800">
-              <strong>Available Classes:</strong> {availableClasses.join(", ")}
+              <strong>Available Classes:</strong> {availableClasses.length > 0 ? availableClasses.join(", ") : "None yet — add classes first, then download the template to get a file with the class column pre-filled."}
             </p>
           </div>
         </div>
       </div>
+
+      {/* Download Template: Select class + total students */}
+      <Dialog open={showDownloadTemplateDialog} onOpenChange={setShowDownloadTemplateDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Download className="h-5 w-5" />
+              Download student template
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-muted-foreground text-sm">
+              Select the class for this batch and how many students you want to onboard. The template will have the <strong>Student Class</strong> column pre-filled; do not edit that column when filling in the file.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="template-class">Class (required)</Label>
+              <Select
+                value={selectedClassForTemplate}
+                onValueChange={setSelectedClassForTemplate}
+              >
+                <SelectTrigger id="template-class">
+                  <SelectValue placeholder="Select a class" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableClasses.map((cls) => (
+                    <SelectItem key={cls} value={cls}>
+                      {cls}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="template-total">Total number of students to onboard</Label>
+              <Input
+                id="template-total"
+                type="number"
+                min={1}
+                max={1000}
+                placeholder="e.g. 25"
+                value={totalStudentsForTemplate}
+                onChange={(e) => setTotalStudentsForTemplate(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={handleConfirmDownloadTemplate}
+              className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download template
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Template Download Success Modal */}
       <Dialog open={showTemplateModal} onOpenChange={setShowTemplateModal}>
@@ -424,14 +513,15 @@ export default function StudentUploadSection({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
-              Template Downloaded Successfully
+              Template downloaded successfully
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p className="text-muted-foreground mb-4">
-              Template downloaded successfully. You can update the downloaded
-              file and reupload it. To avoid errors when reuploading, remove the
-              placeholders used as an example for you.
+              The <strong>Student Class</strong> column is pre-filled for all rows. Do not edit or remove it—the backend uses it to assign students to the correct class.
+            </p>
+            <p className="text-muted-foreground mb-4">
+              Fill in First Name, Last Name, Email, and Phone Number for each student, then remove the placeholder example rows before reuploading.
             </p>
             <Button
               onClick={() => setShowTemplateModal(false)}

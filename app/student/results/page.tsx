@@ -10,6 +10,7 @@ import {
   StudentResultsData,
   useStudentResults,
 } from "@/hooks/student/use-student-results";
+import { useStudentDashboard } from "@/hooks/student/use-student-dashboard";
 import { AuthenticatedApiError } from "@/lib/api/authenticated";
 
 // const results = [
@@ -133,7 +134,10 @@ import { AuthenticatedApiError } from "@/lib/api/authenticated";
 
 const StudentResultsPage = () => {
   const queryResult = useStudentResults();
+  const { data: dashboardData } = useStudentDashboard();
   const { data, isLoading, error } = queryResult;
+  const studentId = dashboardData?.general_info?.student?.id;
+  const academicSessionId = data?.current_session?.id;
 
   const effectiveData: StudentResultsData | undefined = useMemo(() => {
     // Type guard to ensure data is StudentResultsData
@@ -251,6 +255,8 @@ const StudentResultsPage = () => {
         data={effectiveData}
         isLoading={isLoading}
         errorMessage={errorMessage}
+        studentId={studentId}
+        academicSessionId={academicSessionId}
       />
     </div>
   );

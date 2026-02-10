@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,34 +9,75 @@ import {
 import { Button } from "@/components/ui/button";
 import { Download, FileImage, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { authenticatedApi, AuthenticatedApiError } from "@/lib/api/authenticated";
 
 interface DownloadResultModalProps {
   isOpen: boolean;
   onClose: () => void;
   term: string;
+  studentId?: string;
+  academicSessionId?: string;
 }
 
 export function DownloadResultModal({
   isOpen,
   onClose,
   term,
+  studentId,
+  academicSessionId,
 }: DownloadResultModalProps) {
   const { toast } = useToast();
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const canDownloadPdf = Boolean(studentId && academicSessionId);
 
   const handleDownloadPNG = () => {
     toast({
-      title: "Download Started",
-      description: `Downloading ${term.toLowerCase()} results as PNG...`,
+      title: "Not available",
+      description: "PNG download is not available. Use PDF to download your report card.",
+      variant: "default",
     });
-    onClose();
   };
 
-  const handleDownloadPDF = () => {
-    toast({
-      title: "Download Started",
-      description: `Downloading ${term.toLowerCase()} results as PDF...`,
-    });
-    onClose();
+  const handleDownloadPDF = async () => {
+    if (!studentId || !academicSessionId) {
+      toast({
+        title: "Cannot download",
+        description: "Session or student information is missing. Please try again later.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsDownloadingPdf(true);
+    try {
+      const params = new URLSearchParams({ studentId, academicSessionId });
+      const blob = await authenticatedApi.getBlob(`/result/download-pdf?${params.toString()}`);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `report-card-${studentId}-${academicSessionId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({
+        title: "Download started",
+        description: `Your ${term.toLowerCase()} report card has been downloaded.`,
+      });
+      onClose();
+    } catch (err) {
+      const message =
+        err instanceof AuthenticatedApiError
+          ? err.message
+          : "Failed to download PDF. Please try again.";
+      toast({
+        title: "Download failed",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   };
 
   return (
@@ -67,9 +109,10 @@ export function DownloadResultModal({
           <Button
             onClick={handleDownloadPDF}
             className="flex items-center gap-2"
+            disabled={!canDownloadPdf || isDownloadingPdf}
           >
             <FileText className="h-4 w-4" />
-            Download PDF
+            {isDownloadingPdf ? "Downloading…" : "Download PDF"}
           </Button>
         </DialogFooter>
       </DialogContent>

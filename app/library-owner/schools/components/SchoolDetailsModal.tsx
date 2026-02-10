@@ -33,6 +33,7 @@ import {
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { formatTitle } from "@/lib/text-formatter";
 import { AddClassesSection } from "./AddClassesSection";
 import { AddTeachersSection } from "./AddTeachersSection";
 import { AddStudentsSection } from "./AddStudentsSection";
@@ -71,7 +72,7 @@ export const SchoolDetailsModal = ({
       await approveSchool.mutateAsync(school.id);
       toast({
         title: "School approved",
-        description: `${school.school_name} has been approved.`,
+        description: `${formatTitle(school.school_name ?? "")} has been approved.`,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to approve school";
@@ -117,7 +118,7 @@ export const SchoolDetailsModal = ({
                 <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                   <Image
                     src={school.school_icon.url}
-                    alt={school.school_name}
+                    alt={formatTitle(school.school_name ?? "")}
                     fill
                     className="object-cover"
                   />
@@ -129,10 +130,10 @@ export const SchoolDetailsModal = ({
               )}
               <div>
                 <DialogTitle className="text-2xl font-bold text-brand-heading">
-                  {school.school_name}
+                  {formatTitle(school.school_name ?? "")}
                 </DialogTitle>
                 <p className="text-sm text-brand-light-accent-1 mt-1">
-                  {getTypeLabel(school.school_type)} • {school.school_ownership}
+                  {getTypeLabel(school.school_type)} • {formatTitle(school.school_ownership ?? "")}
                 </p>
               </div>
             </div>
@@ -181,7 +182,7 @@ export const SchoolDetailsModal = ({
                 </div>
                 <div className="flex items-start gap-2 text-brand-light-accent-1 md:col-span-2">
                   <MapPin className="h-4 w-4 mt-0.5" />
-                  <span>{school.school_address}</span>
+                  <span>{formatTitle(school.school_address ?? "")}</span>
                 </div>
               </div>
             </div>
@@ -333,7 +334,7 @@ export const SchoolDetailsModal = ({
                         >
                           <div>
                             <p className="font-medium text-brand-heading">
-                              {teacher.first_name} {teacher.last_name}
+                              {formatTitle(teacher.first_name ?? "")} {formatTitle(teacher.last_name ?? "")}
                             </p>
                             <p className="text-sm text-brand-light-accent-1">
                               {teacher.email} • {teacher.teacher_id}
@@ -378,7 +379,7 @@ export const SchoolDetailsModal = ({
                         >
                           <div>
                             <p className="font-medium text-brand-heading">
-                              {student.user.first_name} {student.user.last_name}
+                              {formatTitle(student.user.first_name ?? "")} {formatTitle(student.user.last_name ?? "")}
                             </p>
                             <p className="text-sm text-brand-light-accent-1">
                               {student.user.email} • {student.student_id}
@@ -423,7 +424,7 @@ export const SchoolDetailsModal = ({
                           className="p-3 bg-gray-50 rounded-lg"
                         >
                           <p className="font-medium text-brand-heading">
-                            {classItem.name}
+                            {formatTitle(classItem.name ?? "")}
                           </p>
                           <p className="text-xs text-brand-light-accent-1">
                             {classItem.classId}
@@ -462,7 +463,7 @@ export const SchoolDetailsModal = ({
                           >
                             <div className="min-w-0">
                               <p className="font-medium text-brand-heading">
-                                {subject.name}
+                                {formatTitle(subject.name ?? "")}
                               </p>
                               <p className="text-xs text-brand-light-accent-1">
                                 {subject.code ?? "—"}

@@ -24,12 +24,16 @@ interface AcademicResultsTableProps {
   data: StudentResultsData | undefined;
   isLoading: boolean;
   errorMessage: string | null;
+  studentId?: string;
+  academicSessionId?: string;
 }
 
 export function AcademicResultsTable({
   data,
   isLoading,
   errorMessage,
+  studentId,
+  academicSessionId,
 }: AcademicResultsTableProps) {
   const [activeTerm, setActiveTerm] = useState("Current Term");
   const [selectedSubject, setSelectedSubject] =
@@ -171,6 +175,8 @@ export function AcademicResultsTable({
         isOpen={showDownloadModal}
         onClose={() => setShowDownloadModal(false)}
         term={activeTerm}
+        studentId={studentId}
+        academicSessionId={academicSessionId}
       />
     </>
   );

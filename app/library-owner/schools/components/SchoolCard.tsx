@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { School } from "@/hooks/library-owner/use-library-owner-schools";
+import { formatTitle } from "@/lib/text-formatter";
 import { Building2, Mail, Phone, MapPin, Eye } from "lucide-react";
 import Image from "next/image";
 
@@ -44,7 +45,7 @@ export const SchoolCard = ({ school, onViewDetails }: SchoolCardProps) => {
               <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
                 <Image
                   src={school.school_icon.url}
-                  alt={school.school_name}
+                  alt={formatTitle(school.school_name ?? "")}
                   fill
                   className="object-cover"
                 />
@@ -56,10 +57,10 @@ export const SchoolCard = ({ school, onViewDetails }: SchoolCardProps) => {
             )}
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-brand-heading truncate">
-                {school.school_name}
+                {formatTitle(school.school_name ?? "")}
               </h3>
               <p className="text-sm text-brand-light-accent-1 truncate">
-                {getTypeLabel(school.school_type)} • {school.school_ownership}
+                {getTypeLabel(school.school_type)} • {formatTitle(school.school_ownership ?? "")}
               </p>
             </div>
           </div>
@@ -80,7 +81,7 @@ export const SchoolCard = ({ school, onViewDetails }: SchoolCardProps) => {
           </div>
           <div className="flex items-center gap-2 text-brand-light-accent-1">
             <MapPin className="h-4 w-4" />
-            <span className="truncate">{school.school_address}</span>
+            <span className="truncate">{formatTitle(school.school_address ?? "")}</span>
           </div>
         </div>
 

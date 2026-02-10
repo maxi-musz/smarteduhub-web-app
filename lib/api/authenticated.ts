@@ -215,10 +215,66 @@ export async function makeAuthenticatedRequest<T = unknown>(
   }
 }
 
+/**
+ * Fetch a binary response (e.g. PDF) with auth. Returns the blob; does not parse JSON.
+ * On error (non-2xx), tries to parse JSON body for message and throws AuthenticatedApiError.
+ */
+export async function fetchAuthenticatedBlob(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<Blob> {
+  const session = await getSession();
+  if (!session?.user?.accessToken) {
+    await handleAuthenticationError(
+      "Your session has expired. Please login again."
+    );
+  }
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${session!.user.accessToken}`,
+    ...((options.headers as Record<string, string>) || {}),
+  };
+  const schoolId = session?.user?.schoolId;
+  if (schoolId) headers["school_id"] = schoolId;
+
+  let baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
+  if (!baseUrl) {
+    throw new AuthenticatedApiError(
+      "Backend URL not configured. Please check your environment variables.",
+      500
+    );
+  }
+  if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+    baseUrl = `https://${baseUrl}`;
+  }
+  baseUrl = baseUrl.replace(/\/$/, "");
+  const fullUrl = `${baseUrl}${endpoint}`;
+  const response = await fetch(fullUrl, { ...options, method: options.method || "GET", headers });
+  if (response.status === 401) {
+    await handleAuthenticationError(
+      "Your session has expired. Please login again."
+    );
+  }
+  if (!response.ok) {
+    const text = await response.text();
+    let message = `Request failed with status ${response.status}`;
+    try {
+      const data = text ? JSON.parse(text) : {};
+      if (data?.message) message = data.message;
+    } catch {
+      // use default message
+    }
+    throw new AuthenticatedApiError(message, response.status, { success: false, message });
+  }
+  return response.blob();
+}
+
 // Convenience methods for different HTTP methods
 export const authenticatedApi = {
   get: <T = unknown>(endpoint: string, options?: RequestInit) =>
     makeAuthenticatedRequest<T>(endpoint, { ...options, method: "GET" }),
+
+  getBlob: (endpoint: string, options?: RequestInit) =>
+    fetchAuthenticatedBlob(endpoint, { ...options, method: "GET" }),
 
   post: <T = unknown>(
     endpoint: string,
